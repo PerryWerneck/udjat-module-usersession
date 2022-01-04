@@ -32,6 +32,12 @@
 
 		class Session;
 
+		/// @brief User events.
+		enum Event : uint8_t {
+			logon,
+			logoff
+		};
+
 		/// @brief User session controller.
 		class UDJAT_API Controller {
 		private:
@@ -89,6 +95,9 @@
 			std::string sid;			///< @brief LoginD session ID.
 
 #endif // _WIN32
+
+		protected:
+			virtual Session & onEvent(const Event &event) noexcept;
 
 		public:
 			Session();

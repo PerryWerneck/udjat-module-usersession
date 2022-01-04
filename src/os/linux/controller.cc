@@ -44,14 +44,22 @@
 			}
 
 			// Reset states, just in case of some other one have an instance of this session.
-			session->state.alive = session->state.remote = false;
+			if(session->state.alive) {
+				session->onEvent(logoff);
+				session->state.alive = false;
+			}
+			session->state.remote = false;
 			session->state.locked = true;
 			return true;
 		});
 
 		// Create new sessions.
 		for(int id = 0; id < idCount; id++) {
-			find(ids[id])->state.alive = true;
+			auto session = find(ids[id]);
+			if(!session->state.alive) {
+				session->state.alive = true;
+				session->onEvent(logon);
+			}
 		}
 
 		// Cleanup
@@ -170,6 +178,10 @@
 
 		});
 
+	}
+
+	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
+		return *this;
 	}
 
  }
