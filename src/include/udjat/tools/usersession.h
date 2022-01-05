@@ -149,5 +149,13 @@
 		return session->to_string();
 	}
 
+	inline ostream& operator<< (ostream& os, const Udjat::User::Session &session) {
+		return os << session.to_string();
+	}
+
+	inline ostream& operator<< (ostream& os, const std::shared_ptr<Udjat::User::Session> &session) {
+		return os << session->to_string();
+	}
+
  }
 

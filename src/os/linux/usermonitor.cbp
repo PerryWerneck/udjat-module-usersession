@@ -43,6 +43,7 @@
 			<Add option="-pthread" />
 		</Linker>
 		<Unit filename="../../controller.cc" />
+		<Unit filename="../../include/config.h" />
 		<Unit filename="../../include/udjat/tools/usersession.h" />
 		<Unit filename="../../session.cc" />
 		<Unit filename="../../testprogram/testprogram.cc" />

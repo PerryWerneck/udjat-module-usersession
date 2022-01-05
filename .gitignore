@@ -51,4 +51,5 @@ m4
 po
 scripts
 stamp-h1
-
+Makefile
+config.h

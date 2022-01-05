@@ -17,6 +17,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/// @brief Linux user controller.
+///
+/// References:
+///
+/// <http://www.matthew.ath.cx/misc/dbus>
+/// <https://www.freedesktop.org/software/systemd/man/sd-login.html#>
+///
+
+// gdbus introspect --system --dest org.freedesktop.login1 --object-path /org/freedesktop/login1
+// https://www.freedesktop.org/wiki/Software/systemd/logind/
+
+// https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741
+
  #include <udjat/tools/usersession.h>
  #include <systemd/sd-login.h>
  #include <cstring>
@@ -32,6 +45,10 @@
 
 		char **ids = nullptr;
 		int idCount = sd_get_sessions(&ids);
+
+#ifdef DEBUG
+		cout << "users\tRefreshing " << idCount << " sessions" << endl;
+#endif // DEBUG
 
 		lock_guard<mutex> lock(guard);
 

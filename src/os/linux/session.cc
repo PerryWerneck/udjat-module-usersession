@@ -19,15 +19,58 @@
 
  #include <udjat/tools/usersession.h>
  #include <systemd/sd-login.h>
+ #include <sys/types.h>
  #include <iostream>
+ #include <unistd.h>
+ #include <pwd.h>
 
  using namespace std;
 
  namespace Udjat {
 
+	User::Session::Session() {
+	}
+
+	User::Session::~Session() {
+	}
+
 	bool User::Session::remote() const {
 		// https://www.carta.tech/man-pages/man3/sd_session_is_remote.3.html
 		return (sd_session_is_remote(sid.c_str()) > 0);
+	}
+
+	bool User::Session::locked() const {
+		throw system_error(ENOTSUP,system_category(),"Lock status is not implemented");
+	}
+
+	std::string User::Session::to_string() const noexcept {
+
+		uid_t uid = (uid_t) -1;
+
+		if(sd_session_get_uid(sid.c_str(), &uid)) {
+			string rc{"@"};
+			return rc + sid;
+		}
+
+		int bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+		if (bufsize < 0)
+			bufsize = 16384;
+
+		string rc;
+		char * buf = new char[bufsize];
+
+		struct passwd     pwd;
+		struct passwd   * result;
+		if(getpwuid_r(uid, &pwd, buf, bufsize, &result)) {
+			rc = "@";
+			rc += sid;
+		} else {
+			rc = buf;
+		}
+		delete[] buf;
+
+		return rc;
+
 	}
 
  }
