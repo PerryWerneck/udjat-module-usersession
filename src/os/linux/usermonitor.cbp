@@ -7,12 +7,13 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output=".bin/Debug/User monitor for UDJAT (Linux)" prefix_auto="1" extension_auto="1" />
+				<Option output=".bin/Debug/udjat" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-DDEBUG=1" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -22,6 +23,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-DNDEBUG=1" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -30,9 +32,19 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=c++17" />
+			<Add option="-g" />
+			<Add option="`pkg-config --cflags libsystemd`" />
+			<Add option="-pthread" />
 			<Add directory="../../include" />
 		</Compiler>
+		<Linker>
+			<Add option="`pkg-config --libs libudjat libsystemd`" />
+			<Add option="-pthread" />
+		</Linker>
 		<Unit filename="../../include/udjat/tools/usersession.h" />
+		<Unit filename="../../session.cc" />
+		<Unit filename="../../testprogram/testprogram.cc" />
 		<Unit filename="controller.cc" />
 		<Extensions />
 	</Project>

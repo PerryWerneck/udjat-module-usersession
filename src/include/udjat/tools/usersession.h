@@ -34,8 +34,10 @@
 
 		/// @brief User events.
 		enum Event : uint8_t {
-			logon,
-			logoff
+			already_active,		///< @brief Session is active on controller startup.
+			still_active,		///< @brief Session is active on controller shutdown.
+			logon,				///< @brief User logon detected.
+			logoff				///< @brief User logoff detected.
 		};
 
 		/// @brief User session controller.
@@ -50,6 +52,12 @@
 			/// @brief Update session list from system.
 			void refresh() noexcept;
 
+			/// @brief Initialize controller.
+			void init() noexcept;
+
+			/// @brief Deinitialize controller.
+			void deinit() noexcept;
+
 #ifdef _WIN32
 			std::shared_ptr<Session> find(DWORD sid);
 #else
@@ -62,16 +70,15 @@
 
 		protected:
 
-#ifndef _WIN32
-			void start();
-#endif // !_WIN32
-
 			/// @brief Session factory called every time the controller detects a new user session.
 			virtual std::shared_ptr<Session> SessionFactory() noexcept;
 
 		public:
 			Controller();
 			virtual ~Controller();
+
+			void start();
+			void stop();
 
 		};
 
@@ -122,6 +129,20 @@
 			}
 
 		};
+	}
+
+ }
+
+ namespace std {
+
+	const char * to_string(const Udjat::User::Event event) noexcept;
+
+	inline const string to_string(const Udjat::User::Session &session) noexcept {
+		return session.to_string();
+	}
+
+	inline const string to_string(std::shared_ptr<Udjat::User::Session> session) noexcept {
+		return session->to_string();
 	}
 
  }
