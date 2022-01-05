@@ -18,11 +18,18 @@
  */
 
  #include <udjat/tools/usersession.h>
+ #include <systemd/sd-login.h>
  #include <iostream>
 
  using namespace std;
 
  namespace Udjat {
+
+	User::Session::Session() {
+	}
+
+	User::Session::~Session() {
+	}
 
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG
@@ -32,6 +39,11 @@
 				<< endl;
 #endif // DEBUG
 		return *this;
+	}
+
+	bool User::Session::remote() const {
+		// https://www.carta.tech/man-pages/man3/sd_session_is_remote.3.html
+		return (sd_session_is_remote(sid.c_str()) > 0);
 	}
 
  }

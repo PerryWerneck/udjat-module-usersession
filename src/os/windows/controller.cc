@@ -20,7 +20,7 @@
  #include <winsock2.h>
  #include <windows.h>
  #include <wtsapi32.h>
- #include <windows/exception.h>
+ #include <udjat/win32/exception.h>
 
  #include <udjat/tools/usersession.h>
  #include <udjat/win32/exception.h>
@@ -28,6 +28,10 @@
  #include <iostream>
 
  using namespace std;
+
+ #ifndef PACKAGE_NAME
+	#define PACKAGE_NAME "UDJAT-USER-MONITOR"
+ #endif // PACKAGE_NAME
 
  #define WM_START_MONITOR	WM_USER+100
  #define WM_REFRESH			WM_USER+101
@@ -163,11 +167,11 @@
 				std::shared_ptr<Session> session;
 
 				if(starting) {
-					session = controller.SessionFactory(sessions[ix].SessionId);
+					session = SessionFactory();
 					session->sid = sessions[ix].SessionId;
-					sessions.push_back(session);
+					this->sessions.push_back(session);
 				} else {
-					session = controller.find(sessions[ix].SessionId);
+					session = find(sessions[ix].SessionId);
 				}
 				session->state.alive = true;
 
@@ -198,7 +202,7 @@
 					break;
 
 				case WTSIdle:
-					cout << "@" << session->sid; << "\tThe WinStation is waiting for a client to connect." << endl;
+					cout << "@" << session->sid << "\tThe WinStation is waiting for a client to connect." << endl;
 					break;
 
 				case WTSListen:
@@ -256,7 +260,7 @@
 
 				switch((int) wParam) {
 				case WTS_SESSION_LOCK:				// The session has been locked.
-					cout << "users\tWTS_SESSION_LOCK " << sid << endl;
+					cout << "users\tWTS_SESSION_LOCK " << session->sid << endl;
 					if(!session->state.locked) {
 						session->state.locked = true;
 						session->onEvent(lock);
@@ -264,7 +268,7 @@
 					break;
 
 				case WTS_SESSION_UNLOCK:			// The session identified has been unlocked.
-					cout << "users\tWTS_SESSION_UNLOCK " << sid << endl;
+					cout << "users\tWTS_SESSION_UNLOCK " << session->sid << endl;
 					if(session->state.locked) {
 						session->state.locked = false;
 						session->onEvent(unlock);
@@ -272,48 +276,48 @@
 					break;
 
 				case WTS_CONSOLE_CONNECT:			// The session was connected to the console terminal or RemoteFX session.
-					cout << "users\tWTS_CONSOLE_CONNECT " << sid << endl;
+					cout << "users\tWTS_CONSOLE_CONNECT " << session->sid << endl;
 					break;
 
 				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
-					cout << "users\tWTS_CONSOLE_DISCONNECT " << sid << endl;
+					cout << "users\tWTS_CONSOLE_DISCONNECT " << session->sid << endl;
 					break;
 
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
-					cout << "users\tWTS_REMOTE_CONNECT " << sid << endl;
+					cout << "users\tWTS_REMOTE_CONNECT " << session->sid << endl;
 					session->state.remote = true;
 					break;
 
 				case WTS_REMOTE_DISCONNECT:			// The session was disconnected from the remote terminal.
-					cout << "users\tWTS_REMOTE_DISCONNECT " << sid << endl;
+					cout << "users\tWTS_REMOTE_DISCONNECT " << session->sid << endl;
 					session->state.remote = true;
 					break;
 
 				case WTS_SESSION_LOGON:				// A user has logged on to the session.
-					cout << "users\tWTS_SESSION_LOGON " << sid << endl;
+					cout << "users\tWTS_SESSION_LOGON " << session->sid << endl;
 					session->onEvent(logon);
 					break;
 
 				case WTS_SESSION_LOGOFF:			// A user has logged off the session.
-					cout << "users\tWTS_SESSION_LOGOFF " << sid << endl;
+					cout << "users\tWTS_SESSION_LOGOFF " << session->sid << endl;
 					session->onEvent(logoff);
-					session->state.active = false;
+					session->state.alive = false;
 					{
-						lock_guard<mutex> lock(guard);
-						sessions.remove(session);
+						lock_guard<mutex> lock(controller.guard);
+						controller.sessions.remove(session);
 					}
 					break;
 
 				case WTS_SESSION_REMOTE_CONTROL:	// The session has changed its remote controlled status.
-					cout << "users\tWTS_SESSION_REMOTE_CONTROL " << sid << endl;
+					cout << "users\tWTS_SESSION_REMOTE_CONTROL " << session->sid << endl;
 					break;
 
 				case WTS_SESSION_CREATE:			// Reserved for future use.
-					cout << "users\tWTS_SESSION_CREATE " << sid << endl;
+					cout << "users\tWTS_SESSION_CREATE " << session->sid << endl;
 					break;
 
 				case WTS_SESSION_TERMINATE:			// Reserved for future use.
-					cout << "users\tWTS_SESSION_TERMINATE " << sid << endl;
+					cout << "users\tWTS_SESSION_TERMINATE " << session->sid << endl;
 					break;
 
 				default:

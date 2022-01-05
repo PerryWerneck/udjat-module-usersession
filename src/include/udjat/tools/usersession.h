@@ -39,6 +39,7 @@
 			logon,				///< @brief User logon detected.
 			logoff,				///< @brief User logoff detected.
 			lock,				///< @brief Session was locked.
+			unlock,				///< @brief Session was unlocked.
 		};
 
 		/// @brief User session controller.
@@ -64,7 +65,7 @@
 
 #ifdef _WIN32
 			HWND hwnd = 0;
-			static LRESULT WINAPI User::Controller::hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+			static LRESULT WINAPI hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 			void load(bool starting) noexcept;
 			std::shared_ptr<Session> find(DWORD sid);
 #else

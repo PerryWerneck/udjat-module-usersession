@@ -19,19 +19,20 @@
 
  #include <udjat/tools/usersession.h>
  #include <iostream>
+ #include <windows.h>
 
  using namespace std;
 
  namespace Udjat {
 
-	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
-#ifdef DEBUG
-		cout << "session\t sid=" << this->sid << " Event=" << (int) event
-				<< " Alive=" << (alive() ? "Yes" : "No")
-				<< " Remote=" << (remote() ? "Yes" : "No")
-				<< endl;
-#endif // DEBUG
-		return *this;
+	User::Session::Session() {
+	}
+
+	User::Session::~Session() {
+	}
+
+	bool User::Session::remote() const {
+		return state.remote;
 	}
 
  }
