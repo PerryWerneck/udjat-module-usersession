@@ -33,8 +33,8 @@
 	#define PACKAGE_NAME "UDJAT-USER-MONITOR"
  #endif // PACKAGE_NAME
 
- #define WM_START_MONITOR	WM_USER+100
- #define WM_REFRESH			WM_USER+101
+ #define WM_START		WM_USER+100
+ #define WM_REFRESH		WM_USER+101
 
  namespace Udjat {
 
@@ -138,7 +138,7 @@
 			cerr << "users\t" << Win32::Exception::format("WTSRegisterSessionNotification") << endl;
 		}
 
-		PostMessage(hwnd,WM_START_MONITOR,0,0);
+		PostMessage(hwnd,WM_START,0,0);
 
 	}
 
@@ -353,7 +353,7 @@
 			cout << "users\tWM_ENDSESSION" << endl;
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 
-		case WM_START_MONITOR:
+		case WM_START:
 			cout << "users\tLoading active sessions" << endl;
 			controller.load(true);
 			break;

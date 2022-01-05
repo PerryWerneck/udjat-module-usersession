@@ -32,8 +32,8 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-std=c++17" />
 			<Add option="-g" />
+			<Add option="-std=c++17" />
 			<Add option="`pkg-config --cflags libudjat`" />
 			<Add option="-pthread" />
 			<Add directory="../../include" />
@@ -41,6 +41,7 @@
 		<Linker>
 			<Add option="`pkg-config --libs libudjat`" />
 			<Add option="-pthread" />
+			<Add library="wtsapi32" />
 		</Linker>
 		<Unit filename="../../controller.cc" />
 		<Unit filename="../../include/udjat/tools/usersession.h" />
