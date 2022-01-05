@@ -37,7 +37,8 @@
 			already_active,		///< @brief Session is active on controller startup.
 			still_active,		///< @brief Session is active on controller shutdown.
 			logon,				///< @brief User logon detected.
-			logoff				///< @brief User logoff detected.
+			logoff,				///< @brief User logoff detected.
+			lock,				///< @brief Session was locked.
 		};
 
 		/// @brief User session controller.
@@ -62,13 +63,14 @@
 			void setup(std::shared_ptr<Session> session) noexcept;
 
 #ifdef _WIN32
+			HWND hwnd = 0;
+			static LRESULT WINAPI User::Controller::hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+			void load(bool starting) noexcept;
 			std::shared_ptr<Session> find(DWORD sid);
 #else
 			std::shared_ptr<Session> find(const char * sid);
-
 			std::thread *monitor = nullptr;
 			bool enabled = false;
-
 #endif // _WIN32
 
 		protected:
@@ -92,6 +94,10 @@
 
 			struct {
 				bool alive = false;		///< @brief True if the session is alive.
+#ifdef _WIN32
+				bool remote = false;	///< @brief True if the session is remote.
+				bool locked = false;	///< @brief True if the session is locked.
+#endif // _WIN32
 			} state;
 
 #ifdef _WIN32

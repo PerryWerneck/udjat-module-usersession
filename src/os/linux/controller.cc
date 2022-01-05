@@ -119,11 +119,6 @@
 		return session;
 	}
 
-	std::shared_ptr<User::Session> User::Controller::SessionFactory() noexcept {
-		// Default method, just create an empty session.
-		return make_shared<User::Session>();
-	}
-
 	User::Controller::Controller() {
 	}
 

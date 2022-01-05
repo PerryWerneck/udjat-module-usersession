@@ -2,7 +2,7 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="User monitor for UDJAT (Linux)" />
+		<Option title="User monitor for UDJAT (Windows)" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -17,7 +17,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output=".bin/Release/User monitor for UDJAT (Linux)" prefix_auto="1" extension_auto="1" />
+				<Option output=".bin/Release/User monitor for UDJAT (Windows)" prefix_auto="1" extension_auto="1" />
 				<Option object_output=".obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -34,12 +34,12 @@
 			<Add option="-Wall" />
 			<Add option="-std=c++17" />
 			<Add option="-g" />
-			<Add option="`pkg-config --cflags libsystemd`" />
+			<Add option="`pkg-config --cflags libudjat`" />
 			<Add option="-pthread" />
 			<Add directory="../../include" />
 		</Compiler>
 		<Linker>
-			<Add option="`pkg-config --libs libudjat libsystemd`" />
+			<Add option="`pkg-config --libs libudjat`" />
 			<Add option="-pthread" />
 		</Linker>
 		<Unit filename="../../controller.cc" />
