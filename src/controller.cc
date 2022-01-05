@@ -30,7 +30,7 @@
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
 #ifdef DEBUG
-			cout << "users\tInitializng session @" << session->sid << endl;
+			cout << "users\tInitializing session @" << session->sid << endl;
 #endif // DEBUG
 			session->state.alive = true;
 			session->onEvent(already_active);
@@ -44,7 +44,7 @@
 		for(auto session : sessions) {
 			if(session->state.alive) {
 #ifdef DEBUG
-				cout << "users\tDeinitializng session @" << session->sid << endl;
+				cout << "users\tDeinitializing session @" << session->sid << endl;
 #endif // DEBUG
 				session->onEvent(still_active);
 				session->state.alive = false;
