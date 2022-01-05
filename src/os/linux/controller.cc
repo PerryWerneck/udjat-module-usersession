@@ -82,8 +82,6 @@
 				session->onEvent(logoff);
 				session->state.alive = false;
 			}
-			session->state.remote = false;
-			session->state.locked = true;
 			return true;
 		});
 
@@ -91,6 +89,9 @@
 		for(int id = 0; id < idCount; id++) {
 			auto session = find(ids[id]);
 			if(!session->state.alive) {
+#ifdef DEBUG
+				cout << "Logon on SID " << ids[id] << endl;
+#endif // DEBUG
 				session->state.alive = true;
 				session->onEvent(logon);
 			}
@@ -113,6 +114,7 @@
 		// Not found, create a new one.
 		std::shared_ptr<Session> session = SessionFactory();
 		session->sid = sid;
+		sessions.push_back(session);
 
 		return session;
 	}
@@ -218,5 +220,6 @@
 		deinit(); // Just in case.
 
 	}
+
 
  }

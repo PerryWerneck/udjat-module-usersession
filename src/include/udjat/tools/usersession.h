@@ -58,6 +58,9 @@
 			/// @brief Deinitialize controller.
 			void deinit() noexcept;
 
+			/// @brief Setup session.
+			void setup(std::shared_ptr<Session> session) noexcept;
+
 #ifdef _WIN32
 			std::shared_ptr<Session> find(DWORD sid);
 #else
@@ -89,8 +92,6 @@
 
 			struct {
 				bool alive = false;		///< @brief True if the session is alive.
-				bool remote = false;	///< @brief True if it is a remote session.
-				bool locked = false;	///< @brief True if the session is locked.
 			} state;
 
 #ifdef _WIN32
@@ -114,14 +115,10 @@
 			std::string to_string() const noexcept;
 
 			/// @brief Is this session a remote one?
-			inline bool remote() const noexcept {
-				return state.remote;
-			}
+			bool remote() const;
 
 			/// @brief Is this session locked?
-			inline bool locked() const noexcept {
-				return state.locked;
-			}
+			bool locked() const;
 
 			/// @brief Is this session alive?
 			inline bool alive() const noexcept {
