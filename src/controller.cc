@@ -25,7 +25,35 @@
 
  namespace Udjat {
 
-   std::shared_ptr<User::Session> User::Controller::SessionFactory() noexcept {
+	void User::Controller::init() noexcept {
+
+		lock_guard<mutex> lock(guard);
+		for(auto session : sessions) {
+#ifdef DEBUG
+			cout << "users\tInitializng session @" << session->sid << endl;
+#endif // DEBUG
+			session->state.alive = true;
+			session->onEvent(already_active);
+		}
+
+	}
+
+	void User::Controller::deinit() noexcept {
+
+		lock_guard<mutex> lock(guard);
+		for(auto session : sessions) {
+			if(session->state.alive) {
+#ifdef DEBUG
+				cout << "users\tDeinitializng session @" << session->sid << endl;
+#endif // DEBUG
+				session->onEvent(still_active);
+				session->state.alive = false;
+			}
+		}
+
+	}
+
+	std::shared_ptr<User::Session> User::Controller::SessionFactory() noexcept {
 		// Default method, just create an empty session.
 		return make_shared<User::Session>();
 	}

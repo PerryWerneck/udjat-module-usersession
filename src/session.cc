@@ -24,6 +24,12 @@
 
  namespace Udjat {
 
+	User::Session::Session() {
+	}
+
+	User::Session::~Session() {
+	}
+
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG
 		cout << "session\t sid=" << this->sid << " Event=" << (int) event

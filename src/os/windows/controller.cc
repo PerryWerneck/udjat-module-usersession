@@ -38,14 +38,6 @@
 
  namespace Udjat {
 
- 	void User::Controller::init() noexcept {
-
- 	}
-
- 	void User::Controller::deinit() noexcept {
-
- 	}
-
 	void User::Controller::refresh() noexcept {
 		PostMessage(hwnd,WM_REFRESH,0,0);
 	}
@@ -224,10 +216,6 @@
 				default:
 					cout << "@" << sessions[ix].SessionId << "\tUnexpected session state" << endl;
 					break;
-				}
-
-				if(starting) {
-					session->onEvent(already_active);
 				}
 
 			}

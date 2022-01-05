@@ -28,41 +28,7 @@
 
  namespace Udjat {
 
- 	void User::Controller::init() noexcept {
-
-		char **ids = nullptr;
-		int idCount = sd_get_sessions(&ids);
-
-		lock_guard<mutex> lock(guard);
-		for(int id = 0; id < idCount; id++) {
-#ifdef DEBUG
-			cout << "init\tsid=" << ids[id] << endl;
-#endif // DEBUG
-			std::shared_ptr<Session> session = SessionFactory();
-			sessions.push_back(session);
-			session->sid = ids[id];
-			session->state.alive = true;
-			session->onEvent(already_active);
-			free(ids[id]);
-		}
-
-		free(ids);
-
- 	}
-
- 	void User::Controller::deinit() noexcept {
-
-		lock_guard<mutex> lock(guard);
-		for(auto session : sessions) {
-			if(session->state.alive) {
-				session->onEvent(still_active);
-				session->state.alive = false;
-			}
-		}
-
- 	}
-
-	void User::Controller::refresh() noexcept {
+ 	void User::Controller::refresh() noexcept {
 
 		char **ids = nullptr;
 		int idCount = sd_get_sessions(&ids);
@@ -138,6 +104,23 @@
 		monitor = new std::thread([this](){
 
 			clog << "users\tlogind monitor is activating" << endl;
+
+			{
+				char **ids = nullptr;
+				int idCount = sd_get_sessions(&ids);
+
+				lock_guard<mutex> lock(guard);
+				for(int id = 0; id < idCount; id++) {
+					std::shared_ptr<Session> session = SessionFactory();
+					session->sid = ids[id];
+					sessions.push_back(session);
+					free(ids[id]);
+				}
+
+				free(ids);
+
+			}
+
 			init();
 
 			sd_login_monitor * monitor = NULL;
@@ -177,7 +160,6 @@
 			}
 
 			clog << "users\tlogind monitor is deactivating" << endl;
-
 			deinit();
 
 			{

@@ -25,12 +25,6 @@
 
  namespace Udjat {
 
-	User::Session::Session() {
-	}
-
-	User::Session::~Session() {
-	}
-
 	bool User::Session::remote() const {
 		return state.remote;
 	}

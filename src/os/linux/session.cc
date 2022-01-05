@@ -25,22 +25,6 @@
 
  namespace Udjat {
 
-	User::Session::Session() {
-	}
-
-	User::Session::~Session() {
-	}
-
-	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
-#ifdef DEBUG
-		cout << "session\t sid=" << this->sid << " Event=" << (int) event
-				<< " Alive=" << (alive() ? "Yes" : "No")
-				<< " Remote=" << (remote() ? "Yes" : "No")
-				<< endl;
-#endif // DEBUG
-		return *this;
-	}
-
 	bool User::Session::remote() const {
 		// https://www.carta.tech/man-pages/man3/sd_session_is_remote.3.html
 		return (sd_session_is_remote(sid.c_str()) > 0);
