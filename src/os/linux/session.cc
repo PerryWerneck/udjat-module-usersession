@@ -106,6 +106,7 @@
 
 	bool User::Session::locked() const {
 
+		int hint = 0;
 		sd_bus* bus = NULL;
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 		sd_bus_message *reply = NULL;
@@ -116,15 +117,6 @@
 
 			string path = getSessionPath(bus,sid);
 
-/*
-	dbus-send \
-			--system \
-			--dest=org.freedesktop.login1 \
-			--print-reply \
-			/org/freedesktop/login1/session/_31 \
-			org.freedesktop.DBus.Properties.Get \
-			string:org.freedesktop.login1.Session string:LockedHint
-*/
 			int rc = sd_bus_call_method(
 							bus,
 							"org.freedesktop.login1",
@@ -136,21 +128,6 @@
 							"ss", "org.freedesktop.login1.Session", "LockedHint"
 						);
 
-
-
-			/*
-			int rc = sd_bus_get_property(
-				bus,
-				"org.freedesktop.login1",
-				"/org/freedesktop/login1/session/_31",
-				"org.freedesktop.DBus.Properties",
-				"LockedHint",
-				&error,
-				&reply,
-				NULL
-			);
-			*/
-
 			if(rc < 0) {
 				throw system_error(-rc,system_category(),error.message);
 			} else if(!reply) {
@@ -158,6 +135,9 @@
 			} else {
 
 				// Get reply.
+				if(sd_bus_message_read(reply,"v","b",&hint) < 0) {
+					throw system_error(-rc,system_category(),"Can't read response from org.freedesktop.DBus.Properties.LockedHint");
+				}
 
 			}
 
@@ -176,59 +156,8 @@
 		}
 		sd_bus_unref(bus);
 
+		return hint != 0;
 
-		return false; // FIX-ME
-
-/*
-
-	sd_bus_call_method
-
-	DBusGMainLoop(set_as_default=True)                        # integrate into gobject main loop
-	bus = dbus.SystemBus()                                    # connect to system wide dbus
-	bus.add_signal_receiver(                                  # define the signal to listen to
-		locker_callback,                                      # callback function
-		'LockedHint',                                         # signal name
-		'org.freedesktop.DBus.Properties.PropertiesChanged',  # interface
-		'org.freedesktop.login1'                              # bus name
-	)
-
-	https://dbus.freedesktop.org/doc/dbus-java/api/org/freedesktop/DBus.Properties.html
-
-	https://cpp.hotexamples.com/examples/-/-/sd_bus_get_property_string/cpp-sd_bus_get_property_string-function-examples.html
-
-
-	int sd_bus_get_property(
-			sd_bus *bus,
-			const char *destination,	"org.freedesktop.login1"
-			const char *path,			"/org/freedesktop/login1/session/_31"
-			const char *interface,		"org.freedesktop.DBus.Properties"
-			const char *member, 		"LockedHint"
-			sd_bus_error *ret_error,
-			sd_bus_message **reply,
-			const char *type
-		);
-
-sd_bus_call_method(bus,
-                        "org.freedesktop.login1"
-                        "/org/freedesktop/login1/session/_31",
-                        "org.freedesktop.DBus.Properties",
-                        "Get",
-                        &error,
-                        &reply,
-                        "ss", "org.freedesktop.login1", "LockedHint");
-
-
-	busctl tree org.freedesktop.login1
-
-	dbus-send \
-			--system \
-			--dest=org.freedesktop.login1 \
-			--print-reply \
-			/org/freedesktop/login1/session/_31 \
-			org.freedesktop.DBus.Properties.Get \
-			string:org.freedesktop.login1.Session string:LockedHint
-
-*/
 	}
 
 	std::string User::Session::to_string() const noexcept {

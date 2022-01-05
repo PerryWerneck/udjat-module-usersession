@@ -113,6 +113,7 @@
 #ifdef _WIN32
 				bool remote = false;	///< @brief True if the session is remote.
 				bool locked = false;	///< @brief True if the session is locked.
+				bool active = false;	///< @brief True if the session is active.
 #endif // _WIN32
 			} state;
 

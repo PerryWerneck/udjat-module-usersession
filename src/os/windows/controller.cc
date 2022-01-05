@@ -89,13 +89,9 @@
 	}
 
 	User::Controller::~Controller() {
-
-		lock_guard<mutex> lock(guard);
 		if(hwnd) {
 			DestroyWindow(hwnd);
-			hwnd = 0;
 		}
-
 	}
 
 	void User::Controller::start() {
@@ -136,7 +132,6 @@
 
 	void User::Controller::stop() {
 
-		lock_guard<mutex> lock(guard);
 		if(!hwnd) {
 			throw runtime_error("User Session monitor is already stopped");
 		}
@@ -331,8 +326,8 @@
 		case WM_DESTROY:
 			cout << "users\tUser monitor window was destroyed (WM_DESTROY)" << endl;
 			if(controller.hwnd) {
-				controller.deinit();
 				WTSUnRegisterSessionNotification(hWnd);
+				controller.deinit();
 				controller.hwnd = 0;
 			}
 			break;

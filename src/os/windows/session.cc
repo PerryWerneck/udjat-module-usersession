@@ -20,6 +20,8 @@
  #include <udjat/tools/usersession.h>
  #include <iostream>
  #include <windows.h>
+ #include <wtsapi32.h>
+ #include <udjat/win32/exception.h>
 
  using namespace std;
 
@@ -33,6 +35,36 @@
 
 	bool User::Session::remote() const {
 		return state.remote;
+	}
+
+	bool User::Session::active() const {
+		return state.active;
+	}
+
+	bool User::Session::locked() const {
+		return state.locked;
+	}
+
+	std::string User::Session::to_string() const noexcept {
+
+		char	* name	= nullptr;
+		DWORD	  szName;
+
+		if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName) == 0) {
+			cerr << "users\t" << Win32::Exception::format( (string{"Can't get username for sid @"} + std::to_string((int) sid)).c_str());
+			return string{"@"} + std::to_string((int) sid);
+		}
+
+		if(name[0] < ' ') {
+			WTSFreeMemory(name);
+			return string{"@"} + std::to_string((int) sid);
+		}
+
+		string user((const char *) name);
+		WTSFreeMemory(name);
+
+		return user;
+
 	}
 
  }
