@@ -51,6 +51,59 @@
 
 	}
 
+	static std::string getSessionPath(sd_bus *bus, const std::string &sid) {
+/*
+	dbus-send \
+			--system \
+			--dest=org.freedesktop.login1 \
+			--print-reply \
+			/org/freedesktop/login1 \
+			org.freedesktop.login1.Manager.GetSession \
+			string:1
+
+*/
+		sd_bus_error error = SD_BUS_ERROR_NULL;
+		sd_bus_message *reply = NULL;
+
+		int rc = sd_bus_call_method(
+						bus,
+						"org.freedesktop.login1",
+						"/org/freedesktop/login1",
+						"org.freedesktop.login1.Manager",
+						"GetSession",
+						&error,
+						&reply,
+						"s", sid.c_str()
+					);
+
+		if(rc < 0) {
+			string message = error.message;
+			sd_bus_error_free(&error);
+			throw system_error(-rc,system_category(),message);
+		} else if(!reply) {
+			throw runtime_error("No reply from org.freedesktop.login1.Manager.GetSession");
+		}
+
+		const char *path = NULL;
+		std::string response;
+		rc = sd_bus_message_read_basic(reply,SD_BUS_TYPE_OBJECT_PATH,&path);
+		if(rc < 0) {
+			sd_bus_message_unref(reply);
+			throw system_error(-rc,system_category(),"org.freedesktop.login1.Manager.GetSession");
+
+		}
+		if(!(path && *path)) {
+			sd_bus_message_unref(reply);
+			throw runtime_error("Empty response from org.freedesktop.login1.Manager.GetSession");
+		}
+
+		response = path;
+
+		sd_bus_message_unref(reply);
+
+		return response;
+	}
+
 	bool User::Session::locked() const {
 
 		sd_bus* bus = NULL;
@@ -60,6 +113,8 @@
 		sd_bus_default_system(&bus);
 
 		try {
+
+			string path = getSessionPath(bus,sid);
 
 /*
 	dbus-send \
@@ -73,13 +128,14 @@
 			int rc = sd_bus_call_method(
 							bus,
 							"org.freedesktop.login1",
-							"/org/freedesktop/login1/session/_31",
+							path.c_str(),
 							"org.freedesktop.DBus.Properties",
 							"Get",
 							&error,
 							&reply,
 							"ss", "org.freedesktop.login1.Session", "LockedHint"
 						);
+
 
 
 			/*
