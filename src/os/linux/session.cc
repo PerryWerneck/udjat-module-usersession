@@ -19,6 +19,7 @@
 
  #include <udjat/tools/usersession.h>
  #include <systemd/sd-login.h>
+ #include <systemd/sd-bus.h>
  #include <sys/types.h>
  #include <iostream>
  #include <unistd.h>
@@ -39,8 +40,139 @@
 		return (sd_session_is_remote(sid.c_str()) > 0);
 	}
 
+	bool User::Session::active() const {
+
+		int rc = sd_session_is_active(sid.c_str());
+		if(rc < 0) {
+			throw system_error(-rc,system_category(),"sd_session_is_active");
+		}
+
+		return rc > 0;
+
+	}
+
 	bool User::Session::locked() const {
-		throw system_error(ENOTSUP,system_category(),"Lock status is not implemented");
+
+		sd_bus* bus = NULL;
+		sd_bus_error error = SD_BUS_ERROR_NULL;
+		sd_bus_message *reply = NULL;
+
+		sd_bus_default_system(&bus);
+
+		try {
+
+/*
+	dbus-send \
+			--system \
+			--dest=org.freedesktop.login1 \
+			--print-reply \
+			/org/freedesktop/login1/session/_31 \
+			org.freedesktop.DBus.Properties.Get \
+			string:org.freedesktop.login1.Session string:LockedHint
+*/
+			int rc = sd_bus_call_method(
+							bus,
+							"org.freedesktop.login1",
+							"/org/freedesktop/login1/session/_31",
+							"org.freedesktop.DBus.Properties",
+							"Get",
+							&error,
+							&reply,
+							"ss", "org.freedesktop.login1.Session", "LockedHint"
+						);
+
+
+			/*
+			int rc = sd_bus_get_property(
+				bus,
+				"org.freedesktop.login1",
+				"/org/freedesktop/login1/session/_31",
+				"org.freedesktop.DBus.Properties",
+				"LockedHint",
+				&error,
+				&reply,
+				NULL
+			);
+			*/
+
+			if(rc < 0) {
+				throw system_error(-rc,system_category(),error.message);
+			} else if(!reply) {
+				throw runtime_error("Empty response from org.freedesktop.DBus.Properties.LockedHint");
+			} else {
+
+				// Get reply.
+
+			}
+
+		} catch(...) {
+			if(reply) {
+				sd_bus_message_unref(reply);
+			}
+			sd_bus_error_free(&error);
+			sd_bus_unref(bus);
+			throw;
+		}
+
+		sd_bus_error_free(&error);
+		if(reply) {
+			sd_bus_message_unref(reply);
+		}
+		sd_bus_unref(bus);
+
+
+		return false; // FIX-ME
+
+/*
+
+	sd_bus_call_method
+
+	DBusGMainLoop(set_as_default=True)                        # integrate into gobject main loop
+	bus = dbus.SystemBus()                                    # connect to system wide dbus
+	bus.add_signal_receiver(                                  # define the signal to listen to
+		locker_callback,                                      # callback function
+		'LockedHint',                                         # signal name
+		'org.freedesktop.DBus.Properties.PropertiesChanged',  # interface
+		'org.freedesktop.login1'                              # bus name
+	)
+
+	https://dbus.freedesktop.org/doc/dbus-java/api/org/freedesktop/DBus.Properties.html
+
+	https://cpp.hotexamples.com/examples/-/-/sd_bus_get_property_string/cpp-sd_bus_get_property_string-function-examples.html
+
+
+	int sd_bus_get_property(
+			sd_bus *bus,
+			const char *destination,	"org.freedesktop.login1"
+			const char *path,			"/org/freedesktop/login1/session/_31"
+			const char *interface,		"org.freedesktop.DBus.Properties"
+			const char *member, 		"LockedHint"
+			sd_bus_error *ret_error,
+			sd_bus_message **reply,
+			const char *type
+		);
+
+sd_bus_call_method(bus,
+                        "org.freedesktop.login1"
+                        "/org/freedesktop/login1/session/_31",
+                        "org.freedesktop.DBus.Properties",
+                        "Get",
+                        &error,
+                        &reply,
+                        "ss", "org.freedesktop.login1", "LockedHint");
+
+
+	busctl tree org.freedesktop.login1
+
+	dbus-send \
+			--system \
+			--dest=org.freedesktop.login1 \
+			--print-reply \
+			/org/freedesktop/login1/session/_31 \
+			org.freedesktop.DBus.Properties.Get \
+			string:org.freedesktop.login1.Session string:LockedHint
+
+*/
 	}
 
 	std::string User::Session::to_string() const noexcept {

@@ -80,11 +80,26 @@
 			virtual std::shared_ptr<Session> SessionFactory() noexcept;
 
 		public:
+			Controller(Controller &) = delete;
+			Controller(Controller *) = delete;
+
 			Controller();
 			virtual ~Controller();
 
 			void start();
 			void stop();
+
+			inline size_t size() const {
+				return sessions.size();
+			}
+
+			inline std::list<std::shared_ptr<Session>>::iterator begin() {
+				return sessions.begin();
+			}
+
+			inline std::list<std::shared_ptr<Session>>::iterator end() {
+				return sessions.end();
+			}
 
 		};
 
@@ -126,6 +141,9 @@
 
 			/// @brief Is this session locked?
 			bool locked() const;
+
+			/// @brief Is this session active?
+			bool active() const;
 
 			/// @brief Is this session alive?
 			inline bool alive() const noexcept {

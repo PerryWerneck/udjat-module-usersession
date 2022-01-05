@@ -17,8 +17,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
  #include <udjat/tools/mainloop.h>
  #include <udjat/tools/usersession.h>
+ #include <iostream>
+
+#ifdef HAVE_SYSTEMD
+	#include <systemd/sd-login.h>
+#endif // HAVE_SYSTEMD
 
  using namespace std;
  using namespace Udjat;
@@ -28,6 +34,30 @@
 	User::Controller userlist;
 
 	userlist.start();
+
+#ifdef HAVE_SYSTEMD
+	MainLoop::getInstance().insert(NULL, 3000UL, [&userlist]() {
+
+		for(auto session : userlist) {
+
+			cout << session;
+
+			try {
+				cout
+					<< "\tactive=" << (session->active() ? "yes" : "no")
+					<< "\tlocked=" << (session->locked() ? "yes" : "no");
+			} catch(const std::exception &e) {
+				cout << endl;
+				cerr << "\tError '" << e.what() << "'" << endl;
+			}
+
+			cout << endl;
+		}
+
+		return true;
+	});
+#endif // HAVE_SYSTEMD
+
 	MainLoop::getInstance().run();
 	userlist.stop();
 
