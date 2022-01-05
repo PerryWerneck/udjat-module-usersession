@@ -66,8 +66,8 @@ case "$host" in
 		AC_SUBST(EXEEXT,.exe)
 		AC_SUBST(OSNAME,windows)
 		AC_SUBST(SONAME,udjatusers.dll)
-dnl		AC_CONFIG_FILES(sdk/windows/dynamic.pc)
-dnl		AC_CONFIG_FILES(sdk/windows/static.pc)
+		AC_CONFIG_FILES(sdk/windows/dynamic.pc)
+		AC_CONFIG_FILES(sdk/windows/static.pc)
 		
 		;;
 
@@ -79,8 +79,8 @@ dnl		AC_CONFIG_FILES(sdk/windows/static.pc)
 		AC_SUBST(EXEEXT)
 		AC_SUBST(OSNAME,linux)
 		AC_SUBST(SONAME,libudjatusers.so.$app_vrs_major.$app_vrs_minor)
-dnl		AC_CONFIG_FILES(sdk/linux/dynamic.pc)
-dnl		AC_CONFIG_FILES(sdk/linux/static.pc)
+		AC_CONFIG_FILES(sdk/linux/dynamic.pc)
+		AC_CONFIG_FILES(sdk/linux/static.pc)
 		
 		PKG_CHECK_MODULES( [SYSTEMD], [libsystemd], AC_DEFINE(HAVE_SYSTEMD,[],[Do we have systemd?]), AC_MSG_NOTICE([libsystemd not present.]) )
 

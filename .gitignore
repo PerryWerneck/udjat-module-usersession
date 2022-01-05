@@ -39,6 +39,7 @@
 
 # Misc
 *~
+*.pc
 ABOUT-NLS
 *.m4
 *.cache
