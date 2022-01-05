@@ -1,0 +1,332 @@
+
+#---[ Library configuration ]------------------------------------------------------------
+
+PACKAGE_NAME=@PACKAGE_NAME@
+SONAME=@SONAME@
+
+MAIN_SOURCES= \
+	$(wildcard src/*.cc) \
+	$(wildcard src/os/@OSNAME@/*.cc)
+
+TEST_SOURCES= \
+	$(wildcard src/testprogram/*.cc)
+
+#---[ Tools ]----------------------------------------------------------------------------
+
+CXX=@CXX@
+LD=@CXX@
+LN_S=@LN_S@
+MKDIR=@MKDIR_P@
+INSTALL=@INSTALL@
+INSTALL_DATA=@INSTALL_DATA@
+INSTALL_PROGRAM=@INSTALL_PROGRAM@
+XGETTEXT=@XGETTEXT@
+MSGCAT=@MSGCAT@
+WINDRES=@WINDRES@
+AR=@AR@
+VALGRIND=@VALGRIND@
+DLLTOOL=@DLLTOOL@
+
+#---[ Paths ]----------------------------------------------------------------------------
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+sbindir=@sbindir@
+libdir=@libdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+localedir=@localedir@
+docdir=@docdir@
+sysconfdir=/etc
+
+BASEDIR=@BASEDIR@
+DLL_LDFLAGS=@DLL_LDFLAGS@
+
+OBJDIR=.obj
+OBJDBG=$(OBJDIR)/Debug
+OBJRLS=$(OBJDIR)/Release
+
+BINDIR=$(BASEDIR)/.bin
+BINDBG=$(BINDIR)/Debug
+BINRLS=$(BINDIR)/Release
+
+#---[ Rules ]----------------------------------------------------------------------------
+
+DEPENDS= \
+	Makefile
+
+CFLAGS= \
+	@CXXFLAGS@ \
+	-Isrc/include \
+	-DBUILD_DATE=`date +%Y%m%d` \
+	@UDJAT_CFLAGS@ \
+	@SYSTEMD_CFLAGS@
+
+LDFLAGS=\
+	@LDFLAGS@
+
+LIBS= \
+	@LIBS@ \
+	@UDJAT_LIBS@ \
+	@SYSTEMD_LIBS@
+
+#---[ Debug Rules ]----------------------------------------------------------------------
+
+$(OBJDBG)/%.o: \
+	%.cc \
+	$(DEPENDS)
+
+	@echo $< ...
+	@$(MKDIR) $(@D)
+
+	@$(CXX) \
+		$(CFLAGS) \
+		-DDEBUG=1 \
+		-MM -MT $@ -MF $(patsubst %.o,%.d,$@) $<
+
+	@$(CXX) \
+		$(CFLAGS) \
+		-Wall -Wextra -fstack-check \
+		-DDEBUG=1 \
+		-o $@ \
+		-c $<
+
+$(OBJDBG)/%.o: \
+	%.rc
+
+	@echo $< ...
+	@$(MKDIR) $(@D)
+	@$(WINDRES) $< -O coff -o $@
+
+#---[ Release Rules ]--------------------------------------------------------------------
+
+$(OBJRLS)/%.o: \
+	%.cc \
+	$(DEPENDS)
+
+	@echo $< ...
+	@$(MKDIR) $(@D)
+
+	@$(CXX) \
+		$(CFLAGS) \
+		-DNDEBUG=1 \
+		-MM -MT $@ -MF $(patsubst %.o,%.d,$@) $<
+
+	@$(CXX) \
+		$(CFLAGS) \
+		-DNDEBUG=1 \
+		-o $@ \
+		-c $<
+
+$(OBJRLS)/%.o: \
+	%.rc
+
+	@echo $< ...
+	@$(MKDIR) $(@D)
+	@$(WINDRES) $< -O coff -o $@
+
+#---[ Release Targets ]------------------------------------------------------------------
+
+all: \
+	$(BINRLS)/$(SONAME)
+
+Release: \
+	$(BINRLS)/$(SONAME)
+
+$(BINRLS)/$(SONAME): \
+	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		$(DLL_LDFLAGS) \
+		-Wl,-soname,$(@F) \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS)
+
+$(BINRLS)/libudjatusers.a: \
+	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(AR) rcs $@ $^
+
+#---[ Install Targets ]------------------------------------------------------------------
+
+install: \
+	install-@OSNAME@ \
+	install-dev
+
+install-linux: \
+	$(BINRLS)/$(SONAME)
+
+	# Install library
+	@$(MKDIR) $(DESTDIR)$(libdir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/$(SONAME) \
+		$(DESTDIR)$(libdir)/$(SONAME)
+		
+install-windows: \
+	$(BINRLS)/@SONAME@
+
+	@$(MKDIR) \
+		$(DESTDIR)$(bindir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/@SONAME@ \
+		$(DESTDIR)$(bindir)/@SONAME@
+		
+install-dev: \
+	install-@OSNAME@-dev \
+	install-@OSNAME@-static 
+	
+	@$(MKDIR) \
+		$(DESTDIR)$(includedir)/udjat/tools
+
+	@$(INSTALL_DATA) \
+		src/include/udjat/tools/*.h \
+		$(DESTDIR)$(includedir)/udjat/tools
+
+	# Install PKG-CONFIG files
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)/pkgconfig
+
+	@$(INSTALL_DATA) \
+		sdk/@OSNAME@/dynamic.pc \
+		$(DESTDIR)$(libdir)/pkgconfig/udjat-users.pc
+
+	@$(INSTALL_DATA) \
+		sdk/@OSNAME@/static.pc \
+		$(DESTDIR)$(libdir)/pkgconfig/udjat-users-static.pc
+
+install-linux-static: \
+	$(BINRLS)/libudjatusers.a
+
+	# Install static library
+	@$(MKDIR) $(DESTDIR)$(libdir)
+	@$(INSTALL_DATA) \
+		$(BINRLS)/libudjatusers.a \
+		$(DESTDIR)$(libdir)/libudjatusers.static.a
+
+install-windows-static: \
+	$(BINRLS)/libudjatusers.a
+
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/libudjatusers.a \
+		$(DESTDIR)$(libdir)/libudjatusers.a
+
+install-linux-dev:
+
+	# Install linux SDK
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)
+
+	@$(LN_S) \
+		$(SONAME) \
+		$(DESTDIR)$(libdir)/libudjatusers.so
+
+install-windows-dev:
+
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)
+
+	@$(DLLTOOL) \
+		--input-def $(BINRLS)/udjatusers.def \
+		--dllname @SONAME@ \
+		--output-lib $(DESTDIR)$(libdir)/libudjatusers.dll.a
+		
+	
+#---[ Uninstall Targets ]----------------------------------------------------------------
+
+uninstall: \
+	uninstall-@OSNAME@
+
+uninstall-linux:
+
+	@rm -f \
+		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
+
+#---[ Debug Targets ]--------------------------------------------------------------------
+
+Debug: \
+	$(BINDBG)/udjat@EXEEXT@
+
+$(BINDBG)/udjat@EXEEXT@: \
+	$(BINDBG)/$(SONAME) \
+	$(foreach SRC, $(basename $(TEST_SOURCES)), $(OBJDBG)/$(SRC).o)
+
+	echo $(TEST_SOURCES)
+	
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		-o $@ \
+		$^ \
+		-L$(BINDBG) \
+		-Wl,-rpath,$(BINDBG) \
+		$(LDFLAGS) \
+		$(LIBS)
+
+
+$(BINDBG)/$(SONAME): \
+	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJDBG)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		$(DLL_LDFLAGS) \
+		-Wl,-soname,$(@F) \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS)
+
+
+run: \
+	$(BINDBG)/udjat@EXEEXT@
+
+ifeq ($(VALGRIND),no)
+
+	@LD_LIBRARY_PATH=$(BINDBG) \
+		$(BINDBG)/udjat@EXEEXT@
+
+else
+	@touch valgrind.suppression
+
+	@LD_LIBRARY_PATH=$(BINDBG) \
+		$(VALGRIND) --leak-check=full --track-origins=yes --gen-suppressions=all --suppressions=valgrind.suppression \
+		$(BINDBG)/udjat@EXEEXT@
+endif
+
+#---[ Clean Targets ]--------------------------------------------------------------------
+
+clean: \
+	cleanDebug \
+	cleanRelease
+
+cleanDebug:
+
+	@rm -fr $(OBJDBG)
+	@rm -fr $(BINDBG)
+
+cleanRelease:
+
+	@rm -fr $(OBJRLS)
+	@rm -fr $(BINRLS)
+
+clean: \
+	cleanDebug \
+	cleanRelease
+
+
+-include $(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJDBG)/$(SRC).d)
+-include $(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).d)
+
+

@@ -39,4 +39,15 @@
 
 # Misc
 *~
+ABOUT-NLS
+*.m4
+*.cache
+*.log
+*.status
+configure
+intl
+m4
+po
+scripts
+stamp-h1
 
