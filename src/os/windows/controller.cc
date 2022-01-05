@@ -337,13 +337,13 @@
 			break;
 
 		case WM_CLOSE:
-			cout << "users\tUser monitor windows is closing (WM_CLOSE)" << endl;
-			DestroyWindow(hWnd);
+			cout << "users\tUser monitor window is closing (WM_CLOSE)" << endl;
 			break;
 
 		case WM_DESTROY:
-			cout << "users\tUser monitor windows destroyed (WM_DESTROY)" << endl;
+			cout << "users\tUser monitor window was destroyed (WM_DESTROY)" << endl;
 			if(controller.hwnd) {
+				controller.deinit();
 				WTSUnRegisterSessionNotification(hWnd);
 				controller.hwnd = 0;
 			}
@@ -356,6 +356,7 @@
 		case WM_START:
 			cout << "users\tLoading active sessions" << endl;
 			controller.load(true);
+			controller.init();
 			break;
 
 		case WM_REFRESH:
