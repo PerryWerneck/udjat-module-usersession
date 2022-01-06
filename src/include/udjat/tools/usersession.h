@@ -51,17 +51,11 @@
 			/// @brief Session list.
 			std::list<std::shared_ptr<Session>> sessions;
 
-			/// @brief Update session list from system.
-			void refresh() noexcept;
-
 			/// @brief Initialize controller.
 			void init() noexcept;
 
 			/// @brief Deinitialize controller.
 			void deinit() noexcept;
-
-			/// @brief Setup session.
-			void setup(std::shared_ptr<Session> session) noexcept;
 
 #ifdef _WIN32
 			HWND hwnd = 0;
@@ -78,6 +72,9 @@
 
 			/// @brief Session factory called every time the controller detects a new user session.
 			virtual std::shared_ptr<Session> SessionFactory() noexcept;
+
+			/// @brief Update session list from system.
+			void refresh() noexcept;
 
 		public:
 			Controller(Controller &) = delete;
@@ -172,7 +169,7 @@
 		return os << session.to_string();
 	}
 
-	inline ostream& operator<< (ostream& os, const std::shared_ptr<Udjat::User::Session> &session) {
+	inline ostream& operator<< (ostream& os, const std::shared_ptr<Udjat::User::Session> session) {
 		return os << session->to_string();
 	}
 

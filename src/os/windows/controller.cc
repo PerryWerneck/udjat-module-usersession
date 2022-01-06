@@ -260,19 +260,23 @@
 
 				case WTS_CONSOLE_CONNECT:			// The session was connected to the console terminal or RemoteFX session.
 					cout << "users\tWTS_CONSOLE_CONNECT " << session->sid << endl;
+					session->state.active = true;
 					break;
 
 				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
 					cout << "users\tWTS_CONSOLE_DISCONNECT " << session->sid << endl;
+					session->state.active = false;
 					break;
 
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
 					cout << "users\tWTS_REMOTE_CONNECT " << session->sid << endl;
+					session->state.active = true;
 					session->state.remote = true;
 					break;
 
 				case WTS_REMOTE_DISCONNECT:			// The session was disconnected from the remote terminal.
 					cout << "users\tWTS_REMOTE_DISCONNECT " << session->sid << endl;
+					session->state.active = false;
 					session->state.remote = true;
 					break;
 
