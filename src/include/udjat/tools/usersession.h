@@ -143,6 +143,9 @@
 			/// @brief Is this session active?
 			bool active() const;
 
+			/// @brief Is this a 'system' session?
+			bool system() const;
+
 			/// @brief Is this session alive?
 			inline bool alive() const noexcept {
 				return state.alive;

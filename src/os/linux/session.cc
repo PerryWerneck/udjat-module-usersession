@@ -160,6 +160,19 @@
 
 	}
 
+	bool User::Session::system() const {
+
+		uid_t uid = (uid_t) 0;
+
+		int rc = sd_session_get_uid(sid.c_str(), &uid);
+		if(rc < 0) {
+			throw system_error(-rc,system_category(),string{"Cant get UID for session '"} + sid + "'");
+		}
+
+		return uid < 1000;
+
+	}
+
 	std::string User::Session::to_string() const noexcept {
 
 		uid_t uid = (uid_t) -1;
