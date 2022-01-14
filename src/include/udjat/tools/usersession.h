@@ -84,8 +84,11 @@
 			Controller();
 			virtual ~Controller();
 
-			void start();
-			void stop();
+			/// @brief Start monitor, load users.
+			void load();
+
+			/// @brief Stop monitor, unload users.
+			void unload();
 
 			void for_each(std::function<void(std::shared_ptr<Session>)> callback);
 

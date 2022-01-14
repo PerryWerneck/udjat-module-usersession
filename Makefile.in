@@ -4,7 +4,7 @@
 PACKAGE_NAME=@PACKAGE_NAME@
 SONAME=@SONAME@
 
-MAIN_SOURCES= \
+LIBRARY_SOURCES= \
 	$(wildcard src/library/*.cc) \
 	$(wildcard src/library/os/@OSNAME@/*.cc)
 
@@ -135,10 +135,11 @@ all: \
 	$(BINRLS)/$(SONAME)
 
 Release: \
-	$(BINRLS)/$(SONAME)
+	$(BINRLS)/$(SONAME) \
+	$(BINRLS)/$(PACKAGE_NAME).so
 
 $(BINRLS)/$(SONAME): \
-	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).o)
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
@@ -151,11 +152,25 @@ $(BINRLS)/$(SONAME): \
 		$(LIBS)
 
 $(BINRLS)/libudjatusers.a: \
-	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).o)
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
 	@$(AR) rcs $@ $^
+
+$(BINRLS)/$(PACKAGE_NAME).so: \
+	$(BINRLS)/$(SONAME) \
+	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJRLS)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		-shared \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS)
+
 
 #---[ Install Targets ]------------------------------------------------------------------
 
@@ -263,10 +278,9 @@ Debug: \
 
 $(BINDBG)/udjat@EXEEXT@: \
 	$(BINDBG)/$(SONAME) \
+	$(BINDBG)/$(PACKAGE_NAME).so \
 	$(foreach SRC, $(basename $(TEST_SOURCES)), $(OBJDBG)/$(SRC).o)
 
-	echo $(TEST_SOURCES)
-	
 	@$(MKDIR) $(@D)
 	@echo $< ...
 	@$(LD) \
@@ -279,13 +293,27 @@ $(BINDBG)/udjat@EXEEXT@: \
 
 
 $(BINDBG)/$(SONAME): \
-	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJDBG)/$(SRC).o)
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJDBG)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
 	@$(LD) \
 		$(DLL_LDFLAGS) \
 		-Wl,-soname,$(@F) \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS)
+
+$(BINDBG)/$(PACKAGE_NAME).so: \
+	$(BINDBG)/$(SONAME) \
+	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJDBG)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		-shared \
+		-Wl,-rpath,$(BINDBG) \
 		-o $@ \
 		$(LDFLAGS) \
 		$^ \
@@ -329,7 +357,7 @@ clean: \
 	cleanRelease
 
 
--include $(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJDBG)/$(SRC).d)
--include $(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJDBG)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).d)
 
 

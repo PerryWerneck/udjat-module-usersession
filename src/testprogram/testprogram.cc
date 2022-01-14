@@ -33,7 +33,7 @@
 
 	User::Controller userlist;
 
-	userlist.start();
+	userlist.load();
 
 #ifdef HAVE_SYSTEMD
 	MainLoop::getInstance().insert(NULL, 3000UL, [&userlist]() {
@@ -59,7 +59,7 @@
 #endif // HAVE_SYSTEMD
 
 	MainLoop::getInstance().run();
-	userlist.stop();
+	userlist.unload();
 
 	return 0;
  }

@@ -29,3 +29,11 @@
 	return instance;
  }
 
+ void Controller::start() {
+ 	Udjat::User::Controller::load();
+ }
+
+ void Controller::stop() {
+ 	Udjat::User::Controller::unload();
+ }
+

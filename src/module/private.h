@@ -22,15 +22,19 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/usersession.h>
+ #include <udjat/tools/mainloop.h>
  #include <system_error>
 
  /// @brief Singleton with the users list.
- class Controller : public Udjat::User::Controller {
+ class Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
  private:
-	std::mutex guard;
+	static std::mutex guard;
  	Controller() = default;
 
  public:
 	static Controller & getInstance();
+
+	void start() override;
+	void stop() override;
 
  };

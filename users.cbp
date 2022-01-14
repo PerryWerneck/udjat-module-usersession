@@ -36,9 +36,14 @@
 			<Add option="-std=c++17" />
 			<Add directory="src/include" />
 		</Compiler>
-		<Unit filename="src/controller.cc" />
 		<Unit filename="src/include/config.h" />
 		<Unit filename="src/include/udjat/tools/usersession.h" />
+		<Unit filename="src/library/controller.cc" />
+		<Unit filename="src/library/os/linux/controller.cc" />
+		<Unit filename="src/library/os/linux/session.cc" />
+		<Unit filename="src/library/os/windows/controller.cc" />
+		<Unit filename="src/library/os/windows/session.cc" />
+		<Unit filename="src/library/session.cc" />
 		<Unit filename="src/libusers/include/config.h" />
 		<Unit filename="src/libusers/include/internals.h" />
 		<Unit filename="src/libusers/include/users/defs.h" />
@@ -53,7 +58,6 @@
 		<Unit filename="src/os/linux/session.cc" />
 		<Unit filename="src/os/windows/controller.cc" />
 		<Unit filename="src/os/windows/session.cc" />
-		<Unit filename="src/session.cc" />
 		<Unit filename="src/testprogram/testprogram.cc" />
 		<Extensions />
 	</Project>
