@@ -18,6 +18,7 @@
  */
 
  #include "private.h"
+ #include <udjat/tools/threadpool.h>
 
  using namespace std;
 
@@ -31,6 +32,27 @@
 	}
 	return instance;
  }
+
+ std::shared_ptr<Udjat::User::Session> Controller::SessionFactory() noexcept {
+
+	class Session : public Udjat::User::Session {
+	protected:
+		Udjat::User::Session & onEvent(const Udjat::User::Event &event) noexcept override {
+			::Controller::getInstance()->for_each([this,event](UserList &agent){
+				agent.onEvent(*this,event);
+			});
+			return *this;
+		}
+
+	public:
+		Session() = default;
+
+	};
+
+	return make_shared<Session>();
+
+ }
+
 
  void Controller::start() {
  	Udjat::User::Controller::load();
@@ -50,4 +72,11 @@
 	agents.remove_if([agent](const UserList *ag) {
 		return ag == agent;
 	});
+ }
+
+ void Controller::for_each(std::function<void(UserList &agent)> callback) {
+	lock_guard<mutex> lock(guard);
+	for(auto agent : agents) {
+		callback(*agent);
+	}
  }

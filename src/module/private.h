@@ -38,6 +38,7 @@
  public:
 	UserList(const pugi::xml_node &node);
 	virtual ~UserList();
+	void onEvent(Udjat::User::Session &session, const Udjat::User::Event &event) noexcept;
 
  };
 
@@ -49,6 +50,10 @@
  	/// @brief List of active userlist agents.
  	std::list<UserList *> agents;
 
+ protected:
+
+	std::shared_ptr<Udjat::User::Session> SessionFactory() noexcept override;
+
  public:
 	Controller() = default;
 	static std::shared_ptr<Controller> getInstance();
@@ -58,5 +63,7 @@
 
 	void insert(UserList *agent);
 	void remove(UserList *agent);
+
+	void for_each(std::function<void(UserList &agent)> callback);
 
  };

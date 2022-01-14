@@ -31,3 +31,15 @@
 	controller->remove(this);
 	cout << getName() << "Users list destroyed" << endl;
  }
+
+ void UserList::onEvent(Udjat::User::Session &session, const Udjat::User::Event &event) noexcept {
+
+ 	try {
+
+		cout << getName() << "\tname=" << session.to_string() << " event=" << event << endl;
+
+ 	} catch(const std::exception &e) {
+		cerr << getName() << "\t" << e.what() << endl;
+ 	}
+
+ }
