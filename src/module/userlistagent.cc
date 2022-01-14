@@ -20,34 +20,14 @@
  #include "private.h"
 
  using namespace std;
+ using namespace Udjat;
 
- mutex Controller::guard;
-
- std::shared_ptr<Controller> Controller::getInstance() {
-	lock_guard<mutex> lock(guard);
-	static std::shared_ptr<Controller> instance;
-	if(!instance) {
-		instance = make_shared<Controller>();
-	}
-	return instance;
+ UserList::UserList(const pugi::xml_node &node) : Abstract::Agent(node), controller(::Controller::getInstance()) {
+	controller->insert(this);
+	cout << getName() << "Users list created" << endl;
  }
 
- void Controller::start() {
- 	Udjat::User::Controller::load();
- }
-
- void Controller::stop() {
- 	Udjat::User::Controller::unload();
- }
-
- void Controller::insert(UserList *agent) {
-	lock_guard<mutex> lock(guard);
-	agents.push_back(agent);
- }
-
- void Controller::remove(UserList *agent) {
-	lock_guard<mutex> lock(guard);
-	agents.remove_if([agent](const UserList *ag) {
-		return ag == agent;
-	});
+ UserList::~UserList() {
+	controller->remove(this);
+	cout << getName() << "Users list destroyed" << endl;
  }

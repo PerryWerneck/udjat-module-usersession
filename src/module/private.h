@@ -24,17 +24,39 @@
  #include <udjat/tools/usersession.h>
  #include <udjat/tools/mainloop.h>
  #include <system_error>
+ #include <udjat/agent.h>
+ #include <list>
+ #include <memory>
 
- /// @brief Singleton with the users list.
+ class Controller;
+
+ /// @Brief Userlist agent.
+ class UserList : public Udjat::Abstract::Agent {
+ private:
+	std::shared_ptr<::Controller> controller;
+
+ public:
+	UserList(const pugi::xml_node &node);
+	virtual ~UserList();
+
+ };
+
+ /// @brief Singleton with the real userlist.
  class Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
  private:
 	static std::mutex guard;
- 	Controller() = default;
+
+ 	/// @brief List of active userlist agents.
+ 	std::list<UserList *> agents;
 
  public:
-	static Controller & getInstance();
+	Controller() = default;
+	static std::shared_ptr<Controller> getInstance();
 
 	void start() override;
 	void stop() override;
+
+	void insert(UserList *agent);
+	void remove(UserList *agent);
 
  };

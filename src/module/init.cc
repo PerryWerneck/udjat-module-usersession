@@ -36,10 +36,10 @@
 		PACKAGE_BUGREPORT 				// The bugreport address.
 	};
 
-	class Module : public Udjat::Module, public Udjat::Worker {
+	class Module : public Udjat::Module, private Udjat::Worker, private Udjat::Factory {
 	public:
 
-		Module() : Udjat::Module("userlist",&moduleinfo), Udjat::Worker("users",&moduleinfo) {
+		Module() : Udjat::Module("userlist",&moduleinfo), Udjat::Worker("users",&moduleinfo), Udjat::Factory("userlist", &moduleinfo) {
 		};
 
 		virtual ~Module() {
@@ -49,6 +49,12 @@
 		bool get(Udjat::Request &request, Udjat::Response &response) const override {
 
 
+			return true;
+		}
+
+		/// @brief Agent factory.
+		bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override {
+			parent.insert(make_shared<UserList>(node));
 			return true;
 		}
 

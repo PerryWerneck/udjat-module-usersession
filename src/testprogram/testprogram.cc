@@ -18,48 +18,56 @@
  */
 
  #include <config.h>
- #include <udjat/tools/mainloop.h>
- #include <udjat/tools/usersession.h>
- #include <iostream>
 
-#ifdef HAVE_SYSTEMD
-	#include <systemd/sd-login.h>
-#endif // HAVE_SYSTEMD
+ #include <udjat/tools/systemservice.h>
+ #include <udjat/tools/application.h>
+ #include <udjat/agent.h>
+ #include <udjat/factory.h>
+ #include <udjat/module.h>
+ #include <iostream>
+ #include <memory>
 
  using namespace std;
  using namespace Udjat;
 
- int main(int argc, const char **argv) {
+//---[ Implement ]------------------------------------------------------------------------------------------
 
-	User::Controller userlist;
+int main(int argc, char **argv) {
 
-	userlist.load();
+	class Service : public SystemService {
+	protected:
+		/// @brief Initialize service.
+		void init() override {
+			cout << Application::Name() << "\tInitializing" << endl;
 
-#ifdef HAVE_SYSTEMD
-	MainLoop::getInstance().insert(NULL, 3000UL, [&userlist]() {
+			udjat_module_init();
 
-		for(auto session : userlist) {
+			auto root = Abstract::Agent::init("*.xml");
 
-			cout << session;
+			cout << "http://localhost:8989/api/1.0/info/modules.xml" << endl;
+			cout << "http://localhost:8989/api/1.0/info/workers.xml" << endl;
+			cout << "http://localhost:8989/api/1.0/info/factories.xml" << endl;
+			cout << "http://localhost:8989/api/1.0/agent.xml" << endl;
 
-			try {
-				cout
-					<< "\tactive=" << (session->active() ? "yes" : "no")
-					<< "\tlocked=" << (session->locked() ? "yes" : "no");
-			} catch(const std::exception &e) {
-				cout << endl;
-				cerr << "\tError '" << e.what() << "'" << endl;
+			for(auto agent : *root) {
+				cout << "http://localhost:8989/api/1.0/agent/" << agent->getName() << ".xml" << endl;
 			}
 
-			cout << endl;
 		}
 
-		return true;
-	});
-#endif // HAVE_SYSTEMD
+		/// @brief Deinitialize service.
+		void deinit() override {
+			cout << Application::Name() << "\tDeinitializing" << endl;
+			Udjat::Module::unload();
+		}
 
-	MainLoop::getInstance().run();
-	userlist.unload();
+	public:
+		Service() = default;
 
-	return 0;
- }
+
+	};
+
+	return Service().run(argc,argv);
+
+
+}

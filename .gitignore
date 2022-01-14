@@ -53,3 +53,5 @@ scripts
 stamp-h1
 Makefile
 config.h
+*.[0-9]
+
