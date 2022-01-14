@@ -176,6 +176,14 @@ PKG_CHECK_MODULES( [UDJAT], [libudjat], AC_DEFINE(HAVE_UDJAT,[],[Do we have libu
 AC_SUBST(UDJAT_LIBS)
 AC_SUBST(UDJAT_CFLAGS)
 
+app_cv_product=`pkg-config --variable=product_name libudjat`
+AC_DEFINE_UNQUOTED(PRODUCT_NAME, $app_cv_product, [The product name])
+AC_SUBST(PRODUCT_NAME,$app_cv_product)
+
+app_cv_module_path=`pkg-config --variable=module_path libudjat`
+AC_DEFINE_UNQUOTED(MODULE_PATH, $app_cv_module_path, [The path for module installation])
+AC_SUBST(MODULE_PATH,$app_cv_module_path)
+
 dnl ---------------------------------------------------------------------------
 dnl Output config
 dnl ---------------------------------------------------------------------------

@@ -132,11 +132,12 @@ $(OBJRLS)/%.o: \
 #---[ Release Targets ]------------------------------------------------------------------
 
 all: \
-	$(BINRLS)/$(SONAME)
+	$(BINRLS)/$(SONAME) \
+	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 Release: \
 	$(BINRLS)/$(SONAME) \
-	$(BINRLS)/$(PACKAGE_NAME).so
+	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 $(BINRLS)/$(SONAME): \
 	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
@@ -158,7 +159,7 @@ $(BINRLS)/libudjatusers.a: \
 	@echo $< ...
 	@$(AR) rcs $@ $^
 
-$(BINRLS)/$(PACKAGE_NAME).so: \
+$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
 	$(BINRLS)/$(SONAME) \
 	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJRLS)/$(SRC).o)
 
@@ -176,6 +177,7 @@ $(BINRLS)/$(PACKAGE_NAME).so: \
 
 install: \
 	install-@OSNAME@ \
+	install-module \
 	install-dev
 
 install-linux: \
@@ -198,6 +200,16 @@ install-windows: \
 		$(BINRLS)/@SONAME@ \
 		$(DESTDIR)$(bindir)/@SONAME@
 		
+install-module: \
+	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
+
+	@$(MKDIR) \
+		$(DESTDIR)@MODULE_PATH@
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@ \
+		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
+
 install-dev: \
 	install-@OSNAME@-dev \
 	install-@OSNAME@-static 
@@ -278,7 +290,7 @@ Debug: \
 
 $(BINDBG)/udjat@EXEEXT@: \
 	$(BINDBG)/$(SONAME) \
-	$(BINDBG)/$(PACKAGE_NAME).so \
+	$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@ \
 	$(foreach SRC, $(basename $(TEST_SOURCES)), $(OBJDBG)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
@@ -305,7 +317,7 @@ $(BINDBG)/$(SONAME): \
 		$^ \
 		$(LIBS)
 
-$(BINDBG)/$(PACKAGE_NAME).so: \
+$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@: \
 	$(BINDBG)/$(SONAME) \
 	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJDBG)/$(SRC).o)
 

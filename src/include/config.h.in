@@ -15,6 +15,9 @@
 /* Define as const if the declaration of iconv() needs const. */
 #undef ICONV_CONST
 
+/* The path for module installation */
+#undef MODULE_PATH
+
 /* Name of package */
 #undef PACKAGE
 
@@ -41,6 +44,9 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* The product name */
+#undef PRODUCT_NAME
 
 /* Version number of package */
 #undef VERSION
