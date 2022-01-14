@@ -58,4 +58,11 @@
 		return make_shared<User::Session>();
 	}
 
+	void User::Controller::for_each(std::function<void(std::shared_ptr<Session>)> callback) {
+		lock_guard<mutex> lock(guard);
+		for(auto session : sessions) {
+			callback(session);
+		}
+	}
+
  }

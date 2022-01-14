@@ -45,6 +45,22 @@
 		return state.locked;
 	}
 
+	bool User::Session::system() const {
+
+		char	* name	= nullptr;
+		DWORD	  szName;
+
+		if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName)) {
+			bool rc = (name[0] < ' ');
+			WTSFreeMemory(name);
+			return rc;
+		}
+
+		cerr << "users\t" << Win32::Exception::format( (string{"Can't get username for sid @"} + std::to_string((int) sid)).c_str());
+		return false;
+
+	}
+
 	std::string User::Session::to_string() const noexcept {
 
 		char	* name	= nullptr;

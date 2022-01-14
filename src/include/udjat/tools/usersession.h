@@ -25,6 +25,7 @@
  #include <mutex>
  #include <list>
  #include <thread>
+ #include <functional>
 
  namespace Udjat {
 
@@ -85,6 +86,8 @@
 
 			void start();
 			void stop();
+
+			void for_each(std::function<void(std::shared_ptr<Session>)> callback);
 
 			inline size_t size() const {
 				return sessions.size();

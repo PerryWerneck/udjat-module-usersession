@@ -5,8 +5,11 @@ PACKAGE_NAME=@PACKAGE_NAME@
 SONAME=@SONAME@
 
 MAIN_SOURCES= \
-	$(wildcard src/*.cc) \
-	$(wildcard src/os/@OSNAME@/*.cc)
+	$(wildcard src/library/*.cc) \
+	$(wildcard src/library/os/@OSNAME@/*.cc)
+
+MODULE_SOURCES= \
+	$(wildcard src/module/*.cc)
 
 TEST_SOURCES= \
 	$(wildcard src/testprogram/*.cc)
