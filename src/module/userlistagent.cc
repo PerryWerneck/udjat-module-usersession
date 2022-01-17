@@ -36,7 +36,11 @@
 
  	try {
 
-		cout << getName() << "\tname=" << session.to_string() << " event=" << event << endl;
+		cout << getName()
+			<< "\tname=" << session.to_string()
+			<< " event=" << event
+			<< " DBUS_SESSION_BUS_ADDRESS=" << session.getenv("DBUS_SESSION_BUS_ADDRESS")
+			<< endl;
 
  	} catch(const std::exception &e) {
 		cerr << getName() << "\t" << e.what() << endl;

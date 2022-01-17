@@ -40,6 +40,7 @@
 		<Unit filename="src/include/udjat/tools/usersession.h" />
 		<Unit filename="src/library/controller.cc" />
 		<Unit filename="src/library/os/linux/controller.cc" />
+		<Unit filename="src/library/os/linux/environment.cc" />
 		<Unit filename="src/library/os/linux/session.cc" />
 		<Unit filename="src/library/os/windows/controller.cc" />
 		<Unit filename="src/library/os/windows/session.cc" />
@@ -55,8 +56,6 @@
 		<Unit filename="src/module/init.cc" />
 		<Unit filename="src/module/private.h" />
 		<Unit filename="src/module/userlistagent.cc" />
-		<Unit filename="src/os/linux/controller.cc" />
-		<Unit filename="src/os/linux/session.cc" />
 		<Unit filename="src/os/windows/controller.cc" />
 		<Unit filename="src/os/windows/session.cc" />
 		<Unit filename="src/testprogram/testprogram.cc" />

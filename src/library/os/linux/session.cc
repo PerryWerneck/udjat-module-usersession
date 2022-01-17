@@ -173,6 +173,16 @@
 
 	}
 
+	int User::Session::userid() const {
+		uid_t uid = (uid_t) -1;
+
+		if(sd_session_get_uid(sid.c_str(), &uid)) {
+			throw runtime_error("Can't get user's id");
+		}
+
+		return uid;
+	}
+
 	std::string User::Session::to_string() const noexcept {
 
 		uid_t uid = (uid_t) -1;

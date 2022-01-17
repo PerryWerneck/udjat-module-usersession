@@ -157,6 +157,14 @@
 				return state.alive;
 			}
 
+#ifndef _WIN32
+			/// @brief Get session's user id
+			int userid() const;
+
+			/// @brief Get environment value from user session.
+			std::string getenv(const char *varname) const;
+#endif // _WIN32
+
 		};
 	}
 
