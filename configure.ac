@@ -83,11 +83,14 @@ case "$host" in
 		AC_CONFIG_FILES(sdk/linux/static.pc)
 		
 		PKG_CHECK_MODULES( [SYSTEMD], [libsystemd], AC_DEFINE(HAVE_SYSTEMD,[],[Do we have systemd?]), AC_MSG_NOTICE([libsystemd not present.]) )
+		PKG_CHECK_MODULES( [DBUS], [udjat-dbus dbus-1], AC_DEFINE(HAVE_DBUS,[],[Do we have dbus?]), AC_MSG_ERROR([dbus is not present.]) )
 
 esac
 
 AC_SUBST(SYSTEMD_LIBS)
 AC_SUBST(SYSTEMD_CFLAGS)
+AC_SUBST(DBUS_LIBS)
+AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DLL_LDFLAGS)
 
 dnl ---------------------------------------------------------------------------

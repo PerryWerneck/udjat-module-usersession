@@ -69,8 +69,8 @@
 	string User::Session::getenv(const char *varname) const {
 
 		// This is designed to find the user's dbus-session allowing
-		// subscription of user's session signals from system daemons
-		// to monitor gnome session locks/unlocks.
+		// subscription of gnome session's lock/unlock signals from
+		// system daemons
 
 		// This would be far more easier with the fix of the issue
 		// https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741#

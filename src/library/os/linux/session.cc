@@ -17,9 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #include <udjat/tools/usersession.h>
+ #include "private.h"
  #include <systemd/sd-login.h>
  #include <systemd/sd-bus.h>
+ #include <udjat/tools/configuration.h>
  #include <sys/types.h>
  #include <iostream>
  #include <unistd.h>
@@ -33,6 +34,9 @@
 	}
 
 	User::Session::~Session() {
+		if(bus) {
+			delete bus;
+		}
 	}
 
 	bool User::Session::remote() const {

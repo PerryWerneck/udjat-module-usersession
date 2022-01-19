@@ -1,5 +1,8 @@
 /* src/include/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Do we have dbus? */
+#undef HAVE_DBUS
+
 /* supports GCC visibility attributes */
 #undef HAVE_GNUC_VISIBILITY
 

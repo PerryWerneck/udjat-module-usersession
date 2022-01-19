@@ -36,6 +36,7 @@
  #include <iostream>
  #include <poll.h>
  #include <signal.h>
+ #include <udjat/tools/configuration.h>
 
  using namespace std;
 
@@ -85,6 +86,42 @@
 
 	}
 
+	void User::Controller::setup(Session *session) {
+
+		cout << "********* " << Config::Value<bool>("user-session","open-session-bus",false) << endl;
+		cout << "********* " << Config::Value<bool>("user-session","open-session-bus",true) << endl;
+
+		if(Config::Value<bool>("user-session","open-session-bus",true)) {
+
+			try {
+
+				string busname = session->getenv("DBUS_SESSION_BUS_ADDRESS");
+
+#ifdef DEBUG
+				cout << "Opening " << busname << endl;
+#endif // DEBUG
+
+				session->bus = new DBus::Connection(busname.c_str());
+
+				// Subscribe to gnome-screensaver
+				session->bus->subscribe(
+					session,
+					"org.gnome.ScreenSaver",
+					"ActiveChanged",
+					[session](DBus::Message &message) {
+						cout << session->to_string() << "\torg.gnome.ScreenSaver.ActiveChanged" << endl;
+
+					}
+				);
+
+			} catch(const exception &e) {
+
+				cerr << session->to_string() << "\t" << e.what() << endl;
+			}
+
+		}
+	}
+
 	/// @brief Find session (Requires an active guard!!!)
 	std::shared_ptr<User::Session> User::Controller::find(const char * sid) {
 
@@ -98,6 +135,7 @@
 		std::shared_ptr<Session> session = SessionFactory();
 		session->sid = sid;
 		sessions.push_back(session);
+		setup(session.get());
 
 		return session;
 	}
@@ -131,6 +169,7 @@
 					std::shared_ptr<Session> session = SessionFactory();
 					session->sid = ids[id];
 					sessions.push_back(session);
+					setup(session.get());
 					free(ids[id]);
 				}
 

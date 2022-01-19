@@ -27,6 +27,10 @@
  #include <thread>
  #include <functional>
 
+#ifndef _WIN32
+	#include <udjat/tools/dbus.h>
+#endif // _WIN32
+
  namespace Udjat {
 
 	namespace User {
@@ -67,6 +71,7 @@
 			std::shared_ptr<Session> find(const char * sid);
 			std::thread *monitor = nullptr;
 			bool enabled = false;
+			void setup(Session *session);
 #endif // _WIN32
 
 		protected:
@@ -126,7 +131,8 @@
 
 #else
 
-			std::string sid;			///< @brief LoginD session ID.
+			std::string sid;						///< @brief LoginD session ID.
+			DBus::Connection *bus = nullptr;		///< @brief Connection with the user's bus
 
 #endif // _WIN32
 
