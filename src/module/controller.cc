@@ -22,9 +22,9 @@
 
  using namespace std;
 
- mutex Controller::guard;
+ mutex UserList::Controller::guard;
 
- std::shared_ptr<Controller> Controller::getInstance() {
+ std::shared_ptr<UserList::Controller> UserList::Controller::getInstance() {
 	lock_guard<mutex> lock(guard);
 	static std::shared_ptr<Controller> instance;
 	if(!instance) {
@@ -33,12 +33,12 @@
 	return instance;
  }
 
- std::shared_ptr<Udjat::User::Session> Controller::SessionFactory() noexcept {
+ std::shared_ptr<Udjat::User::Session> UserList::Controller::SessionFactory() noexcept {
 
 	class Session : public Udjat::User::Session {
 	protected:
 		Udjat::User::Session & onEvent(const Udjat::User::Event &event) noexcept override {
-			::Controller::getInstance()->for_each([this,event](UserList &agent){
+			UserList::Controller::getInstance()->for_each([this,event](UserList::Agent &agent){
 				agent.onEvent(*this,event);
 			});
 			return *this;
@@ -54,27 +54,27 @@
  }
 
 
- void Controller::start() {
+ void UserList::Controller::start() {
  	Udjat::User::Controller::load();
  }
 
- void Controller::stop() {
+ void UserList::Controller::stop() {
  	Udjat::User::Controller::unload();
  }
 
- void Controller::insert(UserList *agent) {
+ void UserList::Controller::insert(UserList::Agent *agent) {
 	lock_guard<mutex> lock(guard);
 	agents.push_back(agent);
  }
 
- void Controller::remove(UserList *agent) {
+ void UserList::Controller::remove(UserList::Agent *agent) {
 	lock_guard<mutex> lock(guard);
-	agents.remove_if([agent](const UserList *ag) {
+	agents.remove_if([agent](const UserList::Agent *ag) {
 		return ag == agent;
 	});
  }
 
- void Controller::for_each(std::function<void(UserList &agent)> callback) {
+ void UserList::Controller::for_each(std::function<void(UserList::Agent &agent)> callback) {
 	lock_guard<mutex> lock(guard);
 	for(auto agent : agents) {
 		callback(*agent);

@@ -2,15 +2,42 @@
 
 <config>
 
-	<module name='civetweb' required='no' />
-	<module name='information' required='no' />
+	<!-- module name='civetweb' required='no' / -->
+	<!-- module name='information' required='no' / -->
+
+	<attribute name='url' value='http://localhost' />
 
 	<userlist name='users'>
 	
-	
-	
+		<!-- Activate when user is active on service start -->
+		<user-action name='start'>
+		</user-action>
+
+		<!-- Activate when user is active on service stop -->
+		<user-action name='stop'>
+		</user-action>
+
+		<!-- Activate on user logon -->
+		<user-action name='logon'>
+		</user-action>
+
+		<!-- Activate on user logoff -->
+		<user-action name='logoff'>
+		</user-action>
+
+		<!-- Timer -->
+		<user-action name='pulse'>
+		</user-action>
+
+		<!-- Activate on user lock -->
+		<user-action name='lock'>
+		</user-action>
+		
+		<!-- Activate on user unlock -->
+		<user-action name='unlock'>
+		</user-action>
+		
 	</userlist>
 	
-
 </config>
 

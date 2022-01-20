@@ -22,25 +22,20 @@
  using namespace std;
  using namespace Udjat;
 
- UserList::UserList(const pugi::xml_node &node) : Abstract::Agent(node), controller(::Controller::getInstance()) {
+ UserList::Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node), controller(UserList::Controller::getInstance()) {
+	load(node);
 	controller->insert(this);
-	cout << getName() << "Users list created" << endl;
  }
 
- UserList::~UserList() {
+ UserList::Agent::~Agent() {
 	controller->remove(this);
-	cout << getName() << "Users list destroyed" << endl;
  }
 
- void UserList::onEvent(Udjat::User::Session &session, const Udjat::User::Event &event) noexcept {
+ void UserList::Agent::onEvent(Udjat::User::Session &session, const Udjat::User::Event &event) noexcept {
 
  	try {
 
-		cout << getName()
-			<< "\tname=" << session.to_string()
-			<< " event=" << event
-			<< " DBUS_SESSION_BUS_ADDRESS=" << session.getenv("DBUS_SESSION_BUS_ADDRESS")
-			<< endl;
+		cout << session.to_string() << "\t" << EventDescription(event) << endl;
 
  	} catch(const std::exception &e) {
 		cerr << getName() << "\t" << e.what() << endl;

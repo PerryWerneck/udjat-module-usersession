@@ -45,7 +45,12 @@
 			logoff,				///< @brief User logoff detected.
 			lock,				///< @brief Session was locked.
 			unlock,				///< @brief Session was unlocked.
+
 		};
+
+		UDJAT_API const char * EventName(Event event) noexcept;
+		UDJAT_API const char * EventDescription(Event event) noexcept;
+		UDJAT_API Event EventFromName(const char *name);
 
 		/// @brief User session controller.
 		class UDJAT_API Controller {

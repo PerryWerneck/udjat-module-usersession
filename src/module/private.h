@@ -30,40 +30,47 @@
 
  class Controller;
 
- /// @Brief Userlist agent.
- class UserList : public Udjat::Abstract::Agent {
- private:
-	std::shared_ptr<::Controller> controller;
+ namespace UserList {
 
- public:
-	UserList(const pugi::xml_node &node);
-	virtual ~UserList();
-	void onEvent(Udjat::User::Session &session, const Udjat::User::Event &event) noexcept;
+	class Agent;
 
- };
+	/// @brief Singleton with the real userlist.
+	class Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
+	private:
+		static std::mutex guard;
 
- /// @brief Singleton with the real userlist.
- class Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
- private:
-	static std::mutex guard;
+		/// @brief List of active userlist agents.
+		std::list<Agent *> agents;
 
- 	/// @brief List of active userlist agents.
- 	std::list<UserList *> agents;
+	protected:
 
- protected:
+		std::shared_ptr<Udjat::User::Session> SessionFactory() noexcept override;
 
-	std::shared_ptr<Udjat::User::Session> SessionFactory() noexcept override;
+		public:
+		Controller() = default;
+		static std::shared_ptr<Controller> getInstance();
 
- public:
-	Controller() = default;
-	static std::shared_ptr<Controller> getInstance();
+		void start() override;
+		void stop() override;
 
-	void start() override;
-	void stop() override;
+		void insert(UserList::Agent *agent);
+		void remove(UserList::Agent *agent);
 
-	void insert(UserList *agent);
-	void remove(UserList *agent);
+		void for_each(std::function<void(UserList::Agent &agent)> callback);
 
-	void for_each(std::function<void(UserList &agent)> callback);
+	};
 
- };
+	 /// @Brief Userlist agent.
+	 class Agent : public Udjat::Abstract::Agent {
+	 private:
+		std::shared_ptr<UserList::Controller> controller;
+
+	 public:
+		Agent(const pugi::xml_node &node);
+		virtual ~Agent();
+		void onEvent(Udjat::User::Session &session, const Udjat::User::Event &event) noexcept;
+
+	 };
+
+ }
+

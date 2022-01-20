@@ -45,16 +45,9 @@
 		virtual ~Module() {
 		}
 
-		/// @brief Get list of active users.
-		bool get(Udjat::Request &request, Udjat::Response &response) const override {
-
-
-			return true;
-		}
-
 		/// @brief Agent factory.
 		bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override {
-			parent.insert(make_shared<UserList>(node));
+			parent.insert(make_shared<UserList::Agent>(node));
 			return true;
 		}
 
