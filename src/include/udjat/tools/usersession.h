@@ -118,9 +118,9 @@
 
 			struct {
 				bool alive = false;		///< @brief True if the session is alive.
+				bool locked = false;	///< @brief True if the session is locked.
 #ifdef _WIN32
 				bool remote = false;	///< @brief True if the session is remote.
-				bool locked = false;	///< @brief True if the session is locked.
 				bool active = false;	///< @brief True if the session is active.
 #endif // _WIN32
 			} state;
@@ -169,6 +169,9 @@
 
 			/// @brief Get environment value from user session.
 			std::string getenv(const char *varname) const;
+
+			/// @brief Execute function as user's effective id.
+			void call(std::function<void()> exec);
 #endif // _WIN32
 
 		};

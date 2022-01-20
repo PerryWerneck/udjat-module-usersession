@@ -88,31 +88,43 @@
 
 	void User::Controller::setup(Session *session) {
 
-		cout << "********* " << Config::Value<bool>("user-session","open-session-bus",false) << endl;
-		cout << "********* " << Config::Value<bool>("user-session","open-session-bus",true) << endl;
-
 		if(Config::Value<bool>("user-session","open-session-bus",true)) {
+
+			// Hack to avoid gnome-screensaver lack of logind signal.
+
+			// This would be far more easier with the fix of the issue
+			// https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741#
 
 			try {
 
 				string busname = session->getenv("DBUS_SESSION_BUS_ADDRESS");
 
-#ifdef DEBUG
-				cout << "Opening " << busname << endl;
-#endif // DEBUG
+				if(!busname.empty()) {
 
-				session->bus = new DBus::Connection(busname.c_str());
+					// Connect to user's session bus.
+					session->call([session, &busname](){
+						session->bus = new DBus::Connection(busname.c_str());
+					});
 
-				// Subscribe to gnome-screensaver
-				session->bus->subscribe(
-					session,
-					"org.gnome.ScreenSaver",
-					"ActiveChanged",
-					[session](DBus::Message &message) {
-						cout << session->to_string() << "\torg.gnome.ScreenSaver.ActiveChanged" << endl;
+					// Subscribe to gnome-screensaver
+					session->bus->subscribe(
+						session,
+						"org.gnome.ScreenSaver",
+						"ActiveChanged",
+						[session](DBus::Message &message) {
 
-					}
-				);
+							bool locked = DBus::Value(message).as_bool();
+							if(locked != session->state.locked) {
+								cout << session->to_string() << "\tSession was " << (locked ? "locked" : "unlocked") << " by gnome screensaver" << endl;
+								session->state.locked = locked;
+								session->onEvent( (locked ? User::lock : User::unlock) );
+							}
+
+						}
+					);
+
+				}
+
 
 			} catch(const exception &e) {
 

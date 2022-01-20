@@ -51,6 +51,8 @@
 			}
 		}
 
+		sessions.clear();
+
 	}
 
 	std::shared_ptr<User::Session> User::Controller::SessionFactory() noexcept {

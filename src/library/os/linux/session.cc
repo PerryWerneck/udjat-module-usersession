@@ -25,6 +25,10 @@
  #include <iostream>
  #include <unistd.h>
  #include <pwd.h>
+ #include <functional>
+ #include <sys/types.h>
+ #include <unistd.h>
+ #include <mutex>
 
  using namespace std;
 
@@ -35,6 +39,11 @@
 
 	User::Session::~Session() {
 		if(bus) {
+			cout << to_string() << "\tDisconnecting from user's bus" << endl;
+
+			// FIXME: Why unsubscribe hangs here?
+			// bus->unsubscribe(this);
+
 			delete bus;
 		}
 	}
@@ -186,6 +195,30 @@
 
 		return uid;
 	}
+
+	void User::Session::call(std::function<void()> exec) {
+
+		static mutex guard;
+		lock_guard<mutex> lock(guard);
+
+		uid_t saved_uid = geteuid();
+		if(seteuid(userid()) < 0) {
+			throw std::system_error(errno, std::system_category(), "Cant set effective user id");
+		}
+
+		try {
+
+			exec();
+
+		} catch(...) {
+			seteuid(saved_uid);
+			throw;
+		}
+
+		seteuid(saved_uid);
+
+	}
+
 
 	std::string User::Session::to_string() const noexcept {
 
