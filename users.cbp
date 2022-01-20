@@ -55,6 +55,7 @@
 		<Unit filename="src/libusers/os/linux/private.h" />
 		<Unit filename="src/libusers/os/windows/native_win32.h" />
 		<Unit filename="src/module/agent.cc" />
+		<Unit filename="src/module/alert.cc" />
 		<Unit filename="src/module/controller.cc" />
 		<Unit filename="src/module/init.cc" />
 		<Unit filename="src/module/private.h" />

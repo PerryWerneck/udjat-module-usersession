@@ -21,34 +21,35 @@
  #include <udjat/module.h>
  #include <udjat/worker.h>
  #include <udjat/request.h>
- #include <udjat/factory.h>
 
  using namespace std;
+
+ const Udjat::ModuleInfo UserList::info {
+	PACKAGE_NAME,					// The module name.
+	"Users list agent module",		// The module description.
+	PACKAGE_VERSION, 				// The module version.
+	PACKAGE_URL, 					// The package URL.
+	PACKAGE_BUGREPORT 				// The bugreport address.
+ };
 
  /// @brief Register udjat module.
  Udjat::Module * udjat_module_init() {
 
-	static const Udjat::ModuleInfo moduleinfo {
-		PACKAGE_NAME,					// The module name.
-		"Users list agent module",		// The module description.
-		PACKAGE_VERSION, 				// The module version.
-		PACKAGE_URL, 					// The package URL.
-		PACKAGE_BUGREPORT 				// The bugreport address.
-	};
+	class Module : public Udjat::Module, private Udjat::Worker {
+	private:
 
-	class Module : public Udjat::Module, private Udjat::Worker, private Udjat::Factory {
+		/// @brief Object factories.
+		struct {
+			UserList::Agent::Factory agent;
+			UserList::Alert::Factory alert;
+		} factories;
+
 	public:
 
-		Module() : Udjat::Module("userlist",&moduleinfo), Udjat::Worker("users",&moduleinfo), Udjat::Factory("userlist", &moduleinfo) {
+		Module() : Udjat::Module("userlist",&UserList::info), Udjat::Worker("users",&UserList::info) {
 		};
 
 		virtual ~Module() {
-		}
-
-		/// @brief Agent factory.
-		bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override {
-			parent.insert(make_shared<UserList::Agent>(node));
-			return true;
 		}
 
 	};

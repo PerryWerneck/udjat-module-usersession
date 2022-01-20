@@ -5,29 +5,30 @@
 	<!-- module name='civetweb' required='no' / -->
 	<!-- module name='information' required='no' / -->
 
+	<!-- attribute name='url' value='sqlite+http://localhost' / -->
 	<attribute name='url' value='http://localhost' />
 
-	<userlist name='users'>
+	<user-list name='users'>
 	
 		<!-- Activate when user is active on service start -->
-		<user-action name='start'>
+		<user-action name='start' event='Already active'>
 		</user-action>
 
 		<!-- Activate when user is active on service stop -->
-		<user-action name='stop'>
+		<user-action name='stop' event='Still active'>
 		</user-action>
 
 		<!-- Activate on user logon -->
-		<user-action name='logon'>
+		<user-action name='login'>
 		</user-action>
 
 		<!-- Activate on user logoff -->
-		<user-action name='logoff'>
+		<user-action name='logout'>
 		</user-action>
 
 		<!-- Timer -->
-		<user-action name='pulse'>
-		</user-action>
+		<!-- user-action name='pulse'>
+		</user-action -->
 
 		<!-- Activate on user lock -->
 		<user-action name='lock'>
@@ -37,7 +38,8 @@
 		<user-action name='unlock'>
 		</user-action>
 		
-	</userlist>
+	</user-list>
 	
 </config>
+
 

@@ -25,7 +25,7 @@
 
  namespace Udjat {
 
-	UDJAT_API const char * EventNames[] = {
+	static const char * EventNames[] = {
 		"Already active",	///< @brief Session is active on controller startup.
 		"Still active",		///< @brief Session is active on controller shutdown.
 		"Login",			///< @brief User logon detected.
@@ -34,7 +34,7 @@
 		"Unlock"			///< @brief Session was unlocked.
 	};
 
-	UDJAT_API const char * EventDescriptions[] = {
+	static const char * EventDescriptions[] = {
 		"Session is active on startup",
 		"Session still active on shutdown",
 		"User has logged in",
@@ -43,7 +43,7 @@
 		"Session was unlocked"
 	};
 
-	UDJAT_API User::Event EventFromName(const char *name) {
+	UDJAT_API User::Event User::EventFromName(const char *name) {
 		for(size_t ix = 0; ix < (sizeof(EventNames)/sizeof(EventNames[0])); ix++) {
 			if(!strcasecmp(name,EventNames[ix])) {
 				return (User::Event) ix;

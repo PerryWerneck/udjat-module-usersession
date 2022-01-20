@@ -22,6 +22,14 @@
  using namespace std;
  using namespace Udjat;
 
+ UserList::Agent::Factory::Factory() : Udjat::Factory("user-list", &UserList::info) {
+ }
+
+ bool UserList::Agent::Factory::parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const {
+	parent.insert(make_shared<UserList::Agent>(node));
+	return true;
+ }
+
  UserList::Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node), controller(UserList::Controller::getInstance()) {
 	load(node);
 	controller->insert(this);

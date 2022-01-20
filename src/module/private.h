@@ -23,16 +23,24 @@
  #include <udjat/defs.h>
  #include <udjat/tools/usersession.h>
  #include <udjat/tools/mainloop.h>
+ #include <udjat/alert.h>
  #include <system_error>
  #include <udjat/agent.h>
+ #include <udjat/factory.h>
  #include <list>
  #include <memory>
 
  class Controller;
 
+ using namespace std;
+
  namespace UserList {
 
 	class Agent;
+	class Alert;
+
+	/// @brief Module info
+	extern const Udjat::ModuleInfo info;
 
 	/// @brief Singleton with the real userlist.
 	class Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
@@ -60,17 +68,49 @@
 
 	};
 
-	 /// @Brief Userlist agent.
-	 class Agent : public Udjat::Abstract::Agent {
-	 private:
+	/// @brief Userlist agent.
+	class Agent : public Udjat::Abstract::Agent {
+	private:
 		std::shared_ptr<UserList::Controller> controller;
+		std::list<shared_ptr<UserList::Alert>> alerts;
 
-	 public:
+	public:
+
+		class Factory : public Udjat::Factory {
+		public:
+			Factory();
+			bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override;
+		};
+
 		Agent(const pugi::xml_node &node);
 		virtual ~Agent();
+
+		inline void insert(shared_ptr<UserList::Alert> alert) {
+			alerts.push_back(alert);
+		}
+
 		void onEvent(Udjat::User::Session &session, const Udjat::User::Event &event) noexcept;
 
-	 };
+	};
+
+	/// @brief Userlist alert.
+	class Alert : public Udjat::Alert {
+	private:
+		Udjat::User::Event event = (Udjat::User::Event) -1;
+
+	public:
+
+		class Factory : public Udjat::Factory {
+		public:
+			Factory();
+			bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override;
+		};
+
+		Alert(const pugi::xml_node &node);
+		virtual ~Alert();
+
+
+	};
 
  }
 
