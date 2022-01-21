@@ -39,11 +39,19 @@
 	controller->remove(this);
  }
 
- void UserList::Agent::onEvent(Udjat::User::Session &session, const Udjat::User::Event &event) noexcept {
+ void UserList::Agent::append_alert(const pugi::xml_node &node) {
+	alerts.push_back(make_shared<UserList::Alert>(node));
+ }
+
+ void UserList::Agent::onEvent(Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
 
  	try {
 
 		cout << session.to_string() << "\t" << EventDescription(event) << endl;
+
+		for(auto alert : alerts) {
+			alert->onEvent(alert,session,event);
+		}
 
  	} catch(const std::exception &e) {
 		cerr << getName() << "\t" << e.what() << endl;

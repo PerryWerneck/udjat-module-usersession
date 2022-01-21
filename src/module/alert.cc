@@ -18,6 +18,10 @@
  */
 
  #include "private.h"
+ #include <udjat.h>
+ #include <udjat/alert.h>
+
+ using namespace Udjat;
 
  UserList::Alert::Factory::Factory() : Udjat::Factory("user-action", &UserList::info) {
  }
@@ -48,11 +52,48 @@
  UserList::Alert::Alert(const pugi::xml_node &node) : Udjat::Alert(node), event(EventFromXmlNode(node)) {
 
 #ifdef DEBUG
-	cout << "alert\tAlert '" << EventName(event) << "'" << endl;
+	cout << "alert\tAlert(" << c_str() << ")= '" << EventName(event) << "'" << endl;
 #endif // DEBUG
 
  }
 
  UserList::Alert::~Alert() {
  }
+
+ void UserList::Alert::onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
+
+	if(event == alert->event) {
+
+		Abstract::Alert::activate(alert,[&session,&event,alert](std::string &text){
+
+			Udjat::expand(text,[&session,&event,alert](const char *key){
+
+				if(!strcasecmp(key,"username")) {
+					return session.to_string();
+				};
+
+				if(!strcasecmp(key,"alertname")) {
+					return string{alert->c_str()};
+				};
+
+				if(!strcasecmp(key,"event")) {
+					return string{User::EventName(event)};
+				};
+
+				return string{"{}"};
+
+			});
+
+		});
+
+	} else {
+
+		alert->deactivate();
+
+	}
+
+ }
+
+
+
 

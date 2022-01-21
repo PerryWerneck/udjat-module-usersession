@@ -196,13 +196,17 @@
 		return uid;
 	}
 
-	void User::Session::call(std::function<void()> exec) {
+	void User::Session::call(const std::function<void()> exec) {
+		call(userid(),exec);
+	}
+
+	void User::Session::call(const uid_t uid, const std::function<void()> exec) {
 
 		static mutex guard;
 		lock_guard<mutex> lock(guard);
 
 		uid_t saved_uid = geteuid();
-		if(seteuid(userid()) < 0) {
+		if(seteuid(uid) < 0) {
 			throw std::system_error(errno, std::system_category(), "Cant set effective user id");
 		}
 

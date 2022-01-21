@@ -89,7 +89,9 @@
 			alerts.push_back(alert);
 		}
 
-		void onEvent(Udjat::User::Session &session, const Udjat::User::Event &event) noexcept;
+		void onEvent(Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
+
+		void append_alert(const pugi::xml_node &node) override;
 
 	};
 
@@ -109,6 +111,7 @@
 		Alert(const pugi::xml_node &node);
 		virtual ~Alert();
 
+		static void onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
 
 	};
 

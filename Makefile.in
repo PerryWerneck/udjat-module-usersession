@@ -371,7 +371,7 @@ clean: \
 	cleanRelease
 
 
--include $(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJDBG)/$(SRC).d)
--include $(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES) $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJDBG)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES) $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJRLS)/$(SRC).d)
 
 

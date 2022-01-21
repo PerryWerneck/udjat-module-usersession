@@ -21,6 +21,7 @@
  #include <udjat/module.h>
  #include <udjat/worker.h>
  #include <udjat/request.h>
+ #include <udjat/alert.h>
 
  using namespace std;
 
@@ -42,6 +43,7 @@
 		struct {
 			UserList::Agent::Factory agent;
 			UserList::Alert::Factory alert;
+			Udjat::Alert::Factory urlalert;
 		} factories;
 
 	public:

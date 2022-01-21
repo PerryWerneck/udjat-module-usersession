@@ -176,7 +176,10 @@
 			std::string getenv(const char *varname) const;
 
 			/// @brief Execute function as user's effective id.
-			void call(std::function<void()> exec);
+			static void call(const uid_t uid, const std::function<void()> exec);
+
+			/// @brief Execute function as user's effective id.
+			void call(const std::function<void()> exec);
 #endif // _WIN32
 
 		};
