@@ -2,11 +2,11 @@
 
 <config>
 
-	<!-- module name='civetweb' required='no' / -->
-	<!-- module name='information' required='no' / -->
+	<module name='civetweb' required='no' />
+	<module name='information' required='no' />
 
 	<!-- attribute name='url' value='sqlite+http://localhost' / -->
-	<attribute name='url' value='http://localhost/udjat/alert/user/${username}/${alertname}' />
+	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${alertname}' />
 
 	<user-list name='users'>
 	

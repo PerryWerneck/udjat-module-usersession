@@ -18,8 +18,8 @@
  */
 
  #include "private.h"
- #include <udjat.h>
  #include <udjat/alert.h>
+ #include <udjat/tools/expander.h>
 
  using namespace Udjat;
 
@@ -64,23 +64,26 @@
 
 	if(event == alert->event) {
 
-		Abstract::Alert::activate(alert,[&session,&event,alert](std::string &text){
+		Abstract::Alert::activate(alert,[&session,&event,alert](std::string &text) {
 
-			Udjat::expand(text,[&session,&event,alert](const char *key){
+			Udjat::expand(text,[&session,&event,alert](const char *key, std::string &value){
 
 				if(!strcasecmp(key,"username")) {
-					return session.to_string();
+					value = session.to_string();
+					return true;
 				};
 
 				if(!strcasecmp(key,"alertname")) {
-					return string{alert->c_str()};
+					value =alert->c_str();
+					return true;
 				};
 
 				if(!strcasecmp(key,"event")) {
-					return string{User::EventName(event)};
+					value =User::EventName(event);
+					return true;
 				};
 
-				return string{"{}"};
+				return false;
 
 			});
 
