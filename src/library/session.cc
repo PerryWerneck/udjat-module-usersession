@@ -22,7 +22,27 @@
 
  using namespace std;
 
+ static const char *statenames[] = {
+	"online",
+	"active",
+	"closing",
+
+	"unknown",
+ };
+
  namespace Udjat {
+
+	User::State User::StateFactory(const char *statename) {
+
+		for(size_t ix = 0; ix < (sizeof(statenames)/sizeof(statenames[0]));ix++) {
+			if(!strcasecmp(statename,statenames[ix])) {
+				return (User::State) ix;
+			}
+		}
+
+		return unknown;
+
+	}
 
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG
@@ -33,6 +53,27 @@
 				<< endl;
 #endif // DEBUG
 		return *this;
+	}
+
+	User::Session & User::Session::set(User::State state) {
+
+		if(state != this->state.value) {
+			cout << to_string() << "\tState changes from '" << this->state.value << "' to '" << state << "'" << endl;
+			this->state.value = state;
+		}
+
+		return *this;
+	}
+
+ }
+
+ namespace std {
+
+	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept {
+		if((size_t) state > (sizeof(statenames)/sizeof(statenames[0]))) {
+			return "unkown";
+		}
+		return statenames[state];
 	}
 
  }

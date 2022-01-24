@@ -48,6 +48,18 @@
 
 		};
 
+		/// @brief Session state, as reported by logind.
+		/// @see sd_session_get_state
+		enum State : uint8_t {
+			online,		///< @brief Session logged in, but session not active, i.e. not in the foreground
+			active,		///< @brief Session logged in and active, i.e. in the foreground
+			closing,	///< @brief Session nominally logged out, but some processes belonging to it are still around.
+
+			unknown,	///< @brief Session in unknown state.
+		};
+
+		UDJAT_API State StateFactory(const char *statename);
+
 		UDJAT_API const char * EventName(Event event) noexcept;
 		UDJAT_API const char * EventDescription(Event event) noexcept;
 		UDJAT_API Event EventFromName(const char *name);
@@ -73,6 +85,8 @@
 			void load(bool starting) noexcept;
 			std::shared_ptr<Session> find(DWORD sid);
 #else
+
+
 			std::shared_ptr<Session> find(const char * sid);
 			std::thread *monitor = nullptr;
 			bool enabled = false;
@@ -122,11 +136,12 @@
 			friend class Controller;
 
 			struct {
-				bool alive = false;		///< @brief True if the session is alive.
-				bool locked = false;	///< @brief True if the session is locked.
+				State value = User::unknown;	///< @brief Current user state.
+				bool alive = false;				///< @brief True if the session is alive.
+				bool locked = false;			///< @brief True if the session is locked.
 #ifdef _WIN32
-				bool remote = false;	///< @brief True if the session is remote.
-				bool active = false;	///< @brief True if the session is active.
+				bool remote = false;			///< @brief True if the session is remote.
+				bool active = false;			///< @brief True if the session is active.
 #endif // _WIN32
 			} state;
 
@@ -162,6 +177,8 @@
 
 			/// @brief Is this a 'system' session?
 			bool system() const;
+
+			Session & set(const User::State state);
 
 			/// @brief Is this session alive?
 			inline bool alive() const noexcept {
@@ -205,6 +222,12 @@
 
 	inline ostream& operator<< (ostream& os, const std::shared_ptr<Udjat::User::Session> session) {
 		return os << session->to_string();
+	}
+
+	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept;
+
+	inline ostream& operator<< (ostream& os, const Udjat::User::State state) {
+		return os << to_string(state);
 	}
 
  }

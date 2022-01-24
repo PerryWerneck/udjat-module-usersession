@@ -69,7 +69,7 @@
 			return true;
 		});
 
-		// Create new sessions.
+		// Create and update sessions.
 		for(int id = 0; id < idCount; id++) {
 			auto session = find(ids[id]);
 			if(!session->state.alive) {
@@ -79,6 +79,13 @@
 				session->state.alive = true;
 				session->onEvent(logon);
 			}
+
+			char *state = nullptr;
+			if(sd_session_get_state(ids[id], &state) >= 0) {
+				session->set(User::StateFactory(state));
+				free(state);
+			}
+
 			free(ids[id]);
 		}
 
@@ -182,6 +189,13 @@
 					session->sid = ids[id];
 					sessions.push_back(session);
 					setup(session.get());
+
+					char *state = nullptr;
+					if(sd_session_get_state(ids[id], &state) >= 0) {
+						session->set(User::StateFactory(state));
+						free(state);
+					}
+
 					free(ids[id]);
 				}
 
