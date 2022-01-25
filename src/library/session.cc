@@ -40,12 +40,12 @@
 
 		// logind status for 'not in foreground' is 'online'.
 		if(!strcasecmp(statename,"online")) {
-			return User::background;
+			return User::SessionInBackground;
 		}
 
 		// logind status for 'in foreground' is 'active'
 		if(!strcasecmp(statename,"active")) {
-			return User::foreground;
+			return User::SessionInForeground;
 		}
 
 		for(size_t ix = 0; ix < (sizeof(statenames)/sizeof(statenames[0]));ix++) {
@@ -56,7 +56,7 @@
 
 		cerr << "user\tUnexpected session state '" << statename << "'" << endl;
 
-		return unknown;
+		return SessionInUnknownState;
 
 	}
 
@@ -74,8 +74,16 @@
 	User::Session & User::Session::set(User::State state) {
 
 		if(state != this->state.value) {
+
 			cout << to_string() << "\tState changes from '" << this->state.value << "' to '" << state << "'" << endl;
 			this->state.value = state;
+
+			if(this->state.value == SessionInForeground) {
+				onEvent(foreground);
+			} else if(this->state.value == SessionInBackground) {
+				onEvent(background);
+			}
+
 		}
 
 		return *this;

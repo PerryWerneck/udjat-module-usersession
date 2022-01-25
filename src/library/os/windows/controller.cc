@@ -260,12 +260,12 @@
 
 				case WTS_CONSOLE_CONNECT:			// The session was connected to the console terminal or RemoteFX session.
 					cout << "users\tWTS_CONSOLE_CONNECT " << session->sid << endl;
-					session->set(User::foreground);
+					session->set(User::SessionInForeground);
 					break;
 
 				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
 					cout << "users\tWTS_CONSOLE_DISCONNECT " << session->sid << endl;
-					session->set(User::background);
+					session->set(User::SessionInBackground);
 					break;
 
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
@@ -276,7 +276,7 @@
 				case WTS_REMOTE_DISCONNECT:			// The session was disconnected from the remote terminal.
 					cout << "users\tWTS_REMOTE_DISCONNECT " << session->sid << endl;
 					session->state.remote = true;
-					session->set(User::closing);
+					session->set(User::SessionIsClosing);
 					break;
 
 				case WTS_SESSION_LOGON:				// A user has logged on to the session.
@@ -287,7 +287,7 @@
 				case WTS_SESSION_LOGOFF:			// A user has logged off the session.
 					cout << "users\tWTS_SESSION_LOGOFF " << session->sid << endl;
 					session->onEvent(logoff);
-					session->set(User::closing);
+					session->set(User::SessionIsClosing);
 					{
 						lock_guard<mutex> lock(controller.guard);
 						controller.sessions.remove(session);

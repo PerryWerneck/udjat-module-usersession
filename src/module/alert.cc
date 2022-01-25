@@ -41,7 +41,7 @@
 
 
  inline Udjat::User::Event EventFromXmlNode(const pugi::xml_node &node) {
-	return Udjat::User::EventFromName(
+	return Udjat::User::EventFactory(
 				node.attribute("event")
 						.as_string(
 							node.attribute("name").as_string()

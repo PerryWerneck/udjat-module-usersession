@@ -45,24 +45,26 @@
 			logoff,				///< @brief User logoff detected.
 			lock,				///< @brief Session was locked.
 			unlock,				///< @brief Session was unlocked.
+			foreground,			///< @brief Session is in foreground.
+			background,			///< @brief Session is in background.
 
 		};
+
+		UDJAT_API const char * EventName(Event event) noexcept;
+		UDJAT_API const char * EventDescription(Event event) noexcept;
+		UDJAT_API Event EventFactory(const char *name);
 
 		/// @brief Session state, as reported by logind.
 		/// @see sd_session_get_state
 		enum State : uint8_t {
-			background,		///< @brief Session logged in, but session not active, i.e. not in the foreground
-			foreground,		///< @brief Session logged in and active, i.e. in the foreground
-			closing,		///< @brief Session nominally logged out, but some processes belonging to it are still around.
+			SessionInBackground,		///< @brief Session logged in, but session not active, i.e. not in the foreground
+			SessionInForeground,		///< @brief Session logged in and active, i.e. in the foreground
+			SessionIsClosing,			///< @brief Session nominally logged out, but some processes belonging to it are still around.
 
-			unknown,	///< @brief Session in unknown state.
+			SessionInUnknownState,		///< @brief Session in unknown state.
 		};
 
 		UDJAT_API State StateFactory(const char *statename);
-
-		UDJAT_API const char * EventName(Event event) noexcept;
-		UDJAT_API const char * EventDescription(Event event) noexcept;
-		UDJAT_API Event EventFromName(const char *name);
 
 		/// @brief User session controller.
 		class UDJAT_API Controller {
@@ -136,11 +138,11 @@
 			friend class Controller;
 
 			struct {
-				State value = User::unknown;	///< @brief Current user state.
-				bool alive = false;				///< @brief True if the session is alive.
-				bool locked = false;			///< @brief True if the session is locked.
+				State value = User::SessionInUnknownState;	///< @brief Current user state.
+				bool alive = false;							///< @brief True if the session is alive.
+				bool locked = false;						///< @brief True if the session is locked.
 #ifdef _WIN32
-				bool remote = false;			///< @brief True if the session is remote.
+				bool remote = false;						///< @brief True if the session is remote.
 #endif // _WIN32
 			} state;
 

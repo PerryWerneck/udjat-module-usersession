@@ -26,12 +26,15 @@
  namespace Udjat {
 
 	static const char * EventNames[] = {
-		"Already active",	///< @brief Session is active on controller startup.
-		"Still active",		///< @brief Session is active on controller shutdown.
-		"Login",			///< @brief User logon detected.
-		"Logout",			///< @brief User logoff detected.
-		"Lock",				///< @brief Session was locked.
-		"Unlock"			///< @brief Session was unlocked.
+		"Already active",	// Session is active on controller startup.
+		"Still active",		// Session is active on controller shutdown.
+		"Login",			// User logon detected.
+		"Logout",			// User logoff detected.
+		"Lock",				// Session was locked.
+		"Unlock"			// Session was unlocked.
+		"Foreground",		// Session is in foreground.
+		"Background",		// Session is in background.
+
 	};
 
 	static const char * EventDescriptions[] = {
@@ -40,10 +43,12 @@
 		"User has logged in",
 		"User has logged out",
 		"Session was locked",
-		"Session was unlocked"
+		"Session was unlocked",
+		"Session is in foreground",
+		"Session is in background"
 	};
 
-	UDJAT_API User::Event User::EventFromName(const char *name) {
+	UDJAT_API User::Event User::EventFactory(const char *name) {
 		for(size_t ix = 0; ix < (sizeof(EventNames)/sizeof(EventNames[0])); ix++) {
 			if(!strcasecmp(name,EventNames[ix])) {
 				return (User::Event) ix;
@@ -68,7 +73,7 @@
 		if(event < (sizeof(EventDescriptions)/sizeof(EventDescriptions[0]))) {
 			return EventDescriptions[event];
 		}
-		return "Undefined";
+		return "Unknown event";
 	}
 
  }
