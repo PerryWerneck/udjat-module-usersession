@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
 			udjat_module_init();
 
-			auto root = Abstract::Agent::init("*.xml");
+			auto root = Udjat::init("test.xml");
 
 			cout << "http://localhost:8989/api/1.0/info/modules.xml" << endl;
 			cout << "http://localhost:8989/api/1.0/info/workers.xml" << endl;

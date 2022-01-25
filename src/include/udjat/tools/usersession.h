@@ -51,9 +51,9 @@
 		/// @brief Session state, as reported by logind.
 		/// @see sd_session_get_state
 		enum State : uint8_t {
-			online,		///< @brief Session logged in, but session not active, i.e. not in the foreground
-			active,		///< @brief Session logged in and active, i.e. in the foreground
-			closing,	///< @brief Session nominally logged out, but some processes belonging to it are still around.
+			background,		///< @brief Session logged in, but session not active, i.e. not in the foreground
+			foreground,		///< @brief Session logged in and active, i.e. in the foreground
+			closing,		///< @brief Session nominally logged out, but some processes belonging to it are still around.
 
 			unknown,	///< @brief Session in unknown state.
 		};
@@ -141,7 +141,6 @@
 				bool locked = false;			///< @brief True if the session is locked.
 #ifdef _WIN32
 				bool remote = false;			///< @brief True if the session is remote.
-				bool active = false;			///< @brief True if the session is active.
 #endif // _WIN32
 			} state;
 

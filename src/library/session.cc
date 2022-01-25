@@ -23,8 +23,8 @@
  using namespace std;
 
  static const char *statenames[] = {
-	"online",
-	"active",
+	"background",
+	"foreground",
 	"closing",
 
 	"unknown",
@@ -34,11 +34,27 @@
 
 	User::State User::StateFactory(const char *statename) {
 
+#ifdef DEBUG
+		cout << "user\tSearching for state '" << statename << "'" << endl;
+#endif // DEBUG
+
+		// logind status for 'not in foreground' is 'online'.
+		if(!strcasecmp(statename,"online")) {
+			return User::background;
+		}
+
+		// logind status for 'in foreground' is 'active'
+		if(!strcasecmp(statename,"active")) {
+			return User::foreground;
+		}
+
 		for(size_t ix = 0; ix < (sizeof(statenames)/sizeof(statenames[0]));ix++) {
 			if(!strcasecmp(statename,statenames[ix])) {
 				return (User::State) ix;
 			}
 		}
+
+		cerr << "user\tUnexpected session state '" << statename << "'" << endl;
 
 		return unknown;
 
