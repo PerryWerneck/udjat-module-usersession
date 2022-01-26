@@ -303,7 +303,7 @@ $(BINDBG)/udjat@EXEEXT@: \
 		-L$(BINDBG) \
 		-Wl,-rpath,$(BINDBG) \
 		$(LDFLAGS) \
-		$(LIBS)
+		$(LIBS) @PUGIXML_LIBS@
 
 
 $(BINDBG)/$(SONAME): \
