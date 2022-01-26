@@ -4,6 +4,7 @@
 
 	<module name='civetweb' required='no' />
 	<module name='information' required='no' />
+	<module name='dmi' required='no' />
 
 	<!-- attribute name='url' value='sqlite+http://localhost' / -->
 	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${alertname}' />

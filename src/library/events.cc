@@ -20,6 +20,7 @@
  #include <udjat/tools/usersession.h>
  #include <cstring>
  #include <stdexcept>
+ #include <iostream>
 
  using namespace std;
 
@@ -31,7 +32,7 @@
 		"Login",			// User logon detected.
 		"Logout",			// User logoff detected.
 		"Lock",				// Session was locked.
-		"Unlock"			// Session was unlocked.
+		"Unlock",			// Session was unlocked.
 		"Foreground",		// Session is in foreground.
 		"Background",		// Session is in background.
 
@@ -59,7 +60,7 @@
 				return (User::Event) ix;
 			}
 		}
-		throw system_error(EINVAL,system_category(),"Invalid event name");
+		throw system_error(EINVAL,system_category(),string{"Cant identify event '"} + name + "'");
 	}
 
 	UDJAT_API const char * User::EventName(User::Event event) noexcept {

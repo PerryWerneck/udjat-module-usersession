@@ -55,11 +55,11 @@
 
 
  void UserList::Controller::start() {
- 	Udjat::User::Controller::load();
+ 	Udjat::User::Controller::activate();
  }
 
  void UserList::Controller::stop() {
- 	Udjat::User::Controller::unload();
+ 	Udjat::User::Controller::deactivate();
  }
 
  void UserList::Controller::insert(UserList::Agent *agent) {

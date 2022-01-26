@@ -26,6 +26,7 @@
  #include <list>
  #include <thread>
  #include <functional>
+ #include <ostream>
 
 #ifndef _WIN32
 	#include <udjat/tools/dbus.h>
@@ -111,10 +112,10 @@
 			virtual ~Controller();
 
 			/// @brief Start monitor, load users.
-			void load();
+			void activate();
 
 			/// @brief Stop monitor, unload users.
-			void unload();
+			void deactivate();
 
 			void for_each(std::function<void(std::shared_ptr<Session>)> callback);
 
@@ -227,7 +228,7 @@
 
 	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept;
 
-	inline ostream& operator<< (ostream& os, const Udjat::User::State state) {
+	inline ostream& operator<< (std::ostream& os, const Udjat::User::State state) {
 		return os << to_string(state);
 	}
 

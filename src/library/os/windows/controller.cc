@@ -94,12 +94,12 @@
 		}
 	}
 
-	void User::Controller::start() {
+	void User::Controller::activate() {
 
 		lock_guard<mutex> lock(guard);
 
 		if(hwnd) {
-			throw runtime_error("User Session monitor is already started");
+			throw runtime_error("User Session monitor is already active");
 		}
 
 		hwnd = CreateWindow(
@@ -130,7 +130,7 @@
 
 	}
 
-	void User::Controller::stop() {
+	void User::Controller::deactivate() {
 
 		if(!hwnd) {
 			throw runtime_error("User Session monitor is already stopped");

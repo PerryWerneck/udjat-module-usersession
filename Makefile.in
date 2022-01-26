@@ -172,7 +172,7 @@ $(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
 		-o $@ \
 		$(LDFLAGS) \
 		$^ \
-		$(LIBS)
+		$(LIBS) @PUGIXML_LIBS@
 
 
 #---[ Install Targets ]------------------------------------------------------------------
@@ -331,8 +331,7 @@ $(BINDBG)/$(PACKAGE_NAME)@LIBEXT@: \
 		-o $@ \
 		$(LDFLAGS) \
 		$^ \
-		$(LIBS)
-
+		$(LIBS) @PUGIXML_LIBS@
 
 run: \
 	$(BINDBG)/udjat@EXEEXT@

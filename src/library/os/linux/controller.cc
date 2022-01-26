@@ -163,10 +163,10 @@
 	}
 
 	User::Controller::~Controller() {
-		unload();
+		deactivate();
 	}
 
-	void User::Controller::load() {
+	void User::Controller::activate() {
 
 		lock_guard<mutex> lock(guard);
 
@@ -258,7 +258,7 @@
 
 	}
 
-	void User::Controller::unload() {
+	void User::Controller::deactivate() {
 
 		std::thread *active = nullptr;
 		{

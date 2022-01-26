@@ -188,6 +188,15 @@ AC_DEFINE_UNQUOTED(MODULE_PATH, $app_cv_module_path, [The path for module instal
 AC_SUBST(MODULE_PATH,$app_cv_module_path)
 
 dnl ---------------------------------------------------------------------------
+dnl test for pugixml
+dnl ---------------------------------------------------------------------------
+
+PKG_CHECK_MODULES(PUGIXML, pugixml, AC_DEFINE(HAVE_PUGIXML,[],[Do we have PUGIXML?]),AC_MSG_ERROR(pugixml is required))
+
+AC_SUBST(PUGIXML_LIBS)
+AC_SUBST(PUGIXML_CFLAGS)
+
+dnl ---------------------------------------------------------------------------
 dnl Output config
 dnl ---------------------------------------------------------------------------
 

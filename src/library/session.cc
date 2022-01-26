@@ -62,7 +62,7 @@
 
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG
-		cout << "session\t sid=" << this->sid << " Event=" << (int) event
+		cout << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
 				<< " Alive=" << (alive() ? "Yes" : "No")
 				<< " Remote=" << (remote() ? "Yes" : "No")
 				<< " User=" << to_string()

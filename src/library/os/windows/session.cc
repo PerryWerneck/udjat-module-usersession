@@ -38,7 +38,7 @@
 	}
 
 	bool User::Session::active() const {
-		return state.active;
+		return state.value == SessionInForeground;
 	}
 
 	bool User::Session::locked() const {

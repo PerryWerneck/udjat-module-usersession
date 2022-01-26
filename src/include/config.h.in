@@ -9,6 +9,9 @@
 /* Define if you have the iconv() function and it works. */
 #undef HAVE_ICONV
 
+/* Do we have PUGIXML? */
+#undef HAVE_PUGIXML
+
 /* Do we have systemd? */
 #undef HAVE_SYSTEMD
 
