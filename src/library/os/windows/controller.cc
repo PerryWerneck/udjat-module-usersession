@@ -99,9 +99,10 @@
 		lock_guard<mutex> lock(guard);
 
 		if(hwnd) {
-			throw runtime_error("User Session monitor is already active");
+			return;
 		}
 
+		cout << "users\tStarting user session monitor" << endl;
 		hwnd = CreateWindow(
 			PACKAGE_NAME,
 			"user-monitor",
@@ -132,10 +133,10 @@
 
 	void User::Controller::deactivate() {
 
-		if(!hwnd) {
-			throw runtime_error("User Session monitor is already stopped");
+		if(hwnd) {
+			cout << "users\tStopping user session monitor" << endl;
+			DestroyWindow(hwnd);
 		}
-		DestroyWindow(hwnd);
 
 	}
 
@@ -243,7 +244,7 @@
 
 				switch((int) wParam) {
 				case WTS_SESSION_LOCK:				// The session has been locked.
-					cout << "users\tWTS_SESSION_LOCK " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_LOCK " << endl;
 					if(!session->state.locked) {
 						session->state.locked = true;
 						session->onEvent(lock);
@@ -251,7 +252,7 @@
 					break;
 
 				case WTS_SESSION_UNLOCK:			// The session identified has been unlocked.
-					cout << "users\tWTS_SESSION_UNLOCK " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_UNLOCK " << endl;
 					if(session->state.locked) {
 						session->state.locked = false;
 						session->onEvent(unlock);
@@ -259,33 +260,37 @@
 					break;
 
 				case WTS_CONSOLE_CONNECT:			// The session was connected to the console terminal or RemoteFX session.
-					cout << "users\tWTS_CONSOLE_CONNECT " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_CONSOLE_CONNECT " << endl;
 					session->set(User::SessionInForeground);
 					break;
 
 				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
-					cout << "users\tWTS_CONSOLE_DISCONNECT " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_CONSOLE_DISCONNECT " << endl;
 					session->set(User::SessionInBackground);
 					break;
 
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
-					cout << "users\tWTS_REMOTE_CONNECT " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_REMOTE_CONNECT " << endl;
 					session->state.remote = true;
 					break;
 
 				case WTS_REMOTE_DISCONNECT:			// The session was disconnected from the remote terminal.
-					cout << "users\tWTS_REMOTE_DISCONNECT " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_REMOTE_DISCONNECT " << endl;
 					session->state.remote = true;
 					session->set(User::SessionIsClosing);
 					break;
 
 				case WTS_SESSION_LOGON:				// A user has logged on to the session.
-					cout << "users\tWTS_SESSION_LOGON " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_LOGON " << endl;
+
+					// Set to foreground on logon.
+					session->state.value = SessionInForeground;
+
 					session->onEvent(logon);
 					break;
 
 				case WTS_SESSION_LOGOFF:			// A user has logged off the session.
-					cout << "users\tWTS_SESSION_LOGOFF " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_LOGOFF " << endl;
 					session->onEvent(logoff);
 					session->set(User::SessionIsClosing);
 					{
@@ -295,19 +300,19 @@
 					break;
 
 				case WTS_SESSION_REMOTE_CONTROL:	// The session has changed its remote controlled status.
-					cout << "users\tWTS_SESSION_REMOTE_CONTROL " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_REMOTE_CONTROL " << endl;
 					break;
 
 				case WTS_SESSION_CREATE:			// Reserved for future use.
-					cout << "users\tWTS_SESSION_CREATE " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_CREATE " << endl;
 					break;
 
 				case WTS_SESSION_TERMINATE:			// Reserved for future use.
-					cout << "users\tWTS_SESSION_TERMINATE " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_TERMINATE " << endl;
 					break;
 
 				default:
-					cerr	<< "users\tWM_WTSSESSION_CHANGE sent an unexpected state '"
+					cerr	<< "@" << session->sid << "\tWM_WTSSESSION_CHANGE sent an unexpected state '"
 							<< ((int) wParam) << "'" << endl;
 				}
 

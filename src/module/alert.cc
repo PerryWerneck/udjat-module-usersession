@@ -55,6 +55,9 @@
 	cout << "alert\tAlert(" << c_str() << ")= '" << EventName(event) << "'" << endl;
 #endif // DEBUG
 
+	system = node.attribute("emit-for-system-sessions").as_bool(false);
+	remote = node.attribute("emit-for-remote-sessions").as_bool(false);
+
  }
 
  UserList::Alert::~Alert() {
@@ -63,6 +66,25 @@
  void UserList::Alert::onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
 
 	if(event == alert->event) {
+
+		if(session.system() && !alert->system) {
+#ifdef DEBUG
+			cout << session << "\tIgnoring system session" << endl;
+#endif // DEBUG
+			return;
+		}
+
+		if(session.remote() && !alert->remote) {
+#ifdef DEBUG
+			cout << session << "\tIgnoring remote session" << endl;
+#endif // DEBUG
+			return;
+		}
+
+#ifdef DEBUG
+		cout << session << "\tEmitting alert to " << (session.system() ? "system" : "user" ) << " session" << endl;
+		cout << session << "\tEmitting alert to " << (session.remote() ? "remote" : "local" ) << " session" << endl;
+#endif // DEBUG
 
 		Abstract::Alert::activate(alert,[&session,&event,alert](std::string &text) {
 

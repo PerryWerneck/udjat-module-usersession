@@ -100,6 +100,12 @@
 	private:
 		Udjat::User::Event event = (Udjat::User::Event) -1;
 
+		/// @brief Emit alert for system sessions?
+		bool system = false;
+
+		/// @brief Emit alert for remote sessions?
+		bool remote = false;
+
 	public:
 
 		class Factory : public Udjat::Factory {

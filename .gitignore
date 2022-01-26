@@ -54,4 +54,5 @@ stamp-h1
 Makefile
 config.h
 *.[0-9]
-
+resources.rc
+app-manifest.xml

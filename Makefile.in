@@ -6,13 +6,17 @@ SONAME=@SONAME@
 
 LIBRARY_SOURCES= \
 	$(wildcard src/library/*.cc) \
-	$(wildcard src/library/os/@OSNAME@/*.cc)
+	$(wildcard src/library/os/@OSNAME@/*.cc) \
+	$(wildcard src/library/os/@OSNAME@/*.rc)
 
 MODULE_SOURCES= \
 	$(wildcard src/module/*.cc)
 
 TEST_SOURCES= \
-	$(wildcard src/testprogram/*.cc)
+	$(wildcard src/testprogram/*.cc) 
+
+#	Disable due to some windows 'craziness' (Error 'Acessing a corrupted library' when enabled)
+#	$(wildcard src/testprogram/@OSNAME@/*.rc)
 
 #---[ Tools ]----------------------------------------------------------------------------
 
