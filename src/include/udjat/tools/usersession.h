@@ -28,10 +28,6 @@
  #include <functional>
  #include <ostream>
 
-#ifndef _WIN32
-	#include <udjat/tools/dbus.h>
-#endif // _WIN32
-
  namespace Udjat {
 
 	namespace User {
@@ -153,8 +149,8 @@
 
 #else
 
-			std::string sid;						///< @brief LoginD session ID.
-			DBus::Connection *bus = nullptr;		///< @brief Connection with the user's bus
+			std::string sid;			///< @brief LoginD session ID.
+			void *bus = nullptr;		///< @brief Connection with the user's bus
 
 #endif // _WIN32
 

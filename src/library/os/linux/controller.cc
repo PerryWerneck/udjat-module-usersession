@@ -30,6 +30,7 @@
 
 // https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741
 
+ #include <config.h>
  #include <udjat/tools/usersession.h>
  #include <systemd/sd-login.h>
  #include <cstring>
@@ -37,6 +38,10 @@
  #include <poll.h>
  #include <signal.h>
  #include <udjat/tools/configuration.h>
+
+#ifdef HAVE_DBUS
+	#include <udjat/tools/dbus.h>
+#endif // HAVE_DBUS
 
  using namespace std;
 
@@ -102,6 +107,7 @@
 			// This would be far more easier with the fix of the issue
 			// https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741#
 
+#ifdef HAVE_DBUS
 			try {
 
 				string busname = session->getenv("DBUS_SESSION_BUS_ADDRESS");
@@ -110,11 +116,11 @@
 
 					// Connect to user's session bus.
 					session->call([session, &busname](){
-						session->bus = new DBus::Connection(busname.c_str());
+						session->bus = (void *) new DBus::Connection(busname.c_str());
 					});
 
 					// Subscribe to gnome-screensaver
-					session->bus->subscribe(
+					((DBus::Connection *) session->bus)->subscribe(
 						session,
 						"org.gnome.ScreenSaver",
 						"ActiveChanged",
@@ -132,11 +138,16 @@
 
 				}
 
-
 			} catch(const exception &e) {
 
 				cerr << session->to_string() << "\t" << e.what() << endl;
 			}
+
+#else
+
+			clog << session->to_string() << "\tBuilt without Udjat::DBus, unable to watch gnome screensaver" << endl;
+
+#endif // HAVE_DBUS
 
 		}
 	}

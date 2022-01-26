@@ -63,6 +63,22 @@
  UserList::Alert::~Alert() {
  }
 
+ std::shared_ptr<Abstract::Alert::Activation> UserList::Alert::ActivationFactory(const std::function<void(std::string &str)> &expander) const {
+
+	class Activation : public Alert::Activation {
+	public:
+		Activation(const UserList::Alert &alert, const std::function<void(std::string &str)> &expander) : Alert::Activation(alert,expander) {
+			string name{"${username}"};
+			expander(name);
+			this->name = name;
+		}
+
+	};
+
+	return make_shared<Activation>(*this,expander);
+
+ }
+
  void UserList::Alert::onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
 
 	if(event == alert->event) {
@@ -96,12 +112,19 @@
 				};
 
 				if(!strcasecmp(key,"alertname")) {
-					value =alert->c_str();
+					value = alert->name();
 					return true;
 				};
 
 				if(!strcasecmp(key,"event")) {
-					value =User::EventName(event);
+					value = User::EventName(event);
+					return true;
+				};
+
+				if(!strcasecmp(key,"activation")) {
+					value = session.to_string();
+					value += "/";
+					value += User::EventName(event);
 					return true;
 				};
 

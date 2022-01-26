@@ -17,6 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
  #include "private.h"
  #include <systemd/sd-login.h>
  #include <systemd/sd-bus.h>
@@ -30,6 +31,10 @@
  #include <unistd.h>
  #include <mutex>
 
+#ifdef HAVE_DBUS
+	#include <udjat/tools/dbus.h>
+#endif // HAVE_DBUS
+
  using namespace std;
 
  namespace Udjat {
@@ -38,14 +43,16 @@
 	}
 
 	User::Session::~Session() {
+#ifdef HAVE_DBUS
 		if(bus) {
 			cout << to_string() << "\tDisconnecting from user's bus" << endl;
 
 			// FIXME: Why unsubscribe hangs here?
 			// bus->unsubscribe(this);
 
-			delete bus;
+			delete ((DBus::Connection *) bus);
 		}
+#endif // HAVE_DBUS
 	}
 
 	bool User::Session::remote() const {

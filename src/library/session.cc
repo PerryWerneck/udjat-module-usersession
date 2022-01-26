@@ -19,6 +19,7 @@
 
  #include <udjat/tools/usersession.h>
  #include <iostream>
+ #include <cstring>
 
  using namespace std;
 

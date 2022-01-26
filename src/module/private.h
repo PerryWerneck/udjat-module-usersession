@@ -33,6 +33,7 @@
  class Controller;
 
  using namespace std;
+ using namespace Udjat;
 
  namespace UserList {
 
@@ -106,6 +107,8 @@
 		/// @brief Emit alert for remote sessions?
 		bool remote = false;
 
+		std::shared_ptr<Abstract::Alert::Activation> ActivationFactory(const std::function<void(std::string &str)> &expander) const override;
+
 	public:
 
 		class Factory : public Udjat::Factory {
@@ -113,6 +116,10 @@
 			Factory();
 			bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override;
 		};
+
+		const char * name() const noexcept {
+			return Abstract::Alert::name;
+		}
 
 		Alert(const pugi::xml_node &node);
 		virtual ~Alert();
