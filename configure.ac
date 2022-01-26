@@ -56,7 +56,7 @@ dnl ---------------------------------------------------------------------------
 CFLAGS="$CFLAGS -I$ac_pwd/src/include"
 
 case "$host" in
-	*-mingw32)
+	*-mingw32|*-pc-msys)
 		CFLAGS="$CFLAGS -pthread -D_WIN32_WINNT=0x0600"
 		CXXFLAGS="$CXXFLAGS -pthread -D_WIN32_WINNT=0x0600"
 		LDFLAGS="$LDFLAGS -pthread"
@@ -67,8 +67,7 @@ case "$host" in
 		AC_SUBST(OSNAME,windows)
 		AC_SUBST(SONAME,udjatusers.dll)
 		AC_CONFIG_FILES(sdk/windows/dynamic.pc)
-		AC_CONFIG_FILES(sdk/windows/static.pc)
-		
+		AC_CONFIG_FILES(sdk/windows/static.pc)		
 		;;
 
  	*)
