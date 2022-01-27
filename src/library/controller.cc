@@ -67,4 +67,28 @@
 		}
 	}
 
+	void User::Controller::sleep() {
+		cout << "users\tSystem is preparing to sleep" << endl;
+		lock_guard<mutex> lock(guard);
+		for(auto session : sessions) {
+			session->onEvent(User::sleep);
+		}
+	}
+
+	void User::Controller::resume() {
+		cout << "users\tSystem is resuming from sleep" << endl;
+		lock_guard<mutex> lock(guard);
+		for(auto session : sessions) {
+			session->onEvent(User::resume);
+		}
+	}
+
+	void User::Controller::shutdown() {
+		cout << "users\tSystem is preparing to shutdown" << endl;
+		lock_guard<mutex> lock(guard);
+		for(auto session : sessions) {
+			session->onEvent(User::shutdown);
+		}
+	}
+
  }

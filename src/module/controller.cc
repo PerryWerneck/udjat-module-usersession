@@ -33,6 +33,17 @@
 	return instance;
  }
 
+ static const Udjat::ModuleInfo moduleinfo {
+	PACKAGE_NAME,				// The module name.
+	"User list controller",		// The module description.
+	PACKAGE_VERSION, 			// The module version.
+	PACKAGE_URL, 				// The package URL.
+	PACKAGE_BUGREPORT 			// The bugreport address.
+ };
+
+ UserList::Controller::Controller() : Udjat::MainLoop::Service(&moduleinfo) {
+ }
+
  std::shared_ptr<Udjat::User::Session> UserList::Controller::SessionFactory() noexcept {
 
 	class Session : public Udjat::User::Session {

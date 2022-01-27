@@ -35,7 +35,9 @@
 		"Unlock",			// Session was unlocked.
 		"Foreground",		// Session is in foreground.
 		"Background",		// Session is in background.
-
+		"sleep",			// System is preparing to sleep.
+		"resume",			// System is resuming from sleep.
+		"shutdown",			// System is shutting down.
 	};
 
 	static const char * EventDescriptions[] = {
@@ -46,7 +48,10 @@
 		"Session was locked",
 		"Session was unlocked",
 		"Session is in foreground",
-		"Session is in background"
+		"Session is in background",
+		"Session is preparing to sleep",
+		"Session is resuming from sleep",
+		"Session is shutting down",
 	};
 
 	UDJAT_API User::Event User::EventFactory(const char *name) {

@@ -92,6 +92,7 @@
 
  }
 
+
  namespace std {
 
 	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept {

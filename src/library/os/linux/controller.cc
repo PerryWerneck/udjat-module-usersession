@@ -38,6 +38,7 @@
  #include <poll.h>
  #include <signal.h>
  #include <udjat/tools/configuration.h>
+ #include <pthread.h>
 
 #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
@@ -116,7 +117,7 @@
 
 					// Connect to user's session bus.
 					session->call([session, &busname](){
-						session->bus = (void *) new DBus::Connection(busname.c_str());
+						session->bus = (void *) new DBus::Connection(busname.c_str(),session->to_string().c_str());
 					});
 
 					// Subscribe to gnome-screensaver
@@ -188,7 +189,55 @@
 		enabled = true;
 		monitor = new std::thread([this](){
 
+			pthread_setname_np(pthread_self(),"logind");
+
 			clog << "users\tlogind monitor is activating" << endl;
+
+#ifdef HAVE_DBUS
+
+			bool sysbus = false;
+
+			if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",false)) {
+				try {
+					sysbus = true;
+					DBus::Connection::getSystemInstance().subscribe(
+						(void *) this,
+						"org.freedesktop.login1.Manager",
+						"PrepareForSleep",
+						[this](DBus::Message &message) {
+
+							if(DBus::Value(message).as_bool()) {
+								sleep();
+							} else {
+								resume();
+							}
+
+						}
+					);
+				} catch(const std::exception &e) {
+					cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.PrepareForSleep" << endl;
+				}
+			}
+			if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",false)) {
+				try {
+					sysbus = true;
+					DBus::Connection::getSystemInstance().subscribe(
+						(void *) this,
+						"org.freedesktop.login1.Manager",
+						"PrepareForShutdown",
+						[this](DBus::Message &message) {
+
+							if(DBus::Value(message).as_bool()) {
+								shutdown();
+							}
+
+						}
+					);
+				} catch(const std::exception &e) {
+					cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.PrepareForShutdown" << endl;
+				}
+			}
+#endif // HAVE_DBUS
 
 			{
 				char **ids = nullptr;
@@ -253,17 +302,12 @@
 			}
 
 			clog << "users\tlogind monitor is deactivating" << endl;
-			deinit();
 
-			{
-				// Finalize
-				lock_guard<mutex> lock(guard);
-				if(this->monitor) {
-					this->monitor->detach();
-					delete this->monitor;
-					this->monitor = nullptr;
-				}
+			if(sysbus) {
+				DBus::Connection::getSystemInstance().unsubscribe(this);
 			}
+
+			deinit();
 
 		});
 
@@ -271,20 +315,12 @@
 
 	void User::Controller::deactivate() {
 
-		std::thread *active = nullptr;
-		{
-			lock_guard<mutex> lock(guard);
-			if(monitor) {
-				clog << "users\tWaiting for deactivation of logind monitor" << endl;
-				active = monitor;
-				monitor = nullptr;
-			}
-		}
-
-		if(active) {
-			enabled = false;
-			active->join();
-			delete active;
+		enabled = false;
+		if(monitor) {
+			cout << "users\tWaiting for termination of logind monitor" << endl;
+			monitor->join();
+			delete monitor;
+			monitor = nullptr;
 		}
 
 		deinit(); // Just in case.

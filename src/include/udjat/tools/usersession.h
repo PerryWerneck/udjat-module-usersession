@@ -44,7 +44,9 @@
 			unlock,				///< @brief Session was unlocked.
 			foreground,			///< @brief Session is in foreground.
 			background,			///< @brief Session is in background.
-
+			sleep,				///< @brief System is preparing to sleep.
+			resume,				///< @brief System is resuming from sleep.
+			shutdown,			///< @brief System is shutting down.
 		};
 
 		UDJAT_API const char * EventName(Event event) noexcept;
@@ -91,6 +93,15 @@
 			bool enabled = false;
 			void setup(Session *session);
 #endif // _WIN32
+
+			/// @brief System is going to sleep.
+			void sleep();
+
+			/// @brief System is resuming from sleep.
+			void resume();
+
+			/// @brief System is shutting down.
+			void shutdown();
 
 		protected:
 

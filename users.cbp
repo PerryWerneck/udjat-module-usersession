@@ -47,13 +47,6 @@
 		<Unit filename="src/library/os/windows/controller.cc" />
 		<Unit filename="src/library/os/windows/session.cc" />
 		<Unit filename="src/library/session.cc" />
-		<Unit filename="src/libusers/include/config.h" />
-		<Unit filename="src/libusers/include/internals.h" />
-		<Unit filename="src/libusers/include/users/defs.h" />
-		<Unit filename="src/libusers/include/users/table.h" />
-		<Unit filename="src/libusers/include/users/value.h" />
-		<Unit filename="src/libusers/os/linux/private.h" />
-		<Unit filename="src/libusers/os/windows/native_win32.h" />
 		<Unit filename="src/module/agent.cc" />
 		<Unit filename="src/module/alert.cc" />
 		<Unit filename="src/module/controller.cc" />

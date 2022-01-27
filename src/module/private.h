@@ -56,7 +56,7 @@
 		std::shared_ptr<Udjat::User::Session> SessionFactory() noexcept override;
 
 		public:
-		Controller() = default;
+		Controller();
 		static std::shared_ptr<Controller> getInstance();
 
 		void start() override;

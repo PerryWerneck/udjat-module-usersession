@@ -46,10 +46,7 @@
 #ifdef HAVE_DBUS
 		if(bus) {
 			cout << to_string() << "\tDisconnecting from user's bus" << endl;
-
-			// FIXME: Why unsubscribe hangs here?
-			// bus->unsubscribe(this);
-
+			((DBus::Connection *) bus)->unsubscribe(this);
 			delete ((DBus::Connection *) bus);
 		}
 #endif // HAVE_DBUS
