@@ -261,8 +261,6 @@
 
 	void User::Controller::deactivate() {
 
-		cout << __FUNCTION__ << "\tAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
-
 		enabled = false;
 		if(monitor) {
 			cout << "users\tWaiting for termination of logind monitor" << endl;
@@ -271,11 +269,8 @@
 			monitor = nullptr;
 		}
 
-		cout << __FUNCTION__ << "\tBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" << endl;
-
 		deinit(); // Just in case.
 
-		cout << __FUNCTION__ << "\tCCCCCCCCCCCCCCCCCCCCCCCCCC" << endl;
 	}
 
 

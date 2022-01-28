@@ -21,10 +21,11 @@
  #include "private.h"
  #include <udjat/tools/configuration.h>
  #include <iostream>
+ #include <udjat/tools/threadpool.h>
 
-#ifdef HAVE_DBUS
+ #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
-#endif // HAVE_DBUS
+ #endif // HAVE_DBUS
 
  using namespace std;
 
@@ -88,20 +89,21 @@
 					// This would be far more easier with the fix of the issue
 					// https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741#
 
-					Session &ses = *session; // De-reference pointer to avoid use_count() increment.
 					((DBus::Connection *) session->bus)->subscribe(
 						(void *) session.get(),
 						"org.gnome.ScreenSaver",
 						"ActiveChanged",
-						[&ses](DBus::Message &message) {
+						[session](DBus::Message &message) {
 
 							// Active state of gnome screensaver has changed, deal with it.
 
 							bool locked = DBus::Value(message).as_bool();
-							if(locked != ses.state.locked) {
-								cout << ses << "\tSession was " << (locked ? "locked" : "unlocked") << " by gnome screensaver" << endl;
-								ses.state.locked = locked;
-								ses.onEvent( (locked ? User::lock : User::unlock) );
+							if(locked != session->state.locked) {
+								cout << *session << "\tSession was " << (locked ? "locked" : "unlocked") << " by gnome screensaver" << endl;
+								session->state.locked = locked;
+								ThreadPool::getInstance().push([session,locked](){
+									session->onEvent( (locked ? User::lock : User::unlock) );
+								});
 							}
 
 						}
@@ -111,12 +113,12 @@
 
 			} catch(const exception &e) {
 
-				cerr << session->to_string() << "\t" << e.what() << endl;
+				cerr << *session << "\t" << e.what() << endl;
 			}
 
 #else
 
-			clog << session->to_string() << "\tBuilt without Udjat::DBus, unable to watch gnome screensaver" << endl;
+			clog << *session << "\tBuilt without Udjat::DBus, unable to watch gnome screensaver" << endl;
 
 #endif // HAVE_DBUS
 
