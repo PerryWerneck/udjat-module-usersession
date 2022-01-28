@@ -91,7 +91,7 @@
 			std::shared_ptr<Session> find(const char * sid);
 			std::thread *monitor = nullptr;
 			bool enabled = false;
-			void setup(Session *session);
+			void setup(std::shared_ptr<Session> session);
 #endif // _WIN32
 
 			/// @brief System is going to sleep.

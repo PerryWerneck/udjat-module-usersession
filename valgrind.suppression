@@ -1,7 +1,7 @@
 {
    civetweb-start
    Memcheck:Cond
-   fun:master_thread
+   obj:/usr/lib64/libcivetweb.so.1.15.0
    fun:start_thread
    fun:clone
 }

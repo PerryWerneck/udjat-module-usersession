@@ -42,10 +42,10 @@
 
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
+
+			cout << *session << "\tDeinitializing session @" << session->sid << " with " << session.use_count() << " active instance(s)" << endl;
+
 			if(session->state.alive) {
-#ifdef DEBUG
-				cout << "users\tDeinitializing session @" << session->sid << endl;
-#endif // DEBUG
 				session->onEvent(still_active);
 				session->state.alive = false;
 			}

@@ -99,7 +99,7 @@
 
 	}
 
-	void User::Controller::setup(Session *session) {
+	void User::Controller::setup(std::shared_ptr<Session> session) {
 
 		if(Config::Value<bool>("user-session","open-session-bus",true)) {
 
@@ -116,22 +116,61 @@
 				if(!busname.empty()) {
 
 					// Connect to user's session bus.
+					// Using session->call because you've to change the euid to
+					// get access to the bus.
 					session->call([session, &busname](){
 						session->bus = (void *) new DBus::Connection(busname.c_str(),session->to_string().c_str());
 					});
 
+					// Is the session locked?
+					((DBus::Connection *) session->bus)->call(
+						"org.gnome.ScreenSaver",
+						"/org/gnome/ScreenSaver",
+						"org.gnome.ScreenSaver",
+						"GetActiveTime",
+						[session](DBus::Message & message) {
+
+							// Got an async d-bus response, check it.
+
+							if(message) {
+
+								unsigned int active;
+								message.pop(active);
+
+								if(active) {
+
+									session->state.locked = true;
+									cout << *session << "\tgnome-screensaver is active" << endl;
+
+								} else {
+
+									cout << *session << "\tgnome-screensaver is not active" << endl;
+
+								}
+
+							} else {
+
+								cerr << "Error '" << message.error_message() << "' calling org.gnome.ScreenSaver.GetActiveTime" << endl;
+
+							}
+						}
+					);
+
 					// Subscribe to gnome-screensaver
+					Session &ses = *session; // De-reference pointer to avoid use_count() increment.
 					((DBus::Connection *) session->bus)->subscribe(
-						session,
+						(void *) session.get(),
 						"org.gnome.ScreenSaver",
 						"ActiveChanged",
-						[session](DBus::Message &message) {
+						[&ses](DBus::Message &message) {
+
+							// Active state of gnome screensaver has changed, deal with it.
 
 							bool locked = DBus::Value(message).as_bool();
-							if(locked != session->state.locked) {
-								cout << session->to_string() << "\tSession was " << (locked ? "locked" : "unlocked") << " by gnome screensaver" << endl;
-								session->state.locked = locked;
-								session->onEvent( (locked ? User::lock : User::unlock) );
+							if(locked != ses.state.locked) {
+								cout << ses << "\tSession was " << (locked ? "locked" : "unlocked") << " by gnome screensaver" << endl;
+								ses.state.locked = locked;
+								ses.onEvent( (locked ? User::lock : User::unlock) );
 							}
 
 						}
@@ -151,6 +190,7 @@
 #endif // HAVE_DBUS
 
 		}
+
 	}
 
 	/// @brief Find session (Requires an active guard!!!)
@@ -166,7 +206,7 @@
 		std::shared_ptr<Session> session = SessionFactory();
 		session->sid = sid;
 		sessions.push_back(session);
-		setup(session.get());
+		setup(session);
 
 		return session;
 	}
@@ -248,7 +288,7 @@
 					std::shared_ptr<Session> session = SessionFactory();
 					session->sid = ids[id];
 					sessions.push_back(session);
-					setup(session.get());
+					setup(session);
 
 					char *state = nullptr;
 					if(sd_session_get_state(ids[id], &state) >= 0) {
@@ -315,6 +355,8 @@
 
 	void User::Controller::deactivate() {
 
+		cout << __FUNCTION__ << "\tAAAAAAAAAAAAAAAAAAAAAAAAAAAA" << endl;
+
 		enabled = false;
 		if(monitor) {
 			cout << "users\tWaiting for termination of logind monitor" << endl;
@@ -323,8 +365,11 @@
 			monitor = nullptr;
 		}
 
+		cout << __FUNCTION__ << "\tBBBBBBBBBBBBBBBBBBBBBBBBBBBBB" << endl;
+
 		deinit(); // Just in case.
 
+		cout << __FUNCTION__ << "\tCCCCCCCCCCCCCCCCCCCCCCCCCC" << endl;
 	}
 
 

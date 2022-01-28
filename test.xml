@@ -12,12 +12,12 @@
 	<user-list name='users'>
 	
 		<!-- Activate when user is active on service start -->
-		<alert name='start' event='Already active'>
-		</alert>
+		<!-- alert name='start' event='Already active'>
+		</alert -->
 
 		<!-- Activate when user is active on service stop -->
-		<alert name='stop' event='Still active'>
-		</alert>
+		<!-- alert name='stop' event='Still active'>
+		</alert -->
 
 		<!-- Activate on user logon -->
 		<alert name='login'>
