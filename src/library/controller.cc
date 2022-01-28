@@ -49,6 +49,9 @@
 				session->onEvent(still_active);
 				session->state.alive = false;
 			}
+
+			deinit(session);
+
 		}
 
 		sessions.clear();

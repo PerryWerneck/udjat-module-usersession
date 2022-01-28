@@ -44,6 +44,8 @@
 		<Unit filename="src/library/os/linux/environment.cc" />
 		<Unit filename="src/library/os/linux/private.h" />
 		<Unit filename="src/library/os/linux/session.cc" />
+		<Unit filename="src/library/os/linux/sessiondeinit.cc" />
+		<Unit filename="src/library/os/linux/sessioninit.cc" />
 		<Unit filename="src/library/os/windows/controller.cc" />
 		<Unit filename="src/library/os/windows/session.cc" />
 		<Unit filename="src/library/session.cc" />

@@ -43,13 +43,6 @@
 	}
 
 	User::Session::~Session() {
-#ifdef HAVE_DBUS
-		if(bus) {
-			cout << to_string() << "\tDisconnecting from user's bus" << endl;
-			((DBus::Connection *) bus)->unsubscribe(this);
-			delete ((DBus::Connection *) bus);
-		}
-#endif // HAVE_DBUS
 	}
 
 	bool User::Session::remote() const {

@@ -80,6 +80,12 @@
 			/// @brief Deinitialize controller.
 			void deinit() noexcept;
 
+			/// @brief Initialize session.
+			void init(std::shared_ptr<Session> session);
+
+			/// @brief Deinitialize session.
+			void deinit(std::shared_ptr<Session> session);
+
 #ifdef _WIN32
 			HWND hwnd = 0;
 			static LRESULT WINAPI hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -91,7 +97,6 @@
 			std::shared_ptr<Session> find(const char * sid);
 			std::thread *monitor = nullptr;
 			bool enabled = false;
-			void setup(std::shared_ptr<Session> session);
 #endif // _WIN32
 
 			/// @brief System is going to sleep.
