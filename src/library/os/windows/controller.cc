@@ -236,6 +236,49 @@
 
 		// https://wiki.winehq.org/List_Of_Windows_Messages
 		switch(uMsg) {
+		case WM_POWERBROADCAST:
+			try {
+
+				switch(wParam) {
+				case PBT_APMPOWERSTATUSCHANGE:
+					cout << "users\tPower status has changed." << endl;
+					break;
+
+				case PBT_POWERSETTINGCHANGE:
+					cout << "users\tA power setting change event has been received." << endl;
+					break;
+
+				case PBT_APMRESUMEAUTOMATIC:
+					cout << "users\tOperation is resuming automatically from a low-power state." << endl;
+					controller.resume();
+					break;
+
+				case PBT_APMRESUMESUSPEND:
+					cout << "users\tOperation is resuming from a low-power state." << endl;
+					controller.resume();
+					break;
+
+				case PBT_APMSUSPEND:
+					cout << "users\tSystem is suspending operation." << endl;
+					controller.sleep();
+					break;
+
+				default:
+					cout << "users\tUnexpected power broadcast message (id=" << ((int) wParam) << ")" << endl;
+
+				}
+
+			} catch(const std::exception &e) {
+
+				cerr << "users\tError '" << e.what() << "' processing WM_POWERBROADCAST" << endl;
+
+			} catch(...) {
+
+				cerr << "users\tUnexpected error processing WM_POWERBROADCAST" << endl;
+
+			}
+			break;
+
 		case WM_WTSSESSION_CHANGE:
 
 			try {
@@ -318,11 +361,11 @@
 
 			} catch(const std::exception &e) {
 
-				cerr << "users\tError updating SID " << ((DWORD) lParam) << ": " << e.what() << endl;
+				cerr << "@" << ((DWORD) lParam) << "\t Error '" << e.what() << "' processing WM_WTSSESSION_CHANGE" << endl;
 
 			} catch(...) {
 
-				cerr << "users\tUnexpected error updating SID " << ((DWORD) lParam) << endl;
+				cerr << "@" << ((DWORD) lParam) << "\tUnexpected error processing WM_WTSSESSION_CHANGE" << endl;
 
 			}
 			break;

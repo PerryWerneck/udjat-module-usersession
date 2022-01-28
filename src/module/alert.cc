@@ -65,9 +65,9 @@
 
  std::shared_ptr<Abstract::Alert::Activation> UserList::Alert::ActivationFactory(const std::function<void(std::string &str)> &expander) const {
 
-	class Activation : public Alert::Activation {
+	class Activation : public Udjat::Alert::Activation {
 	public:
-		Activation(const UserList::Alert &alert, const std::function<void(std::string &str)> &expander) : Alert::Activation(alert,expander) {
+		Activation(const Udjat::Alert &alert, const std::function<void(std::string &str)> &expander) : Udjat::Alert::Activation(alert,expander) {
 			string name{"${username}"};
 			expander(name);
 			this->name = name;

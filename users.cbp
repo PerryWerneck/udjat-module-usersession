@@ -47,7 +47,10 @@
 		<Unit filename="src/library/os/linux/sessiondeinit.cc" />
 		<Unit filename="src/library/os/linux/sessioninit.cc" />
 		<Unit filename="src/library/os/windows/controller.cc" />
+		<Unit filename="src/library/os/windows/resources.rc" />
 		<Unit filename="src/library/os/windows/session.cc" />
+		<Unit filename="src/library/os/windows/sessiondeinit.cc" />
+		<Unit filename="src/library/os/windows/sessioninit.cc" />
 		<Unit filename="src/library/session.cc" />
 		<Unit filename="src/module/agent.cc" />
 		<Unit filename="src/module/alert.cc" />
