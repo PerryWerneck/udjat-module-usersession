@@ -54,6 +54,26 @@
 		virtual ~Module() {
 		}
 
+		bool get(Request UDJAT_UNUSED(&request), Response &response) const override {
+
+			response.reset(Value::Array);
+
+			auto sessions = UserList::Controller::getInstance();
+			for(auto session : *sessions) {
+
+				Value &row = response.append(Value::Object);
+
+				row["name"] = session->to_string();
+				row["remote"] = session->remote();
+				row["locked"] = session->locked();
+				row["active"] = session->active();
+				row["state"] = std::to_string(session->state());
+
+			}
+
+			return true;
+		}
+
 	};
 
 	return new Module();

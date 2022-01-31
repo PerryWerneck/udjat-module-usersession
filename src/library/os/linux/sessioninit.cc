@@ -66,7 +66,7 @@
 
 								if(active) {
 
-									session->state.locked = true;
+									session->flags.locked = true;
 									cout << *session << "\tgnome-screensaver is active" << endl;
 
 								} else {
@@ -98,9 +98,9 @@
 							// Active state of gnome screensaver has changed, deal with it.
 
 							bool locked = DBus::Value(message).as_bool();
-							if(locked != session->state.locked) {
+							if(locked != session->flags.locked) {
 								cout << *session << "\tSession was " << (locked ? "locked" : "unlocked") << " by gnome screensaver" << endl;
-								session->state.locked = locked;
+								session->flags.locked = locked;
 								ThreadPool::getInstance().push([session,locked](){
 									session->onEvent( (locked ? User::lock : User::unlock) );
 								});

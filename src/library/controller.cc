@@ -32,7 +32,7 @@
 #ifdef DEBUG
 			cout << "users\tInitializing session @" << session->sid << endl;
 #endif // DEBUG
-			session->state.alive = true;
+			session->flags.alive = true;
 			session->onEvent(already_active);
 		}
 
@@ -45,9 +45,9 @@
 
 			cout << *session << "\tDeinitializing session @" << session->sid << " with " << session.use_count() << " active instance(s)" << endl;
 
-			if(session->state.alive) {
+			if(session->flags.alive) {
 				session->onEvent(still_active);
-				session->state.alive = false;
+				session->flags.alive = false;
 			}
 
 			deinit(session);

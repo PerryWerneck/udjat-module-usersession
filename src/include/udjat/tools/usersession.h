@@ -151,13 +151,13 @@
 			friend class Controller;
 
 			struct {
-				State value = User::SessionInUnknownState;	///< @brief Current user state.
+				State state = User::SessionInUnknownState;	///< @brief Current user state.
 				bool alive = false;							///< @brief True if the session is alive.
 				bool locked = false;						///< @brief True if the session is locked.
 #ifdef _WIN32
 				bool remote = false;						///< @brief True if the session is remote.
 #endif // _WIN32
-			} state;
+			} flags;
 
 #ifdef _WIN32
 
@@ -189,6 +189,11 @@
 			/// @brief Is this session active?
 			bool active() const;
 
+			/// @brief Get session state.
+			inline State state() const noexcept {
+				return flags.state;
+			}
+
 			/// @brief Is this a 'system' session?
 			bool system() const;
 
@@ -196,7 +201,7 @@
 
 			/// @brief Is this session alive?
 			inline bool alive() const noexcept {
-				return state.alive;
+				return flags.alive;
 			}
 
 #ifndef _WIN32

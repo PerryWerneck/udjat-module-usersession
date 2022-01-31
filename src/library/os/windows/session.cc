@@ -34,15 +34,15 @@
 	}
 
 	bool User::Session::remote() const {
-		return state.remote;
+		return flags.remote;
 	}
 
 	bool User::Session::active() const {
-		return state.value == SessionInForeground;
+		return flags.state == SessionInForeground;
 	}
 
 	bool User::Session::locked() const {
-		return state.locked;
+		return flags.locked;
 	}
 
 	bool User::Session::system() const {

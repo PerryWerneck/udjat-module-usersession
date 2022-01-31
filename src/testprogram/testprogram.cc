@@ -44,9 +44,12 @@ int main(int argc, char **argv) {
 
 			auto root = Udjat::init("test.xml");
 
-			cout << "http://localhost:8989/api/1.0/info/modules.xml" << endl;
-			cout << "http://localhost:8989/api/1.0/info/workers.xml" << endl;
-			cout << "http://localhost:8989/api/1.0/info/factories.xml" << endl;
+			if(Module::find("information")) {
+				cout << "http://localhost:8989/api/1.0/info/modules.xml" << endl;
+				cout << "http://localhost:8989/api/1.0/info/workers.xml" << endl;
+				cout << "http://localhost:8989/api/1.0/info/factories.xml" << endl;
+			}
+			cout << "http://localhost:8989/api/1.0/users.xml" << endl;
 			cout << "http://localhost:8989/api/1.0/agent.xml" << endl;
 
 			for(auto agent : *root) {

@@ -161,7 +161,7 @@
 				} else {
 					session = find(sessions[ix].SessionId);
 				}
-				session->state.alive = true;
+				session->flags.alive = true;
 
 				// https://msdn.microsoft.com/en-us/library/aa383860(v=vs.85).aspx
 				switch(sessions[ix].State) {
@@ -183,7 +183,7 @@
 
 				case WTSDisconnected:
 					cout << "@" << session->sid << "\tThe WinStation is active but the client is disconnected." << endl;
-					session->state.locked = true;
+					session->flags.locked = true;
 					if(!starting) {
 						session->onEvent(lock);
 					}
@@ -288,16 +288,16 @@
 				switch((int) wParam) {
 				case WTS_SESSION_LOCK:				// The session has been locked.
 					cout << "@" << session->sid << "\tWTS_SESSION_LOCK " << endl;
-					if(!session->state.locked) {
-						session->state.locked = true;
+					if(!session->flags.locked) {
+						session->flags.locked = true;
 						session->onEvent(lock);
 					}
 					break;
 
 				case WTS_SESSION_UNLOCK:			// The session identified has been unlocked.
 					cout << "@" << session->sid << "\tWTS_SESSION_UNLOCK " << endl;
-					if(session->state.locked) {
-						session->state.locked = false;
+					if(session->flags.locked) {
+						session->flags.locked = false;
 						session->onEvent(unlock);
 					}
 					break;
@@ -314,12 +314,12 @@
 
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
 					cout << "@" << session->sid << "\tWTS_REMOTE_CONNECT " << endl;
-					session->state.remote = true;
+					session->flags.remote = true;
 					break;
 
 				case WTS_REMOTE_DISCONNECT:			// The session was disconnected from the remote terminal.
 					cout << "@" << session->sid << "\tWTS_REMOTE_DISCONNECT " << endl;
-					session->state.remote = true;
+					session->flags.remote = true;
 					session->set(User::SessionIsClosing);
 					break;
 
@@ -327,9 +327,9 @@
 					cout << "@" << session->sid << "\tWTS_SESSION_LOGON " << endl;
 
 					// Set to foreground on logon.
-					session->state.value = SessionInForeground;
-
+					session->flags.state = SessionInForeground;
 					session->onEvent(logon);
+
 					break;
 
 				case WTS_SESSION_LOGOFF:			// A user has logged off the session.

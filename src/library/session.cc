@@ -74,14 +74,14 @@
 
 	User::Session & User::Session::set(User::State state) {
 
-		if(state != this->state.value) {
+		if(state != this->flags.state) {
 
-			cout << to_string() << "\tState changes from '" << this->state.value << "' to '" << state << "'" << endl;
-			this->state.value = state;
+			cout << to_string() << "\tState changes from '" << this->flags.state << "' to '" << state << "'" << endl;
+			this->flags.state = state;
 
-			if(this->state.value == SessionInForeground) {
+			if(this->flags.state == SessionInForeground) {
 				onEvent(foreground);
-			} else if(this->state.value == SessionInBackground) {
+			} else if(this->flags.state == SessionInBackground) {
 				onEvent(background);
 			}
 

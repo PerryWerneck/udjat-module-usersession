@@ -68,9 +68,9 @@
 			}
 
 			// Reset states, just in case of some other one have an instance of this session.
-			if(session->state.alive) {
+			if(session->flags.alive) {
 				session->onEvent(logoff);
-				session->state.alive = false;
+				session->flags.alive = false;
 			}
 			return true;
 		});
@@ -78,11 +78,11 @@
 		// Create and update sessions.
 		for(int id = 0; id < idCount; id++) {
 			auto session = find(ids[id]);
-			if(!session->state.alive) {
+			if(!session->flags.alive) {
 #ifdef DEBUG
 				cout << "Logon on SID " << ids[id] << endl;
 #endif // DEBUG
-				session->state.alive = true;
+				session->flags.alive = true;
 				session->onEvent(logon);
 			}
 
