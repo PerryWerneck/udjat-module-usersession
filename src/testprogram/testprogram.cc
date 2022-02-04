@@ -38,11 +38,8 @@ int main(int argc, char **argv) {
 	protected:
 		/// @brief Initialize service.
 		void init() override {
-			cout << Application::Name() << "\tInitializing" << endl;
 
-			udjat_module_init();
-
-			auto root = Udjat::init("test.xml");
+			SystemService::init();
 
 			if(Module::find("information")) {
 				cout << "http://localhost:8989/api/1.0/info/modules.xml" << endl;
@@ -52,9 +49,11 @@ int main(int argc, char **argv) {
 			cout << "http://localhost:8989/api/1.0/users.xml" << endl;
 			cout << "http://localhost:8989/api/1.0/agent.xml" << endl;
 
+			/*
 			for(auto agent : *root) {
 				cout << "http://localhost:8989/api/1.0/agent/" << agent->getName() << ".xml" << endl;
 			}
+			*/
 
 		}
 
@@ -65,7 +64,8 @@ int main(int argc, char **argv) {
 		}
 
 	public:
-		Service() = default;
+		Service() : SystemService{"./test.xml"} {
+		}
 
 
 	};

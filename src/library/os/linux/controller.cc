@@ -249,9 +249,11 @@
 
 			clog << "users\tlogind monitor is deactivating" << endl;
 
+#ifdef HAVE_DBUS
 			if(sysbus) {
 				DBus::Connection::getSystemInstance().unsubscribe(this);
 			}
+#endif // HAVE_DBUS
 
 			deinit();
 
