@@ -31,7 +31,7 @@
 	UserList::Agent *agent = dynamic_cast<UserList::Agent *>(&parent);
 
 	if(!agent) {
-		cerr << parent.getName() << "\tAn user-list agent is required for user-action alerts" << endl;
+		parent.error() << "An user-list agent is required for user-action alerts" << endl;
 		return false;
 	}
 

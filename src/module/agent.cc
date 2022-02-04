@@ -54,7 +54,7 @@
 		}
 
  	} catch(const std::exception &e) {
-		cerr << getName() << "\t" << e.what() << endl;
+		error() << e.what() << endl;
  	}
 
  }

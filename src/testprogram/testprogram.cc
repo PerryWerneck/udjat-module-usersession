@@ -39,6 +39,8 @@ int main(int argc, char **argv) {
 		/// @brief Initialize service.
 		void init() override {
 
+			udjat_module_init();
+
 			SystemService::init();
 
 			if(Module::find("information")) {
