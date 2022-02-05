@@ -52,7 +52,7 @@
  UserList::Alert::Alert(const pugi::xml_node &node) : Udjat::Alert(node), event(EventFromXmlNode(node)) {
 
 #ifdef DEBUG
-	cout << "alert\tAlert(" << c_str() << ")= '" << EventName(event) << "'" << endl;
+	cout << "alert\tAlert(" << c_str() << ")= '" << event << "'" << endl;
 #endif // DEBUG
 
 	system = node.attribute("emit-for-system-sessions").as_bool(false);
@@ -79,7 +79,7 @@
 
  }
 
- void UserList::Alert::onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
+ bool UserList::Alert::onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
 
 	if(event == alert->event) {
 
@@ -87,14 +87,14 @@
 #ifdef DEBUG
 			cout << session << "\tIgnoring system session" << endl;
 #endif // DEBUG
-			return;
+			return false;
 		}
 
 		if(session.remote() && !alert->remote) {
 #ifdef DEBUG
 			cout << session << "\tIgnoring remote session" << endl;
 #endif // DEBUG
-			return;
+			return false;
 		}
 
 #ifdef DEBUG
@@ -106,10 +106,9 @@
 
 			Udjat::expand(text,[&session,&event,alert](const char *key, std::string &value){
 
-				if(!strcasecmp(key,"username")) {
-					value = session.to_string();
+				if(session.getProperty(key,value)) {
 					return true;
-				};
+				}
 
 				if(!strcasecmp(key,"alertname")) {
 					value = alert->name();
@@ -117,14 +116,19 @@
 				};
 
 				if(!strcasecmp(key,"event")) {
-					value = User::EventName(event);
+					value = std::to_string(event,false);
+					return true;
+				};
+
+				if(!strcasecmp(key,"description")) {
+					value = std::to_string(event,true);
 					return true;
 				};
 
 				if(!strcasecmp(key,"activation")) {
 					value = session.to_string();
 					value += "/";
-					value += User::EventName(event);
+					value += std::to_string(event);
 					return true;
 				};
 
@@ -134,11 +138,15 @@
 
 		});
 
+		return true;
+
 	} else {
 
 		alert->deactivate();
 
 	}
+
+	return false;
 
  }
 

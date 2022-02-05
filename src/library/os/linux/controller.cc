@@ -69,7 +69,7 @@
 
 			// Reset states, just in case of some other one have an instance of this session.
 			if(session->flags.alive) {
-				session->onEvent(logoff);
+				session->emit(logoff);
 				session->flags.alive = false;
 			}
 			return true;
@@ -83,7 +83,7 @@
 				cout << "Logon on SID " << ids[id] << endl;
 #endif // DEBUG
 				session->flags.alive = true;
-				session->onEvent(logon);
+				session->emit(logon);
 			}
 
 			char *state = nullptr;

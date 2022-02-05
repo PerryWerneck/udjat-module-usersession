@@ -185,7 +185,7 @@
 					cout << "@" << session->sid << "\tThe WinStation is active but the client is disconnected." << endl;
 					session->flags.locked = true;
 					if(!starting) {
-						session->onEvent(lock);
+						session->emit(lock);
 					}
 					break;
 
@@ -290,7 +290,7 @@
 					cout << "@" << session->sid << "\tWTS_SESSION_LOCK " << endl;
 					if(!session->flags.locked) {
 						session->flags.locked = true;
-						session->onEvent(lock);
+						session->emit(lock);
 					}
 					break;
 
@@ -298,7 +298,7 @@
 					cout << "@" << session->sid << "\tWTS_SESSION_UNLOCK " << endl;
 					if(session->flags.locked) {
 						session->flags.locked = false;
-						session->onEvent(unlock);
+						session->emit(unlock);
 					}
 					break;
 
@@ -328,13 +328,13 @@
 
 					// Set to foreground on logon.
 					session->flags.state = SessionInForeground;
-					session->onEvent(logon);
+					session->emit(logon);
 
 					break;
 
 				case WTS_SESSION_LOGOFF:			// A user has logged off the session.
 					cout << "@" << session->sid << "\tWTS_SESSION_LOGOFF " << endl;
-					session->onEvent(logoff);
+					session->emit(logoff);
 					session->set(User::SessionIsClosing);
 					{
 						lock_guard<mutex> lock(controller.guard);

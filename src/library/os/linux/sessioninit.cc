@@ -102,7 +102,7 @@
 								cout << *session << "\tSession was " << (locked ? "locked" : "unlocked") << " by gnome screensaver" << endl;
 								session->flags.locked = locked;
 								ThreadPool::getInstance().push([session,locked](){
-									session->onEvent( (locked ? User::lock : User::unlock) );
+									session->emit( (locked ? User::lock : User::unlock) );
 								});
 							}
 

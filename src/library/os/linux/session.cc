@@ -221,7 +221,7 @@
 	}
 
 
-	std::string User::Session::to_string() const noexcept {
+	std::string User::Session::to_string() const {
 
 		uid_t uid = (uid_t) -1;
 

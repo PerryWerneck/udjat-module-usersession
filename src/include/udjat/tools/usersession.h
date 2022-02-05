@@ -26,6 +26,7 @@
  #include <list>
  #include <thread>
  #include <functional>
+ #include <udjat/tools/object.h>
  #include <ostream>
 
  namespace Udjat {
@@ -49,8 +50,8 @@
 			shutdown,			///< @brief System is shutting down.
 		};
 
-		UDJAT_API const char * EventName(Event event) noexcept;
-		UDJAT_API const char * EventDescription(Event event) noexcept;
+		//UDJAT_API const char * EventName(Event event) noexcept;
+		//UDJAT_API const char * EventDescription(Event event) noexcept;
 		UDJAT_API Event EventFactory(const char *name);
 
 		/// @brief Session state, as reported by logind.
@@ -146,7 +147,7 @@
 		};
 
 		/// @brief User session.
-		class UDJAT_API Session {
+		class UDJAT_API Session : Udjat::Abstract::Object {
 		private:
 			friend class Controller;
 
@@ -171,6 +172,10 @@
 #endif // _WIN32
 
 		protected:
+			/// @brief Emit event, update timers.
+			void emit(const Event &event) noexcept;
+
+			/// @brief Notify event emission (dont call it directly).
 			virtual Session & onEvent(const Event &event) noexcept;
 
 		public:
@@ -178,7 +183,9 @@
 			virtual ~Session();
 
 			/// @brief Get session name or id.
-			std::string to_string() const noexcept;
+			std::string to_string() const override;
+
+			bool getProperty(const char *key, std::string &value) const noexcept override;
 
 			/// @brief Is this session a remote one?
 			bool remote() const;
@@ -225,7 +232,11 @@
 
  namespace std {
 
-	const char * to_string(const Udjat::User::Event event) noexcept;
+	UDJAT_API const char * to_string(const Udjat::User::Event event, bool description = false) noexcept;
+
+	inline ostream& operator<< (ostream& os, const Udjat::User::Event event) {
+		return os << to_string(event, true);
+	}
 
 	inline const string to_string(const Udjat::User::Session &session) noexcept {
 		return session.to_string();

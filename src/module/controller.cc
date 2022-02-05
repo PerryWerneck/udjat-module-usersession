@@ -45,25 +45,8 @@
  }
 
  std::shared_ptr<Udjat::User::Session> UserList::Controller::SessionFactory() noexcept {
-
-	class Session : public Udjat::User::Session {
-	protected:
-		Udjat::User::Session & onEvent(const Udjat::User::Event &event) noexcept override {
-			UserList::Controller::getInstance()->for_each([this,event](UserList::Agent &agent){
-				agent.onEvent(*this,event);
-			});
-			return *this;
-		}
-
-	public:
-		Session() = default;
-
-	};
-
-	return make_shared<Session>();
-
+	return make_shared<UserList::Session>();
  }
-
 
  void UserList::Controller::start() {
  	Udjat::User::Controller::activate();

@@ -24,63 +24,51 @@
 
  using namespace std;
 
+ static const struct {
+	const char *name;
+	const char *description;
+ } events[] = {
+	{ "Already active",	"Session is active on startup"		},
+	{ "Still active",	"Session still active on shutdown"	},
+	{ "Login",			"User has logged in"				},
+	{ "Logout",			"User has logged out"				},
+	{ "Lock",			"Session was locked"				},
+	{ "Unlock",			"Session was unlocked"				},
+	{ "Foreground",		"Session is in foreground"			},
+	{ "Background",		"Session is in background"			},
+	{ "sleep",			"Session is preparing to sleep"		},
+	{ "resume",			"Session is resuming from sleep"	},
+	{ "shutdown",		"Session is shutting down"			}
+ };
+
  namespace Udjat {
 
-	static const char * EventNames[] = {
-		"Already active",	// Session is active on controller startup.
-		"Still active",		// Session is active on controller shutdown.
-		"Login",			// User logon detected.
-		"Logout",			// User logoff detected.
-		"Lock",				// Session was locked.
-		"Unlock",			// Session was unlocked.
-		"Foreground",		// Session is in foreground.
-		"Background",		// Session is in background.
-		"sleep",			// System is preparing to sleep.
-		"resume",			// System is resuming from sleep.
-		"shutdown",			// System is shutting down.
-	};
-
-	static const char * EventDescriptions[] = {
-		"Session is active on startup",
-		"Session still active on shutdown",
-		"User has logged in",
-		"User has logged out",
-		"Session was locked",
-		"Session was unlocked",
-		"Session is in foreground",
-		"Session is in background",
-		"Session is preparing to sleep",
-		"Session is resuming from sleep",
-		"Session is shutting down",
-	};
-
 	UDJAT_API User::Event User::EventFactory(const char *name) {
-		for(size_t ix = 0; ix < (sizeof(EventNames)/sizeof(EventNames[0])); ix++) {
-			if(!strcasecmp(name,EventNames[ix])) {
+		for(size_t ix = 0; ix < (sizeof(events)/sizeof(events[0])); ix++) {
+			if(!strcasecmp(name,events[ix].name)) {
 				return (User::Event) ix;
 			}
 		}
-		for(size_t ix = 0; ix < (sizeof(EventDescriptions)/sizeof(EventDescriptions[0])); ix++) {
-			if(!strcasecmp(name,EventDescriptions[ix])) {
+		for(size_t ix = 0; ix < (sizeof(events)/sizeof(events[0])); ix++) {
+			if(!strcasecmp(name,events[ix].description)) {
 				return (User::Event) ix;
 			}
 		}
 		throw system_error(EINVAL,system_category(),string{"Cant identify event '"} + name + "'");
 	}
 
-	UDJAT_API const char * User::EventName(User::Event event) noexcept {
-		if(event < (sizeof(EventNames)/sizeof(EventNames[0]))) {
-			return EventNames[event];
-		}
-		return "Undefined";
-	}
-
-	UDJAT_API const char * User::EventDescription(User::Event event) noexcept {
-		if(event < (sizeof(EventDescriptions)/sizeof(EventDescriptions[0]))) {
-			return EventDescriptions[event];
-		}
-		return "Unknown event";
-	}
-
  }
 
+ namespace std {
+
+ 	const char * to_string(const Udjat::User::Event event, bool description) noexcept {
+
+ 		if(event > (sizeof(events)/sizeof(events[0]))) {
+			return description ? "Invalid event id" : "invalid";
+ 		}
+
+ 		return description ? events[event].description : events[event].name;
+
+ 	}
+
+ }

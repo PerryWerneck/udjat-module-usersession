@@ -61,6 +61,11 @@
 
 	}
 
+	void User::Session::emit(const Event &event) noexcept {
+		onEvent(event);
+	}
+
+
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG
 		cout << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
@@ -80,14 +85,39 @@
 			this->flags.state = state;
 
 			if(this->flags.state == SessionInForeground) {
-				onEvent(foreground);
+				emit(foreground);
 			} else if(this->flags.state == SessionInBackground) {
-				onEvent(background);
+				emit(background);
 			}
 
 		}
 
 		return *this;
+	}
+
+	bool User::Session::getProperty(const char *key, std::string &value) const noexcept {
+
+		if(!strcasecmp(key,"username")) {
+			value = to_string();
+			return true;
+		};
+
+		if(!strcasecmp(key,"remote")) {
+			value = remote() ? "true" : "false";
+			return true;
+		};
+
+		if(!strcasecmp(key,"locked")) {
+			value = locked() ? "true" : "false";
+			return true;
+		};
+
+		if(!strcasecmp(key,"active")) {
+			value = active() ? "true" : "false";
+			return true;
+		};
+
+		return false;
 	}
 
  }

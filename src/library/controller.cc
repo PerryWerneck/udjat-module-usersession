@@ -33,7 +33,7 @@
 			cout << "users\tInitializing session @" << session->sid << endl;
 #endif // DEBUG
 			session->flags.alive = true;
-			session->onEvent(already_active);
+			session->emit(already_active);
 		}
 
 	}
@@ -46,7 +46,7 @@
 			cout << *session << "\tDeinitializing session @" << session->sid << " with " << session.use_count() << " active instance(s)" << endl;
 
 			if(session->flags.alive) {
-				session->onEvent(still_active);
+				session->emit(still_active);
 				session->flags.alive = false;
 			}
 
@@ -74,7 +74,7 @@
 		cout << "users\tSystem is preparing to sleep" << endl;
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
-			session->onEvent(User::sleep);
+			session->emit(User::sleep);
 		}
 	}
 
@@ -82,7 +82,7 @@
 		cout << "users\tSystem is resuming from sleep" << endl;
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
-			session->onEvent(User::resume);
+			session->emit(User::resume);
 		}
 	}
 
@@ -90,7 +90,7 @@
 		cout << "users\tSystem is preparing to shutdown" << endl;
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
-			session->onEvent(User::shutdown);
+			session->emit(User::shutdown);
 		}
 	}
 

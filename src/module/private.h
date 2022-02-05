@@ -40,6 +40,25 @@
 	class Agent;
 	class Alert;
 
+	/// @brief User Session Agent
+	class Session : public Udjat::User::Session {
+	private:
+
+		/// @brief Timestamp of the last alert emission.
+		time_t lastalert = 0;
+
+	protected:
+		Udjat::User::Session & onEvent(const Udjat::User::Event &event) noexcept override;
+
+	public:
+		Session() = default;
+
+		inline time_t alerttime() const noexcept {
+			return lastalert;
+		}
+
+	};
+
 	/// @brief Module info
 	extern const Udjat::ModuleInfo info;
 
@@ -86,11 +105,15 @@
 		Agent(const pugi::xml_node &node);
 		virtual ~Agent();
 
+		bool refresh() override;
+
 		inline void insert(shared_ptr<UserList::Alert> alert) {
 			alerts.push_back(alert);
 		}
 
-		void onEvent(Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
+		/// @brief Process event.
+		/// @return true if an alert was activated.
+		bool onEvent(Session &session, const Udjat::User::Event event) noexcept;
 
 		void append_alert(const pugi::xml_node &node) override;
 
@@ -124,7 +147,7 @@
 		Alert(const pugi::xml_node &node);
 		virtual ~Alert();
 
-		static void onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
+		static bool onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
 
 	};
 

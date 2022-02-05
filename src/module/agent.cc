@@ -22,6 +22,8 @@
  using namespace std;
  using namespace Udjat;
 
+ using Session = User::Session;
+
  UserList::Agent::Factory::Factory() : Udjat::Factory("user-list", &UserList::info) {
  }
 
@@ -43,18 +45,44 @@
 	alerts.push_back(make_shared<UserList::Alert>(node));
  }
 
- void UserList::Agent::onEvent(Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
+ bool UserList::Agent::onEvent(Session &session, const Udjat::User::Event event) noexcept {
 
+	bool activated = false;
  	try {
 
-		cout << session.to_string() << "\t" << EventDescription(event) << endl;
+		cout << session << "\t" << event << endl;
 
 		for(auto alert : alerts) {
-			alert->onEvent(alert,session,event);
+			if(alert->onEvent(alert,session,event)) {
+				activated = true;
+			}
 		}
 
  	} catch(const std::exception &e) {
 		error() << e.what() << endl;
  	}
 
+ 	return activated;
+ }
+
+ bool UserList::Agent::refresh() {
+
+	bool updated = false;
+
+	controller->User::Controller::for_each([this](shared_ptr<Udjat::User::Session> ses){
+
+		Session * session = dynamic_cast<Session *>(ses.get());
+		if(!session) {
+			cerr << *ses << "\tInvalid session type" << endl;
+			return;
+		}
+
+#ifdef DEBUG
+		cout << *session << "\t" << ((int) (time(0) - session->alerttime())) << endl;
+#endif // DEBUG
+
+
+	});
+
+	return updated;
  }
