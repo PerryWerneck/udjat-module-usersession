@@ -38,7 +38,10 @@
 	{ "Background",		"Session is in background"			},
 	{ "sleep",			"Session is preparing to sleep"		},
 	{ "resume",			"Session is resuming from sleep"	},
-	{ "shutdown",		"Session is shutting down"			}
+	{ "shutdown",		"Session is shutting down"			},
+
+	// Pulse is always the last one.
+	{ "pulse",			"Pulse"								},
  };
 
  namespace Udjat {

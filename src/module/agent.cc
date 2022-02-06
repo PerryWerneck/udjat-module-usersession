@@ -18,6 +18,7 @@
  */
 
  #include "private.h"
+ #include <udjat/tools/object.h>
 
  using namespace std;
  using namespace Udjat;
@@ -35,6 +36,10 @@
  UserList::Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node), controller(UserList::Controller::getInstance()) {
 	load(node);
 	controller->insert(this);
+
+	pulse.locked = getAttribute(node,"pulse-when-locked",(unsigned int) pulse.locked);
+	pulse.unlocked = getAttribute(node,"pulse-when-unlocked",(unsigned int) pulse.unlocked);
+
  }
 
  UserList::Agent::~Agent() {
@@ -77,10 +82,16 @@
 			return;
 		}
 
+		time_t idletime = time(0) - session->alerttime();
+		time_t limit = (session->locked() ? pulse.locked : pulse.unlocked);
+
 #ifdef DEBUG
-		cout << *session << "\t" << ((int) (time(0) - session->alerttime())) << endl;
+		cout << *session << "\t" << dec << idletime << endl;
 #endif // DEBUG
 
+		if(limit && idletime >= limit) {
+			onEvent(*session,User::pulse);
+		}
 
 	});
 

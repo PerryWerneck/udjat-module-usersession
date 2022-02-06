@@ -48,6 +48,9 @@
 			sleep,				///< @brief System is preparing to sleep.
 			resume,				///< @brief System is resuming from sleep.
 			shutdown,			///< @brief System is shutting down.
+
+			// Pulse is always the last one.
+			pulse,				///< @brief 'Pulse' event.
 		};
 
 		//UDJAT_API const char * EventName(Event event) noexcept;

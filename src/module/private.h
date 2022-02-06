@@ -94,6 +94,17 @@
 		std::shared_ptr<UserList::Controller> controller;
 		std::list<shared_ptr<UserList::Alert>> alerts;
 
+		/// @brief Pulse timestamps.
+		struct {
+
+			/// @brief Pulse interval when session is locked (0=disable).
+			time_t locked = 0;
+
+			/// @brief Pulse interval when session is unlocked (0=disable).
+			time_t unlocked = 14400;
+
+		} pulse;
+
 	public:
 
 		class Factory : public Udjat::Factory {
