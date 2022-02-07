@@ -90,7 +90,9 @@
 #endif // DEBUG
 
 		if(limit && idletime >= limit) {
-			onEvent(*session,User::pulse);
+			if(onEvent(*session,User::pulse)) {
+				session->reset();
+			}
 		}
 
 	});

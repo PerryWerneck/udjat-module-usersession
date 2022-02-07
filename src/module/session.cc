@@ -25,10 +25,7 @@
 
 		UserList::Controller::getInstance()->for_each([this,event](UserList::Agent &agent){
 			if(agent.onEvent(*this,event)) {
-				lastalert = time(0);
-#ifdef DEBUG
-				cout << *this << "\tAlert was activated" << endl;
-#endif // DEBUG
+				reset();
 			}
 		});
 

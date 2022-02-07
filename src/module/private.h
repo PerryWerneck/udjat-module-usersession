@@ -45,7 +45,7 @@
 	private:
 
 		/// @brief Timestamp of the last alert emission.
-		time_t lastalert = 0;
+		time_t lastreset = 0;
 
 	protected:
 		Udjat::User::Session & onEvent(const Udjat::User::Event &event) noexcept override;
@@ -53,8 +53,14 @@
 	public:
 		Session() = default;
 
+		/// @brief Get time of the last reset.
 		inline time_t alerttime() const noexcept {
-			return lastalert;
+			return lastreset;
+		}
+
+		/// @brief Reset timer.
+		inline void reset() noexcept {
+			lastreset = time(0);
 		}
 
 	};
@@ -150,10 +156,6 @@
 			Factory();
 			bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override;
 		};
-
-		const char * name() const noexcept {
-			return Abstract::Alert::name;
-		}
 
 		Alert(const pugi::xml_node &node);
 		virtual ~Alert();
