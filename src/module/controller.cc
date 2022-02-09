@@ -17,8 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
  #include "private.h"
  #include <udjat/tools/threadpool.h>
+ #include <udjat/moduleinfo.h>
 
  using namespace std;
 
@@ -33,13 +35,7 @@
 	return instance;
  }
 
- static const Udjat::ModuleInfo moduleinfo {
-	PACKAGE_NAME,				// The module name.
-	"User list controller",		// The module description.
-	PACKAGE_VERSION, 			// The module version.
-	PACKAGE_URL, 				// The package URL.
-	PACKAGE_BUGREPORT 			// The bugreport address.
- };
+ static const Udjat::ModuleInfo moduleinfo { "Users monitor" };
 
  UserList::Controller::Controller() : Udjat::MainLoop::Service(moduleinfo) {
  }
