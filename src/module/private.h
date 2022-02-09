@@ -100,17 +100,6 @@
 		std::shared_ptr<UserList::Controller> controller;
 		std::list<shared_ptr<UserList::Alert>> alerts;
 
-		/// @brief Pulse timestamps.
-		struct {
-
-			/// @brief Pulse interval when session is locked (0=disable).
-			time_t locked = 0;
-
-			/// @brief Pulse interval when session is unlocked (0=disable).
-			time_t unlocked = 14400;
-
-		} pulse;
-
 	public:
 
 		class Factory : public Udjat::Factory {
@@ -141,11 +130,15 @@
 	private:
 		Udjat::User::Event event = (Udjat::User::Event) -1;
 
-		/// @brief Emit alert for system sessions?
-		bool system = false;
-
-		/// @brief Emit alert for remote sessions?
-		bool remote = false;
+		struct {
+			time_t timer = 0;			///< @brief Emission timer (for pulse alerts).
+			bool system = false;		///< @brief Emit alert for system sessions?
+			bool remote = false;		///< @brief Emit alert for remote sessions?
+			bool locked = false;		///< @brief Emit alert on locked session?
+			bool unlocked = true;		///< @brief Emit alert on unlocked session?
+			bool background = false;	///< @brief Emit alert for background session?
+			bool foreground = true;		///< @brief Emit alert for foreground session?
+		} emit;
 
 		std::shared_ptr<Abstract::Alert::Activation> ActivationFactory(const std::function<void(std::string &str)> &expander) const override;
 
@@ -157,10 +150,16 @@
 			bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override;
 		};
 
-		Alert(const pugi::xml_node &node);
+		Alert(const UserList::Agent *agent, const pugi::xml_node &node);
 		virtual ~Alert();
 
 		static bool onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
+
+		time_t timer() const noexcept {
+			return emit.timer;
+		}
+
+		bool test(const Udjat::User::Session &session) const noexcept;
 
 	};
 

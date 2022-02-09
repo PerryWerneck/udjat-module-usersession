@@ -36,10 +36,6 @@
  UserList::Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node), controller(UserList::Controller::getInstance()) {
 	load(node);
 	controller->insert(this);
-
-	pulse.locked = getAttribute(node,"pulse-when-locked",(unsigned int) pulse.locked);
-	pulse.unlocked = getAttribute(node,"pulse-when-unlocked",(unsigned int) pulse.unlocked);
-
  }
 
  UserList::Agent::~Agent() {
@@ -47,7 +43,7 @@
  }
 
  void UserList::Agent::append_alert(const pugi::xml_node &node) {
-	alerts.push_back(make_shared<UserList::Alert>(node));
+	alerts.push_back(make_shared<UserList::Alert>(this,node));
  }
 
  bool UserList::Agent::onEvent(Session &session, const Udjat::User::Event event) noexcept {
@@ -72,6 +68,41 @@
 
  bool UserList::Agent::refresh() {
 
+	controller->User::Controller::for_each([this](shared_ptr<Udjat::User::Session> ses){
+
+		Session * session = dynamic_cast<Session *>(ses.get());
+		if(!session) {
+			return;
+		}
+
+		// Get session idle time.
+		time_t idletime = time(0) - session->alerttime();
+
+		// Check pulse alerts against idle time.
+#ifdef DEBUG
+		cout << *session << "\tidle = " << idletime << endl;
+#endif // DEBUG
+
+		bool reset = false;
+		for(auto alert : alerts) {
+			auto timer = alert->timer();
+
+			if(!timer || timer > idletime) {
+				continue;
+			}
+
+			// Emit alert.
+			reset |= alert->onEvent(alert,*session,User::pulse);
+
+		}
+
+		if(reset) {
+			session->reset();
+		}
+
+	});
+
+	/*
 	bool updated = false;
 
 	controller->User::Controller::for_each([this](shared_ptr<Udjat::User::Session> ses){
@@ -98,4 +129,7 @@
 	});
 
 	return updated;
+	*/
+
+	return false;
  }

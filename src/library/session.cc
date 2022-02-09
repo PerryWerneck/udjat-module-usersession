@@ -85,9 +85,9 @@
 			this->flags.state = state;
 
 			if(this->flags.state == SessionInForeground) {
-				emit(foreground);
+				emit(User::foreground);
 			} else if(this->flags.state == SessionInBackground) {
-				emit(background);
+				emit(User::background);
 			}
 
 		}

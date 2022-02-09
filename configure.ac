@@ -6,7 +6,7 @@ AC_PREREQ(2.59)
 
 dnl Initialise automake with the package name, version and
 dnl bug-reporting address.
-AC_INIT([udjat-module-usersession], [1.0], [perry.werneck@gmail.com],[udjat-module-usersession],[https://github.com/PerryWerneck/udjat-module-usersession])
+AC_INIT([udjat-module-users], [1.0], [perry.werneck@gmail.com],[udjat-module-users],[https://github.com/PerryWerneck/udjat-module-users])
 
 dnl Place auxilliary scripts here.
 AC_CONFIG_AUX_DIR([scripts])

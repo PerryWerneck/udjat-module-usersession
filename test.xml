@@ -9,7 +9,7 @@
 	<!-- attribute name='url' value='sqlite+http://localhost' / -->
 	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${alertname}' />
 
-	<user-list name='users' update-timer='60' pulse-when-unlocked='240'>
+	<user-list name='users' update-timer='60'>
 	
 		<!-- Activate when user is active on service start -->
 		<alert name='start' event='Already active'>
@@ -28,7 +28,7 @@
 		</alert>
 
 		<!-- Timer -->
-		<alert name='pulse'>
+		<alert name='pulse' interval='600' on-locked-session='no'>
 		</alert>
 
 		<!-- Activate on user lock -->

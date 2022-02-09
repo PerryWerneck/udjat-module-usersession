@@ -207,6 +207,11 @@
 			/// @brief Is this a 'system' session?
 			bool system() const;
 
+			/// @brief Is this a 'foreground' session?
+			bool foreground() const noexcept {
+				return flags.state == SessionInForeground;
+			}
+
 			Session & set(const User::State state);
 
 			/// @brief Is this session alive?
