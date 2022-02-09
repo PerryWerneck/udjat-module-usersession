@@ -41,7 +41,7 @@
 	PACKAGE_BUGREPORT 			// The bugreport address.
  };
 
- UserList::Controller::Controller() : Udjat::MainLoop::Service(&moduleinfo) {
+ UserList::Controller::Controller() : Udjat::MainLoop::Service(moduleinfo) {
  }
 
  std::shared_ptr<Udjat::User::Session> UserList::Controller::SessionFactory() noexcept {
