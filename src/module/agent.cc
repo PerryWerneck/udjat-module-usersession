@@ -25,7 +25,7 @@
 
  using Session = User::Session;
 
- UserList::Agent::Factory::Factory() : Udjat::Factory("user-list", &UserList::info) {
+ UserList::Agent::Factory::Factory() : Udjat::Factory("user-list", UserList::info) {
  }
 
  bool UserList::Agent::Factory::parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const {

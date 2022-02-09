@@ -22,16 +22,11 @@
  #include <udjat/worker.h>
  #include <udjat/request.h>
  #include <udjat/alert.h>
+ #include <udjat/moduleinfo.h>
 
  using namespace std;
 
- const Udjat::ModuleInfo UserList::info {
-	PACKAGE_NAME,					// The module name.
-	"Users list agent module",		// The module description.
-	PACKAGE_VERSION, 				// The module version.
-	PACKAGE_URL, 					// The package URL.
-	PACKAGE_BUGREPORT 				// The bugreport address.
- };
+ const Udjat::ModuleInfo UserList::info{"User list agent"};
 
  /// @brief Register udjat module.
  Udjat::Module * udjat_module_init() {
@@ -48,7 +43,7 @@
 
 	public:
 
-		Module() : Udjat::Module("userlist",&UserList::info), Udjat::Worker("users",&UserList::info) {
+		Module() : Udjat::Module("userlist",UserList::info), Udjat::Worker("users",UserList::info) {
 		};
 
 		virtual ~Module() {

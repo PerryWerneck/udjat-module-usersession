@@ -23,7 +23,7 @@
 
  using namespace Udjat;
 
- UserList::Alert::Factory::Factory() : Udjat::Factory("user-action", &UserList::info) {
+ UserList::Alert::Factory::Factory() : Udjat::Factory("user-action", UserList::info) {
  }
 
  bool UserList::Alert::Factory::parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const {
