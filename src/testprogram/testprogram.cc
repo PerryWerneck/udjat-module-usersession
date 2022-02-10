@@ -47,6 +47,7 @@ int main(int argc, char **argv) {
 				cout << "http://localhost:8989/api/1.0/info/modules.xml" << endl;
 				cout << "http://localhost:8989/api/1.0/info/workers.xml" << endl;
 				cout << "http://localhost:8989/api/1.0/info/factories.xml" << endl;
+				cout << "http://localhost:8989/api/1.0/info/services.xml" << endl;
 			}
 			cout << "http://localhost:8989/api/1.0/users.xml" << endl;
 			cout << "http://localhost:8989/api/1.0/agent.xml" << endl;
