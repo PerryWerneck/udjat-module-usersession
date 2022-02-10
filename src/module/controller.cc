@@ -38,6 +38,7 @@
  static const Udjat::ModuleInfo moduleinfo { "Users monitor" };
 
  UserList::Controller::Controller() : Udjat::MainLoop::Service(moduleinfo) {
+	service_name = "users";
  }
 
  std::shared_ptr<Udjat::User::Session> UserList::Controller::SessionFactory() noexcept {
