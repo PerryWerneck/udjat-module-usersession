@@ -26,6 +26,11 @@
 
  mutex UserList::Controller::guard;
 
+ static const Udjat::ModuleInfo moduleinfo { "Users monitor" };
+
+ UserList::Controller::Controller() : Udjat::MainLoop::Service("userlist",moduleinfo) {
+ }
+
  std::shared_ptr<UserList::Controller> UserList::Controller::getInstance() {
 	lock_guard<mutex> lock(guard);
 	static std::shared_ptr<Controller> instance;
@@ -33,12 +38,6 @@
 		instance = make_shared<Controller>();
 	}
 	return instance;
- }
-
- static const Udjat::ModuleInfo moduleinfo { "Users monitor" };
-
- UserList::Controller::Controller() : Udjat::MainLoop::Service(moduleinfo) {
-	service_name = "users";
  }
 
  std::shared_ptr<Udjat::User::Session> UserList::Controller::SessionFactory() noexcept {
