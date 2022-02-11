@@ -30,12 +30,19 @@
 
 // https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741
 
+ #include <config.h>
  #include <udjat/tools/usersession.h>
  #include <systemd/sd-login.h>
  #include <cstring>
  #include <iostream>
  #include <poll.h>
  #include <signal.h>
+ #include <udjat/tools/configuration.h>
+ #include <pthread.h>
+
+#ifdef HAVE_DBUS
+	#include <udjat/tools/dbus.h>
+#endif // HAVE_DBUS
 
  using namespace std;
 
@@ -61,23 +68,30 @@
 			}
 
 			// Reset states, just in case of some other one have an instance of this session.
-			if(session->state.alive) {
-				session->onEvent(logoff);
-				session->state.alive = false;
+			if(session->flags.alive) {
+				session->emit(logoff);
+				session->flags.alive = false;
 			}
 			return true;
 		});
 
-		// Create new sessions.
+		// Create and update sessions.
 		for(int id = 0; id < idCount; id++) {
 			auto session = find(ids[id]);
-			if(!session->state.alive) {
+			if(!session->flags.alive) {
 #ifdef DEBUG
 				cout << "Logon on SID " << ids[id] << endl;
 #endif // DEBUG
-				session->state.alive = true;
-				session->onEvent(logon);
+				session->flags.alive = true;
+				session->emit(logon);
 			}
+
+			char *state = nullptr;
+			if(sd_session_get_state(ids[id], &state) >= 0) {
+				session->set(User::StateFactory(state));
+				free(state);
+			}
+
 			free(ids[id]);
 		}
 
@@ -98,6 +112,7 @@
 		std::shared_ptr<Session> session = SessionFactory();
 		session->sid = sid;
 		sessions.push_back(session);
+		init(session);
 
 		return session;
 	}
@@ -106,10 +121,10 @@
 	}
 
 	User::Controller::~Controller() {
-		stop();
+		deactivate();
 	}
 
-	void User::Controller::start() {
+	void User::Controller::activate() {
 
 		lock_guard<mutex> lock(guard);
 
@@ -120,7 +135,55 @@
 		enabled = true;
 		monitor = new std::thread([this](){
 
+			pthread_setname_np(pthread_self(),"logind");
+
 			clog << "users\tlogind monitor is activating" << endl;
+
+#ifdef HAVE_DBUS
+
+			bool sysbus = false;
+
+			if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",false)) {
+				try {
+					sysbus = true;
+					DBus::Connection::getSystemInstance().subscribe(
+						(void *) this,
+						"org.freedesktop.login1.Manager",
+						"PrepareForSleep",
+						[this](DBus::Message &message) {
+
+							if(DBus::Value(message).as_bool()) {
+								sleep();
+							} else {
+								resume();
+							}
+
+						}
+					);
+				} catch(const std::exception &e) {
+					cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.PrepareForSleep" << endl;
+				}
+			}
+			if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",false)) {
+				try {
+					sysbus = true;
+					DBus::Connection::getSystemInstance().subscribe(
+						(void *) this,
+						"org.freedesktop.login1.Manager",
+						"PrepareForShutdown",
+						[this](DBus::Message &message) {
+
+							if(DBus::Value(message).as_bool()) {
+								shutdown();
+							}
+
+						}
+					);
+				} catch(const std::exception &e) {
+					cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.PrepareForShutdown" << endl;
+				}
+			}
+#endif // HAVE_DBUS
 
 			{
 				char **ids = nullptr;
@@ -131,6 +194,14 @@
 					std::shared_ptr<Session> session = SessionFactory();
 					session->sid = ids[id];
 					sessions.push_back(session);
+					init(session);
+
+					char *state = nullptr;
+					if(sd_session_get_state(ids[id], &state) >= 0) {
+						session->set(User::StateFactory(state));
+						free(state);
+					}
+
 					free(ids[id]);
 				}
 
@@ -177,38 +248,27 @@
 			}
 
 			clog << "users\tlogind monitor is deactivating" << endl;
-			deinit();
 
-			{
-				// Finalize
-				lock_guard<mutex> lock(guard);
-				if(this->monitor) {
-					this->monitor->detach();
-					delete this->monitor;
-					this->monitor = nullptr;
-				}
+#ifdef HAVE_DBUS
+			if(sysbus) {
+				DBus::Connection::getSystemInstance().unsubscribe(this);
 			}
+#endif // HAVE_DBUS
+
+			deinit();
 
 		});
 
 	}
 
-	void User::Controller::stop() {
+	void User::Controller::deactivate() {
 
-		std::thread *active = nullptr;
-		{
-			lock_guard<mutex> lock(guard);
-			if(monitor) {
-				clog << "users\tWaiting for deactivation of logind monitor" << endl;
-				active = monitor;
-				monitor = nullptr;
-			}
-		}
-
-		if(active) {
-			enabled = false;
-			active->join();
-			delete active;
+		enabled = false;
+		if(monitor) {
+			cout << "users\tWaiting for termination of logind monitor" << endl;
+			monitor->join();
+			delete monitor;
+			monitor = nullptr;
 		}
 
 		deinit(); // Just in case.

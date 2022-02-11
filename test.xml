@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<config>
+
+	<module name='civetweb' required='no' />
+	<module name='information' required='no' />
+	<module name='dmi' required='no' />
+
+	<!-- attribute name='url' value='sqlite+http://localhost' / -->
+	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${alertname}' />
+
+	<user-list name='users' update-timer='60'>
+	
+		<!-- Activate when user is active on service start -->
+		<alert name='start' event='Already active'>
+		</alert>
+
+		<!-- Activate when user is active on service stop -->
+		<!-- alert name='stop' event='Still active'>
+		</alert -->
+
+		<!-- Activate on user logon -->
+		<alert name='login'>
+		</alert>
+
+		<!-- Activate on user logoff -->
+		<alert name='logout'>
+		</alert>
+
+		<!-- Timer -->
+		<alert name='pulse' interval='600' on-locked-session='no'>
+		</alert>
+
+		<!-- Activate on user lock -->
+		<alert name='lock'>
+		</alert>
+		
+		<!-- Activate on user unlock -->
+		<alert name='unlock'>
+		</alert>
+		
+	</user-list>
+	
+</config>
+
+

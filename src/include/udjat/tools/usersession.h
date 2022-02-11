@@ -26,6 +26,8 @@
  #include <list>
  #include <thread>
  #include <functional>
+ #include <udjat/tools/object.h>
+ #include <ostream>
 
  namespace Udjat {
 
@@ -41,7 +43,31 @@
 			logoff,				///< @brief User logoff detected.
 			lock,				///< @brief Session was locked.
 			unlock,				///< @brief Session was unlocked.
+			foreground,			///< @brief Session is in foreground.
+			background,			///< @brief Session is in background.
+			sleep,				///< @brief System is preparing to sleep.
+			resume,				///< @brief System is resuming from sleep.
+			shutdown,			///< @brief System is shutting down.
+
+			// Pulse is always the last one.
+			pulse,				///< @brief 'Pulse' event.
 		};
+
+		//UDJAT_API const char * EventName(Event event) noexcept;
+		//UDJAT_API const char * EventDescription(Event event) noexcept;
+		UDJAT_API Event EventFactory(const char *name);
+
+		/// @brief Session state, as reported by logind.
+		/// @see sd_session_get_state
+		enum State : uint8_t {
+			SessionInBackground,		///< @brief Session logged in, but session not active, i.e. not in the foreground
+			SessionInForeground,		///< @brief Session logged in and active, i.e. in the foreground
+			SessionIsClosing,			///< @brief Session nominally logged out, but some processes belonging to it are still around.
+
+			SessionInUnknownState,		///< @brief Session in unknown state.
+		};
+
+		UDJAT_API State StateFactory(const char *statename);
 
 		/// @brief User session controller.
 		class UDJAT_API Controller {
@@ -58,16 +84,33 @@
 			/// @brief Deinitialize controller.
 			void deinit() noexcept;
 
+			/// @brief Initialize session.
+			void init(std::shared_ptr<Session> session);
+
+			/// @brief Deinitialize session.
+			void deinit(std::shared_ptr<Session> session);
+
 #ifdef _WIN32
 			HWND hwnd = 0;
 			static LRESULT WINAPI hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 			void load(bool starting) noexcept;
 			std::shared_ptr<Session> find(DWORD sid);
 #else
+
+
 			std::shared_ptr<Session> find(const char * sid);
 			std::thread *monitor = nullptr;
 			bool enabled = false;
 #endif // _WIN32
+
+			/// @brief System is going to sleep.
+			void sleep();
+
+			/// @brief System is resuming from sleep.
+			void resume();
+
+			/// @brief System is shutting down.
+			void shutdown();
 
 		protected:
 
@@ -84,8 +127,11 @@
 			Controller();
 			virtual ~Controller();
 
-			void start();
-			void stop();
+			/// @brief Start monitor, load users.
+			void activate();
+
+			/// @brief Stop monitor, unload users.
+			void deactivate();
 
 			void for_each(std::function<void(std::shared_ptr<Session>)> callback);
 
@@ -104,18 +150,18 @@
 		};
 
 		/// @brief User session.
-		class UDJAT_API Session {
+		class UDJAT_API Session : Udjat::Abstract::Object {
 		private:
 			friend class Controller;
 
 			struct {
-				bool alive = false;		///< @brief True if the session is alive.
+				State state = User::SessionInUnknownState;	///< @brief Current user state.
+				bool alive = false;							///< @brief True if the session is alive.
+				bool locked = false;						///< @brief True if the session is locked.
 #ifdef _WIN32
-				bool remote = false;	///< @brief True if the session is remote.
-				bool locked = false;	///< @brief True if the session is locked.
-				bool active = false;	///< @brief True if the session is active.
+				bool remote = false;						///< @brief True if the session is remote.
 #endif // _WIN32
-			} state;
+			} flags;
 
 #ifdef _WIN32
 
@@ -124,10 +170,15 @@
 #else
 
 			std::string sid;			///< @brief LoginD session ID.
+			void *bus = nullptr;		///< @brief Connection with the user's bus
 
 #endif // _WIN32
 
 		protected:
+			/// @brief Emit event, update timers.
+			void emit(const Event &event) noexcept;
+
+			/// @brief Notify event emission (dont call it directly).
 			virtual Session & onEvent(const Event &event) noexcept;
 
 		public:
@@ -135,7 +186,9 @@
 			virtual ~Session();
 
 			/// @brief Get session name or id.
-			std::string to_string() const noexcept;
+			std::string to_string() const override;
+
+			bool getProperty(const char *key, std::string &value) const noexcept override;
 
 			/// @brief Is this session a remote one?
 			bool remote() const;
@@ -146,13 +199,39 @@
 			/// @brief Is this session active?
 			bool active() const;
 
+			/// @brief Get session state.
+			inline State state() const noexcept {
+				return flags.state;
+			}
+
 			/// @brief Is this a 'system' session?
 			bool system() const;
 
+			/// @brief Is this a 'foreground' session?
+			bool foreground() const noexcept {
+				return flags.state == SessionInForeground;
+			}
+
+			Session & set(const User::State state);
+
 			/// @brief Is this session alive?
 			inline bool alive() const noexcept {
-				return state.alive;
+				return flags.alive;
 			}
+
+#ifndef _WIN32
+			/// @brief Get session's user id
+			int userid() const;
+
+			/// @brief Get environment value from user session.
+			std::string getenv(const char *varname) const;
+
+			/// @brief Execute function as user's effective id.
+			static void call(const uid_t uid, const std::function<void()> exec);
+
+			/// @brief Execute function as user's effective id.
+			void call(const std::function<void()> exec);
+#endif // _WIN32
 
 		};
 	}
@@ -161,7 +240,11 @@
 
  namespace std {
 
-	const char * to_string(const Udjat::User::Event event) noexcept;
+	UDJAT_API const char * to_string(const Udjat::User::Event event, bool description = false) noexcept;
+
+	inline ostream& operator<< (ostream& os, const Udjat::User::Event event) {
+		return os << to_string(event, true);
+	}
 
 	inline const string to_string(const Udjat::User::Session &session) noexcept {
 		return session.to_string();
@@ -177,6 +260,12 @@
 
 	inline ostream& operator<< (ostream& os, const std::shared_ptr<Udjat::User::Session> session) {
 		return os << session->to_string();
+	}
+
+	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept;
+
+	inline ostream& operator<< (std::ostream& os, const Udjat::User::State state) {
+		return os << to_string(state);
 	}
 
  }

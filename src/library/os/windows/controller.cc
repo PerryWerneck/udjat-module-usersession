@@ -94,14 +94,15 @@
 		}
 	}
 
-	void User::Controller::start() {
+	void User::Controller::activate() {
 
 		lock_guard<mutex> lock(guard);
 
 		if(hwnd) {
-			throw runtime_error("User Session monitor is already started");
+			return;
 		}
 
+		cout << "users\tStarting user session monitor" << endl;
 		hwnd = CreateWindow(
 			PACKAGE_NAME,
 			"user-monitor",
@@ -130,12 +131,12 @@
 
 	}
 
-	void User::Controller::stop() {
+	void User::Controller::deactivate() {
 
-		if(!hwnd) {
-			throw runtime_error("User Session monitor is already stopped");
+		if(hwnd) {
+			cout << "users\tStopping user session monitor" << endl;
+			DestroyWindow(hwnd);
 		}
-		DestroyWindow(hwnd);
 
 	}
 
@@ -160,7 +161,7 @@
 				} else {
 					session = find(sessions[ix].SessionId);
 				}
-				session->state.alive = true;
+				session->flags.alive = true;
 
 				// https://msdn.microsoft.com/en-us/library/aa383860(v=vs.85).aspx
 				switch(sessions[ix].State) {
@@ -182,9 +183,9 @@
 
 				case WTSDisconnected:
 					cout << "@" << session->sid << "\tThe WinStation is active but the client is disconnected." << endl;
-					session->state.locked = true;
+					session->flags.locked = true;
 					if(!starting) {
-						session->onEvent(lock);
+						session->emit(lock);
 					}
 					break;
 
@@ -235,6 +236,49 @@
 
 		// https://wiki.winehq.org/List_Of_Windows_Messages
 		switch(uMsg) {
+		case WM_POWERBROADCAST:
+			try {
+
+				switch(wParam) {
+				case PBT_APMPOWERSTATUSCHANGE:
+					cout << "users\tPower status has changed." << endl;
+					break;
+
+				case PBT_POWERSETTINGCHANGE:
+					cout << "users\tA power setting change event has been received." << endl;
+					break;
+
+				case PBT_APMRESUMEAUTOMATIC:
+					cout << "users\tOperation is resuming automatically from a low-power state." << endl;
+					controller.resume();
+					break;
+
+				case PBT_APMRESUMESUSPEND:
+					cout << "users\tOperation is resuming from a low-power state." << endl;
+					controller.resume();
+					break;
+
+				case PBT_APMSUSPEND:
+					cout << "users\tSystem is suspending operation." << endl;
+					controller.sleep();
+					break;
+
+				default:
+					cout << "users\tUnexpected power broadcast message (id=" << ((int) wParam) << ")" << endl;
+
+				}
+
+			} catch(const std::exception &e) {
+
+				cerr << "users\tError '" << e.what() << "' processing WM_POWERBROADCAST" << endl;
+
+			} catch(...) {
+
+				cerr << "users\tUnexpected error processing WM_POWERBROADCAST" << endl;
+
+			}
+			break;
+
 		case WM_WTSSESSION_CHANGE:
 
 			try {
@@ -243,52 +287,55 @@
 
 				switch((int) wParam) {
 				case WTS_SESSION_LOCK:				// The session has been locked.
-					cout << "users\tWTS_SESSION_LOCK " << session->sid << endl;
-					if(!session->state.locked) {
-						session->state.locked = true;
-						session->onEvent(lock);
+					cout << "@" << session->sid << "\tWTS_SESSION_LOCK " << endl;
+					if(!session->flags.locked) {
+						session->flags.locked = true;
+						session->emit(lock);
 					}
 					break;
 
 				case WTS_SESSION_UNLOCK:			// The session identified has been unlocked.
-					cout << "users\tWTS_SESSION_UNLOCK " << session->sid << endl;
-					if(session->state.locked) {
-						session->state.locked = false;
-						session->onEvent(unlock);
+					cout << "@" << session->sid << "\tWTS_SESSION_UNLOCK " << endl;
+					if(session->flags.locked) {
+						session->flags.locked = false;
+						session->emit(unlock);
 					}
 					break;
 
 				case WTS_CONSOLE_CONNECT:			// The session was connected to the console terminal or RemoteFX session.
-					cout << "users\tWTS_CONSOLE_CONNECT " << session->sid << endl;
-					session->state.active = true;
+					cout << "@" << session->sid << "\tWTS_CONSOLE_CONNECT " << endl;
+					session->set(User::SessionInForeground);
 					break;
 
 				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
-					cout << "users\tWTS_CONSOLE_DISCONNECT " << session->sid << endl;
-					session->state.active = false;
+					cout << "@" << session->sid << "\tWTS_CONSOLE_DISCONNECT " << endl;
+					session->set(User::SessionInBackground);
 					break;
 
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
-					cout << "users\tWTS_REMOTE_CONNECT " << session->sid << endl;
-					session->state.active = true;
-					session->state.remote = true;
+					cout << "@" << session->sid << "\tWTS_REMOTE_CONNECT " << endl;
+					session->flags.remote = true;
 					break;
 
 				case WTS_REMOTE_DISCONNECT:			// The session was disconnected from the remote terminal.
-					cout << "users\tWTS_REMOTE_DISCONNECT " << session->sid << endl;
-					session->state.active = false;
-					session->state.remote = true;
+					cout << "@" << session->sid << "\tWTS_REMOTE_DISCONNECT " << endl;
+					session->flags.remote = true;
+					session->set(User::SessionIsClosing);
 					break;
 
 				case WTS_SESSION_LOGON:				// A user has logged on to the session.
-					cout << "users\tWTS_SESSION_LOGON " << session->sid << endl;
-					session->onEvent(logon);
+					cout << "@" << session->sid << "\tWTS_SESSION_LOGON " << endl;
+
+					// Set to foreground on logon.
+					session->flags.state = SessionInForeground;
+					session->emit(logon);
+
 					break;
 
 				case WTS_SESSION_LOGOFF:			// A user has logged off the session.
-					cout << "users\tWTS_SESSION_LOGOFF " << session->sid << endl;
-					session->onEvent(logoff);
-					session->state.alive = false;
+					cout << "@" << session->sid << "\tWTS_SESSION_LOGOFF " << endl;
+					session->emit(logoff);
+					session->set(User::SessionIsClosing);
 					{
 						lock_guard<mutex> lock(controller.guard);
 						controller.sessions.remove(session);
@@ -296,29 +343,29 @@
 					break;
 
 				case WTS_SESSION_REMOTE_CONTROL:	// The session has changed its remote controlled status.
-					cout << "users\tWTS_SESSION_REMOTE_CONTROL " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_REMOTE_CONTROL " << endl;
 					break;
 
 				case WTS_SESSION_CREATE:			// Reserved for future use.
-					cout << "users\tWTS_SESSION_CREATE " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_CREATE " << endl;
 					break;
 
 				case WTS_SESSION_TERMINATE:			// Reserved for future use.
-					cout << "users\tWTS_SESSION_TERMINATE " << session->sid << endl;
+					cout << "@" << session->sid << "\tWTS_SESSION_TERMINATE " << endl;
 					break;
 
 				default:
-					cerr	<< "users\tWM_WTSSESSION_CHANGE sent an unexpected state '"
+					cerr	<< "@" << session->sid << "\tWM_WTSSESSION_CHANGE sent an unexpected state '"
 							<< ((int) wParam) << "'" << endl;
 				}
 
 			} catch(const std::exception &e) {
 
-				cerr << "users\tError updating SID " << ((DWORD) lParam) << ": " << e.what() << endl;
+				cerr << "@" << ((DWORD) lParam) << "\t Error '" << e.what() << "' processing WM_WTSSESSION_CHANGE" << endl;
 
 			} catch(...) {
 
-				cerr << "users\tUnexpected error updating SID " << ((DWORD) lParam) << endl;
+				cerr << "@" << ((DWORD) lParam) << "\tUnexpected error processing WM_WTSSESSION_CHANGE" << endl;
 
 			}
 			break;

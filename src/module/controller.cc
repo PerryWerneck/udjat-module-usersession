@@ -17,15 +17,56 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
  #include "private.h"
+ #include <udjat/tools/threadpool.h>
+ #include <udjat/moduleinfo.h>
 
  using namespace std;
 
- mutex Controller::guard;
+ mutex UserList::Controller::guard;
 
- Controller & Controller::getInstance() {
+ static const Udjat::ModuleInfo moduleinfo { "Users monitor" };
+
+ UserList::Controller::Controller() : Udjat::MainLoop::Service("userlist",moduleinfo) {
+ }
+
+ std::shared_ptr<UserList::Controller> UserList::Controller::getInstance() {
 	lock_guard<mutex> lock(guard);
-	static Controller instance;
+	static std::shared_ptr<Controller> instance;
+	if(!instance) {
+		instance = make_shared<Controller>();
+	}
 	return instance;
  }
 
+ std::shared_ptr<Udjat::User::Session> UserList::Controller::SessionFactory() noexcept {
+	return make_shared<UserList::Session>();
+ }
+
+ void UserList::Controller::start() {
+ 	Udjat::User::Controller::activate();
+ }
+
+ void UserList::Controller::stop() {
+ 	Udjat::User::Controller::deactivate();
+ }
+
+ void UserList::Controller::insert(UserList::Agent *agent) {
+	lock_guard<mutex> lock(guard);
+	agents.push_back(agent);
+ }
+
+ void UserList::Controller::remove(UserList::Agent *agent) {
+	lock_guard<mutex> lock(guard);
+	agents.remove_if([agent](const UserList::Agent *ag) {
+		return ag == agent;
+	});
+ }
+
+ void UserList::Controller::for_each(std::function<void(UserList::Agent &agent)> callback) {
+	lock_guard<mutex> lock(guard);
+	for(auto agent : agents) {
+		callback(*agent);
+	}
+ }

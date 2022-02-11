@@ -17,37 +17,55 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
  #include "private.h"
  #include <udjat/module.h>
  #include <udjat/worker.h>
  #include <udjat/request.h>
- #include <udjat/factory.h>
+ #include <udjat/alert.h>
+ #include <udjat/moduleinfo.h>
 
  using namespace std;
+
+ const Udjat::ModuleInfo UserList::info{"User list agent"};
 
  /// @brief Register udjat module.
  Udjat::Module * udjat_module_init() {
 
-	static const Udjat::ModuleInfo moduleinfo {
-		PACKAGE_NAME,					// The module name.
-		"Users list agent module",		// The module description.
-		PACKAGE_VERSION, 				// The module version.
-		PACKAGE_URL, 					// The package URL.
-		PACKAGE_BUGREPORT 				// The bugreport address.
-	};
+	class Module : public Udjat::Module, private Udjat::Worker {
+	private:
 
-	class Module : public Udjat::Module, public Udjat::Worker {
+		/// @brief Object factories.
+		struct {
+			UserList::Agent::Factory agent;
+			UserList::Alert::Factory alert;
+			Udjat::Alert::Factory urlalert;
+		} factories;
+
 	public:
 
-		Module() : Udjat::Module("userlist",&moduleinfo), Udjat::Worker("users",&moduleinfo) {
+		Module() : Udjat::Module("userlist",UserList::info), Udjat::Worker("users",UserList::info) {
 		};
 
 		virtual ~Module() {
 		}
 
-		/// @brief Get list of active users.
-		bool get(Udjat::Request &request, Udjat::Response &response) const override {
+		bool get(Request UDJAT_UNUSED(&request), Response &response) const override {
 
+			response.reset(Value::Array);
+
+			auto sessions = UserList::Controller::getInstance();
+			for(auto session : *sessions) {
+
+				Value &row = response.append(Value::Object);
+
+				row["name"] = session->to_string();
+				row["remote"] = session->remote();
+				row["locked"] = session->locked();
+				row["active"] = session->active();
+				row["state"] = std::to_string(session->state());
+
+			}
 
 			return true;
 		}

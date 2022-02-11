@@ -19,20 +19,117 @@
 
  #include <udjat/tools/usersession.h>
  #include <iostream>
+ #include <cstring>
 
  using namespace std;
 
+ static const char *statenames[] = {
+	"background",
+	"foreground",
+	"closing",
+
+	"unknown",
+ };
+
  namespace Udjat {
+
+	User::State User::StateFactory(const char *statename) {
+
+#ifdef DEBUG
+		cout << "user\tSearching for state '" << statename << "'" << endl;
+#endif // DEBUG
+
+		// logind status for 'not in foreground' is 'online'.
+		if(!strcasecmp(statename,"online")) {
+			return User::SessionInBackground;
+		}
+
+		// logind status for 'in foreground' is 'active'
+		if(!strcasecmp(statename,"active")) {
+			return User::SessionInForeground;
+		}
+
+		for(size_t ix = 0; ix < (sizeof(statenames)/sizeof(statenames[0]));ix++) {
+			if(!strcasecmp(statename,statenames[ix])) {
+				return (User::State) ix;
+			}
+		}
+
+		cerr << "user\tUnexpected session state '" << statename << "'" << endl;
+
+		return SessionInUnknownState;
+
+	}
+
+	void User::Session::emit(const Event &event) noexcept {
+		onEvent(event);
+	}
+
 
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG
-		cout << "session\t sid=" << this->sid << " Event=" << (int) event
+		cout << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
 				<< " Alive=" << (alive() ? "Yes" : "No")
 				<< " Remote=" << (remote() ? "Yes" : "No")
 				<< " User=" << to_string()
 				<< endl;
 #endif // DEBUG
 		return *this;
+	}
+
+	User::Session & User::Session::set(User::State state) {
+
+		if(state != this->flags.state) {
+
+			cout << to_string() << "\tState changes from '" << this->flags.state << "' to '" << state << "'" << endl;
+			this->flags.state = state;
+
+			if(this->flags.state == SessionInForeground) {
+				emit(User::foreground);
+			} else if(this->flags.state == SessionInBackground) {
+				emit(User::background);
+			}
+
+		}
+
+		return *this;
+	}
+
+	bool User::Session::getProperty(const char *key, std::string &value) const noexcept {
+
+		if(!strcasecmp(key,"username")) {
+			value = to_string();
+			return true;
+		};
+
+		if(!strcasecmp(key,"remote")) {
+			value = remote() ? "true" : "false";
+			return true;
+		};
+
+		if(!strcasecmp(key,"locked")) {
+			value = locked() ? "true" : "false";
+			return true;
+		};
+
+		if(!strcasecmp(key,"active")) {
+			value = active() ? "true" : "false";
+			return true;
+		};
+
+		return false;
+	}
+
+ }
+
+
+ namespace std {
+
+	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept {
+		if((size_t) state > (sizeof(statenames)/sizeof(statenames[0]))) {
+			return "unkown";
+		}
+		return statenames[state];
 	}
 
  }

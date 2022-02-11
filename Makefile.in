@@ -4,15 +4,19 @@
 PACKAGE_NAME=@PACKAGE_NAME@
 SONAME=@SONAME@
 
-MAIN_SOURCES= \
+LIBRARY_SOURCES= \
 	$(wildcard src/library/*.cc) \
-	$(wildcard src/library/os/@OSNAME@/*.cc)
+	$(wildcard src/library/os/@OSNAME@/*.cc) \
+	$(wildcard src/library/os/@OSNAME@/*.rc)
 
 MODULE_SOURCES= \
 	$(wildcard src/module/*.cc)
 
 TEST_SOURCES= \
-	$(wildcard src/testprogram/*.cc)
+	$(wildcard src/testprogram/*.cc) 
+
+#	Disable due to some windows 'craziness' (Error 'Acessing a corrupted library' when enabled)
+#	$(wildcard src/testprogram/@OSNAME@/*.rc)
 
 #---[ Tools ]----------------------------------------------------------------------------
 
@@ -64,7 +68,8 @@ CFLAGS= \
 	-Isrc/include \
 	-DBUILD_DATE=`date +%Y%m%d` \
 	@UDJAT_CFLAGS@ \
-	@SYSTEMD_CFLAGS@
+	@SYSTEMD_CFLAGS@ \
+	@DBUS_CFLAGS@
 
 LDFLAGS=\
 	@LDFLAGS@
@@ -72,7 +77,8 @@ LDFLAGS=\
 LIBS= \
 	@LIBS@ \
 	@UDJAT_LIBS@ \
-	@SYSTEMD_LIBS@
+	@SYSTEMD_LIBS@ \
+	@DBUS_LIBS@
 
 #---[ Debug Rules ]----------------------------------------------------------------------
 
@@ -132,13 +138,15 @@ $(OBJRLS)/%.o: \
 #---[ Release Targets ]------------------------------------------------------------------
 
 all: \
-	$(BINRLS)/$(SONAME)
+	$(BINRLS)/$(SONAME) \
+	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 Release: \
-	$(BINRLS)/$(SONAME)
+	$(BINRLS)/$(SONAME) \
+	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 $(BINRLS)/$(SONAME): \
-	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).o)
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
@@ -151,16 +159,31 @@ $(BINRLS)/$(SONAME): \
 		$(LIBS)
 
 $(BINRLS)/libudjatusers.a: \
-	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).o)
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
 	@$(AR) rcs $@ $^
 
+$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
+	$(BINRLS)/$(SONAME) \
+	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJRLS)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		-shared \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS) @PUGIXML_LIBS@
+
+
 #---[ Install Targets ]------------------------------------------------------------------
 
 install: \
 	install-@OSNAME@ \
+	install-module \
 	install-dev
 
 install-linux: \
@@ -183,6 +206,16 @@ install-windows: \
 		$(BINRLS)/@SONAME@ \
 		$(DESTDIR)$(bindir)/@SONAME@
 		
+install-module: \
+	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
+
+	@$(MKDIR) \
+		$(DESTDIR)@MODULE_PATH@
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@ \
+		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
+
 install-dev: \
 	install-@OSNAME@-dev \
 	install-@OSNAME@-static 
@@ -263,10 +296,9 @@ Debug: \
 
 $(BINDBG)/udjat@EXEEXT@: \
 	$(BINDBG)/$(SONAME) \
+	$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@ \
 	$(foreach SRC, $(basename $(TEST_SOURCES)), $(OBJDBG)/$(SRC).o)
 
-	echo $(TEST_SOURCES)
-	
 	@$(MKDIR) $(@D)
 	@echo $< ...
 	@$(LD) \
@@ -275,11 +307,11 @@ $(BINDBG)/udjat@EXEEXT@: \
 		-L$(BINDBG) \
 		-Wl,-rpath,$(BINDBG) \
 		$(LDFLAGS) \
-		$(LIBS)
+		$(LIBS) @PUGIXML_LIBS@
 
 
 $(BINDBG)/$(SONAME): \
-	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJDBG)/$(SRC).o)
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJDBG)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
@@ -291,6 +323,19 @@ $(BINDBG)/$(SONAME): \
 		$^ \
 		$(LIBS)
 
+$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@: \
+	$(BINDBG)/$(SONAME) \
+	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJDBG)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		-shared \
+		-Wl,-rpath,$(BINDBG) \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS) @PUGIXML_LIBS@
 
 run: \
 	$(BINDBG)/udjat@EXEEXT@
@@ -298,14 +343,14 @@ run: \
 ifeq ($(VALGRIND),no)
 
 	@LD_LIBRARY_PATH=$(BINDBG) \
-		$(BINDBG)/udjat@EXEEXT@
+		$(BINDBG)/udjat@EXEEXT@ -f
 
 else
 	@touch valgrind.suppression
 
 	@LD_LIBRARY_PATH=$(BINDBG) \
 		$(VALGRIND) --leak-check=full --track-origins=yes --gen-suppressions=all --suppressions=valgrind.suppression \
-		$(BINDBG)/udjat@EXEEXT@
+		$(BINDBG)/udjat@EXEEXT@ -f
 endif
 
 #---[ Clean Targets ]--------------------------------------------------------------------
@@ -329,7 +374,7 @@ clean: \
 	cleanRelease
 
 
--include $(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJDBG)/$(SRC).d)
--include $(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES) $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJDBG)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES) $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJRLS)/$(SRC).d)
 
 

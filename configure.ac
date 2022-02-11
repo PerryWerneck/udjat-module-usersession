@@ -6,7 +6,7 @@ AC_PREREQ(2.59)
 
 dnl Initialise automake with the package name, version and
 dnl bug-reporting address.
-AC_INIT([udjat-module-usersession], [1.0], [perry.werneck@gmail.com],[udjat-module-usersession],[https://github.com/PerryWerneck/udjat-module-usersession])
+AC_INIT([udjat-module-users], [1.0], [perry.werneck@gmail.com],[udjat-module-users],[https://github.com/PerryWerneck/udjat-module-users])
 
 dnl Place auxilliary scripts here.
 AC_CONFIG_AUX_DIR([scripts])
@@ -56,7 +56,7 @@ dnl ---------------------------------------------------------------------------
 CFLAGS="$CFLAGS -I$ac_pwd/src/include"
 
 case "$host" in
-	*-mingw32)
+	*-mingw32|*-pc-msys)
 		CFLAGS="$CFLAGS -pthread -D_WIN32_WINNT=0x0600"
 		CXXFLAGS="$CXXFLAGS -pthread -D_WIN32_WINNT=0x0600"
 		LDFLAGS="$LDFLAGS -pthread"
@@ -66,9 +66,11 @@ case "$host" in
 		AC_SUBST(EXEEXT,.exe)
 		AC_SUBST(OSNAME,windows)
 		AC_SUBST(SONAME,udjatusers.dll)
+		AC_CONFIG_FILES(src/library/os/windows/resources.rc)
+		AC_CONFIG_FILES(src/testprogram/windows/resources.rc)
+		AC_CONFIG_FILES(src/testprogram/windows/app-manifest.xml)
 		AC_CONFIG_FILES(sdk/windows/dynamic.pc)
-		AC_CONFIG_FILES(sdk/windows/static.pc)
-		
+		AC_CONFIG_FILES(sdk/windows/static.pc)		
 		;;
 
  	*)
@@ -83,11 +85,14 @@ case "$host" in
 		AC_CONFIG_FILES(sdk/linux/static.pc)
 		
 		PKG_CHECK_MODULES( [SYSTEMD], [libsystemd], AC_DEFINE(HAVE_SYSTEMD,[],[Do we have systemd?]), AC_MSG_NOTICE([libsystemd not present.]) )
+		PKG_CHECK_MODULES( [DBUS], [udjat-dbus dbus-1], AC_DEFINE(HAVE_DBUS,[],[Do we have dbus?]), AC_MSG_NOTICE([udjat-dbus not present.]) )
 
 esac
 
 AC_SUBST(SYSTEMD_LIBS)
 AC_SUBST(SYSTEMD_CFLAGS)
+AC_SUBST(DBUS_LIBS)
+AC_SUBST(DBUS_CFLAGS)
 AC_SUBST(DLL_LDFLAGS)
 
 dnl ---------------------------------------------------------------------------
@@ -97,6 +102,7 @@ dnl ---------------------------------------------------------------------------
 AC_PATH_TOOL([VALGRIND], [valgrind], [no])
 AC_PATH_TOOL([AR], [ar], [no])
 AC_PATH_TOOL([DLLTOOL], [dlltool], [true])
+AC_PATH_TOOL([WINDRES], [windres], [true])
 
 dnl ---------------------------------------------------------------------------
 dnl Check for C++ 2017 support
@@ -175,6 +181,23 @@ PKG_CHECK_MODULES( [UDJAT], [libudjat], AC_DEFINE(HAVE_UDJAT,[],[Do we have libu
 
 AC_SUBST(UDJAT_LIBS)
 AC_SUBST(UDJAT_CFLAGS)
+
+app_cv_product=`pkg-config --variable=product_name libudjat`
+AC_DEFINE_UNQUOTED(PRODUCT_NAME, $app_cv_product, [The product name])
+AC_SUBST(PRODUCT_NAME,$app_cv_product)
+
+app_cv_module_path=`pkg-config --variable=module_path libudjat`
+AC_DEFINE_UNQUOTED(MODULE_PATH, $app_cv_module_path, [The path for module installation])
+AC_SUBST(MODULE_PATH,$app_cv_module_path)
+
+dnl ---------------------------------------------------------------------------
+dnl test for pugixml
+dnl ---------------------------------------------------------------------------
+
+PKG_CHECK_MODULES(PUGIXML, pugixml, AC_DEFINE(HAVE_PUGIXML,[],[Do we have PUGIXML?]),AC_MSG_ERROR(pugixml is required))
+
+AC_SUBST(PUGIXML_LIBS)
+AC_SUBST(PUGIXML_CFLAGS)
 
 dnl ---------------------------------------------------------------------------
 dnl Output config

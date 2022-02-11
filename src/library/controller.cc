@@ -32,8 +32,8 @@
 #ifdef DEBUG
 			cout << "users\tInitializing session @" << session->sid << endl;
 #endif // DEBUG
-			session->state.alive = true;
-			session->onEvent(already_active);
+			session->flags.alive = true;
+			session->emit(already_active);
 		}
 
 	}
@@ -42,14 +42,19 @@
 
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
-			if(session->state.alive) {
-#ifdef DEBUG
-				cout << "users\tDeinitializing session @" << session->sid << endl;
-#endif // DEBUG
-				session->onEvent(still_active);
-				session->state.alive = false;
+
+			cout << *session << "\tDeinitializing session @" << session->sid << " with " << session.use_count() << " active instance(s)" << endl;
+
+			if(session->flags.alive) {
+				session->emit(still_active);
+				session->flags.alive = false;
 			}
+
+			deinit(session);
+
 		}
+
+		sessions.clear();
 
 	}
 
@@ -62,6 +67,30 @@
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
 			callback(session);
+		}
+	}
+
+	void User::Controller::sleep() {
+		cout << "users\tSystem is preparing to sleep" << endl;
+		lock_guard<mutex> lock(guard);
+		for(auto session : sessions) {
+			session->emit(User::sleep);
+		}
+	}
+
+	void User::Controller::resume() {
+		cout << "users\tSystem is resuming from sleep" << endl;
+		lock_guard<mutex> lock(guard);
+		for(auto session : sessions) {
+			session->emit(User::resume);
+		}
+	}
+
+	void User::Controller::shutdown() {
+		cout << "users\tSystem is preparing to shutdown" << endl;
+		lock_guard<mutex> lock(guard);
+		for(auto session : sessions) {
+			session->emit(User::shutdown);
 		}
 	}
 

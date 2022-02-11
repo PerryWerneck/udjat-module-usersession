@@ -17,13 +17,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #include <udjat/tools/usersession.h>
+ #include <config.h>
+ #include "private.h"
  #include <systemd/sd-login.h>
  #include <systemd/sd-bus.h>
+ #include <udjat/tools/configuration.h>
  #include <sys/types.h>
  #include <iostream>
  #include <unistd.h>
  #include <pwd.h>
+ #include <functional>
+ #include <sys/types.h>
+ #include <unistd.h>
+ #include <mutex>
+
+#ifdef HAVE_DBUS
+	#include <udjat/tools/dbus.h>
+#endif // HAVE_DBUS
 
  using namespace std;
 
@@ -173,7 +183,45 @@
 
 	}
 
-	std::string User::Session::to_string() const noexcept {
+	int User::Session::userid() const {
+		uid_t uid = (uid_t) -1;
+
+		if(sd_session_get_uid(sid.c_str(), &uid)) {
+			throw runtime_error("Can't get user's id");
+		}
+
+		return uid;
+	}
+
+	void User::Session::call(const std::function<void()> exec) {
+		call(userid(),exec);
+	}
+
+	void User::Session::call(const uid_t uid, const std::function<void()> exec) {
+
+		static mutex guard;
+		lock_guard<mutex> lock(guard);
+
+		uid_t saved_uid = geteuid();
+		if(seteuid(uid) < 0) {
+			throw std::system_error(errno, std::system_category(), "Cant set effective user id");
+		}
+
+		try {
+
+			exec();
+
+		} catch(...) {
+			seteuid(saved_uid);
+			throw;
+		}
+
+		seteuid(saved_uid);
+
+	}
+
+
+	std::string User::Session::to_string() const {
 
 		uid_t uid = (uid_t) -1;
 
