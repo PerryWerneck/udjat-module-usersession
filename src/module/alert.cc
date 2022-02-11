@@ -23,23 +23,6 @@
 
  using namespace Udjat;
 
- UserList::Alert::Factory::Factory() : Udjat::Factory("user-action", UserList::info) {
- }
-
- bool UserList::Alert::Factory::parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const {
-
-	UserList::Agent *agent = dynamic_cast<UserList::Agent *>(&parent);
-
-	if(!agent) {
-		parent.error() << "An user-list agent is required for user-action alerts" << endl;
-		return false;
-	}
-
-	agent->insert(make_shared<Alert>(agent,node));
-	return true;
- }
-
-
  inline Udjat::User::Event EventFactory(const pugi::xml_node &node) {
 	return Udjat::User::EventFactory(
 				node.attribute("event")
@@ -49,7 +32,7 @@
 				);
  }
 
- UserList::Alert::Alert(const UserList::Agent *agent, const pugi::xml_node &node) : Udjat::Alert(node), event(EventFactory(node)) {
+ UserList::Alert::Alert(const pugi::xml_node &node) : Udjat::Alert(node), event(EventFactory(node)) {
 
 	const char *group = node.attribute("settings-from").as_string("alert-defaults");
 
@@ -58,7 +41,12 @@
 #endif // DEBUG
 
 	if(event == User::pulse) {
+
 		emit.timer = getAttribute(node,group,"interval",(unsigned int) 14400);
+		if(!emit.timer) {
+			throw runtime_error("Pulse alert requires the 'interval' attribute");
+		}
+
 	} else {
 		emit.timer = 0;
 	}
@@ -71,14 +59,6 @@
 
 	emit.locked = getAttribute(node,group,"on-locked-session",emit.locked);
 	emit.unlocked = getAttribute(node,group,"on-unlocked-session",emit.unlocked);
-
-	if(event == User::pulse) {
-
-		if(!agent->getUpdateInterval()) {
-			throw runtime_error("'update-timer' attribute is required to use 'pulse' alerts");
-		}
-
-	}
 
  }
 
@@ -122,9 +102,14 @@
 
  }
 
- bool UserList::Alert::onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
+ bool UserList::Alert::onEvent(shared_ptr<Abstract::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
 
-	if(event == alert->event && alert->test(session)) {
+	UserList::Alert *useralert = dynamic_cast<UserList::Alert *>(alert.get());
+	if(!useralert) {
+		return false;
+	}
+
+	if(event == useralert->event && useralert->test(session)) {
 
 		Abstract::Alert::activate(alert,[&session,&event,alert](std::string &text) {
 

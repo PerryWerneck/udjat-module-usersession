@@ -98,36 +98,27 @@
 	class Agent : public Udjat::Abstract::Agent {
 	private:
 		std::shared_ptr<UserList::Controller> controller;
-		std::list<shared_ptr<UserList::Alert>> alerts;
+		std::list<shared_ptr<Abstract::Alert>> alerts;
 
 	public:
-
-		class Factory : public Udjat::Factory {
-		public:
-			Factory();
-			bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override;
-		};
-
 		Agent(const pugi::xml_node &node);
 		virtual ~Agent();
 
 		bool refresh() override;
 
-		inline void insert(shared_ptr<UserList::Alert> alert) {
-			alerts.push_back(alert);
-		}
+		void push_back(std::shared_ptr<Abstract::Alert> alert) override;
 
 		/// @brief Process event.
 		/// @return true if an alert was activated.
 		bool onEvent(Session &session, const Udjat::User::Event event) noexcept;
-
-		void append_alert(const pugi::xml_node &node) override;
 
 	};
 
 	/// @brief Userlist alert.
 	class Alert : public Udjat::Alert {
 	private:
+		friend class Agent;
+
 		Udjat::User::Event event = (Udjat::User::Event) -1;
 
 		struct {
@@ -144,16 +135,10 @@
 
 	public:
 
-		class Factory : public Udjat::Factory {
-		public:
-			Factory();
-			bool parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const override;
-		};
-
-		Alert(const UserList::Agent *agent, const pugi::xml_node &node);
+		Alert(const pugi::xml_node &node);
 		virtual ~Alert();
 
-		static bool onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
+		static bool onEvent(shared_ptr<Abstract::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
 
 		time_t timer() const noexcept {
 			return emit.timer;
