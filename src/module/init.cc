@@ -45,6 +45,9 @@
 		// }
 
 		std::shared_ptr<Abstract::Alert> AlertFactory(const pugi::xml_node &node) const override {
+#ifdef DEBUG
+			Factory::info() << "Creating USER alert" << endl;
+#endif // DEBUG
 			return make_shared<UserList::Alert>(node);
 		}
 

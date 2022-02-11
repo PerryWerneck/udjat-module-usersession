@@ -39,14 +39,16 @@
  	const UserList::Alert * useralert = dynamic_cast<const UserList::Alert *>(alert.get());
 
  	if(useralert) {
-		auto timer = getUpdateInterval();
-		if(useralert->event == User::pulse && !timer) {
-			throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
+		if(useralert->event == User::pulse) {
+			auto timer = getUpdateInterval();
+			if(!timer) {
+				throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
+			}
+			if(useralert->emit.timer < timer) {
+				alert->warning() << "Pulse interval is lower than agent update timer" << endl;
+			}
 		}
 
-		if(useralert->emit.timer < timer) {
-			alert->warning() << "Pulse interval is lower than agent update timer" << endl;
-		}
  	}
 
 	alerts.push_back(alert);
