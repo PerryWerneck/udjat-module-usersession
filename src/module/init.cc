@@ -37,14 +37,11 @@
 
 	protected:
 
-		std::shared_ptr<Abstract::Agent> AgentFactory(const pugi::xml_node &node) const override {
+		std::shared_ptr<Abstract::Agent> AgentFactory(const Abstract::Object UDJAT_UNUSED(&parent), const pugi::xml_node &node) const override {
 			return make_shared<UserList::Agent>(node);
 		}
 
-		//std::shared_ptr<Abstract::Object> ObjectFactory(const Abstract::Object &parent, const pugi::xml_node &node) const override {
-		// }
-
-		std::shared_ptr<Abstract::Alert> AlertFactory(const pugi::xml_node &node) const override {
+		std::shared_ptr<Abstract::Alert> AlertFactory(const Abstract::Object UDJAT_UNUSED(&parent), const pugi::xml_node &node) const override {
 #ifdef DEBUG
 			Factory::info() << "Creating USER alert" << endl;
 #endif // DEBUG
