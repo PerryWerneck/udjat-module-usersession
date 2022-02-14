@@ -61,7 +61,7 @@
 
 	}
 
-	std::string User::Session::to_string() const noexcept {
+	std::string User::Session::to_string() const {
 
 		char	* name	= nullptr;
 		DWORD	  szName;

@@ -106,7 +106,7 @@
 
 		bool refresh() override;
 
-		void push_back(std::shared_ptr<Abstract::Alert> alert) override;
+		void push_back(std::shared_ptr<Udjat::Abstract::Alert> alert) override;
 
 		/// @brief Process event.
 		/// @return true if an alert was activated.
