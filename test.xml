@@ -7,7 +7,7 @@
 	<module name='dmi' required='no' />
 
 	<!-- attribute name='url' value='sqlite+http://localhost' / -->
-	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${alertname}' />
+	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${event}' />
 
 	<users name='users' update-timer='60'>
 	
@@ -32,12 +32,12 @@
 		</alert>
 
 		<!-- Activate on user lock -->
-		<alert name='lock'>
-		</alert>
+		<!-- alert name='lock'>
+		</alert -->
 		
 		<!-- Activate on user unlock -->
-		<alert name='unlock'>
-		</alert>
+		<!-- alert name='unlock'>
+		</alert -->
 		
 	</users>
 	

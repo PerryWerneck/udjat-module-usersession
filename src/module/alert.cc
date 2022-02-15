@@ -65,6 +65,13 @@
  UserList::Alert::~Alert() {
  }
 
+ bool UserList::Alert::getProperty(const char *key, std::string &value) const noexcept {
+
+	cout << "**********" << key << endl;
+
+	return false;
+ }
+
  bool UserList::Alert::test(const Udjat::User::Session &session) const noexcept {
 
 	if(!emit.system && session.system()) {

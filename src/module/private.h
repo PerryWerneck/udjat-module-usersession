@@ -140,7 +140,7 @@
 		Alert(const pugi::xml_node &node);
 		virtual ~Alert();
 
-		// static bool onEvent(shared_ptr<Abstract::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
+		bool getProperty(const char *key, std::string &value) const noexcept override;
 
 		time_t timer() const noexcept {
 			return emit.timer;
