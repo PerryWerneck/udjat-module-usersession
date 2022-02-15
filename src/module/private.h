@@ -131,7 +131,7 @@
 			bool foreground = true;		///< @brief Emit alert for foreground session?
 		} emit;
 
-		std::shared_ptr<Abstract::Alert::Activation> ActivationFactory(const std::function<void(std::string &str)> &expander) const override;
+		std::shared_ptr<Abstract::Alert::Activation> ActivationFactory() const override;
 
 	public:
 

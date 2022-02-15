@@ -150,7 +150,7 @@
 		};
 
 		/// @brief User session.
-		class UDJAT_API Session : Udjat::Abstract::Object {
+		class UDJAT_API Session : public Udjat::Abstract::Object {
 		private:
 			friend class Controller;
 

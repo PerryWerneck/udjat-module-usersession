@@ -86,20 +86,8 @@
 	return true;
  }
 
- std::shared_ptr<Abstract::Alert::Activation> UserList::Alert::ActivationFactory(const std::function<void(std::string &str)> &expander) const {
-
-	class Activation : public Udjat::Alert::Activation {
-	public:
-		Activation(const Udjat::Alert &alert, const std::function<void(std::string &str)> &expander) : Udjat::Alert::Activation(alert,expander) {
-			string name{"${username}"};
-			expander(name);
-			this->name = name;
-		}
-
-	};
-
-	return make_shared<Activation>(*this,expander);
-
+ std::shared_ptr<Abstract::Alert::Activation> UserList::Alert::ActivationFactory() const {
+	return make_shared<Udjat::Alert::Activation>(this);
  }
 
  bool UserList::Alert::onEvent(shared_ptr<Abstract::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
@@ -111,6 +99,12 @@
 
 	if(event == useralert->event && useralert->test(session)) {
 
+		auto activation = useralert->ActivationFactory();
+		activation->set(session);
+		// activation->rename()
+		Udjat::start(activation);
+
+		/*
 		Abstract::Alert::activate(alert,[&session,&event,alert](std::string &text) {
 
 			Udjat::expand(text,[&session,&event,alert](const char *key, std::string &value){
@@ -146,6 +140,7 @@
 			});
 
 		});
+		*/
 
 		return true;
 
