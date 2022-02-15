@@ -54,23 +54,41 @@
 	alerts.push_back(alert);
  }
 
+ void UserList::Agent::emit(Udjat::Abstract::Alert &alert, Session &session) const noexcept {
+
+	try {
+
+		auto activation = alert.ActivationFactory();
+		activation->set(session);
+		activation->set(*this);
+		// activation->rename()
+		Udjat::start(activation);
+
+	} catch(const std::exception &e) {
+
+		error() << e.what() << endl;
+
+	}
+
+ }
+
  bool UserList::Agent::onEvent(Session &session, const Udjat::User::Event event) noexcept {
 
 	bool activated = false;
- 	try {
 
-		cout << session << "\t" << event << endl;
+	cout << session << "\t" << event << endl;
 
-		for(auto alert : alerts) {
-			UserList::Alert * useralert = dynamic_cast<UserList::Alert *>(alert.get());
-			if(useralert && useralert->onEvent(alert,session,event)) {
-				activated = true;
-			}
+	for(auto alert : alerts) {
+
+		UserList::Alert * useralert = dynamic_cast<UserList::Alert *>(alert.get());
+
+		if(useralert && useralert->test(event) && useralert->test(session)) {
+
+			activated = true;
+			emit(*alert,session);
+
 		}
-
- 	} catch(const std::exception &e) {
-		error() << e.what() << endl;
- 	}
+	}
 
  	return activated;
  }
@@ -105,12 +123,11 @@
 				}
 #endif // DEBUG
 
-				if(!timer || timer > idletime) {
-					continue;
-				}
-
 				// Emit alert.
-				reset |= useralert->onEvent(alert,*session,User::pulse);
+				if(timer && timer <= idletime && useralert->test(User::pulse) && useralert->test(*session) ) {
+					reset |= true;
+					emit(*alert,*session);
+				}
 
 			}
 		}

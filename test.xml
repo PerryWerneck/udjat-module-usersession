@@ -16,7 +16,7 @@
 		</alert>
 
 		<!-- Activate when user is active on service stop -->
-		<!-- alert name='stop' event='Still active'>
+		<!--alert name='stop' event='Still active'>
 		</alert -->
 
 		<!-- Activate on user logon -->

@@ -100,6 +100,8 @@
 		std::shared_ptr<UserList::Controller> controller;
 		std::list<shared_ptr<Abstract::Alert>> alerts;
 
+		 void emit(Abstract::Alert &alert, Session &session) const noexcept;
+
 	public:
 		Agent(const pugi::xml_node &node);
 		virtual ~Agent();
@@ -138,13 +140,17 @@
 		Alert(const pugi::xml_node &node);
 		virtual ~Alert();
 
-		static bool onEvent(shared_ptr<Abstract::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
+		// static bool onEvent(shared_ptr<Abstract::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept;
 
 		time_t timer() const noexcept {
 			return emit.timer;
 		}
 
 		bool test(const Udjat::User::Session &session) const noexcept;
+
+		inline bool test(Udjat::User::Event event) const noexcept {
+			return this->event == event;
+		}
 
 	};
 
