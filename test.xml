@@ -7,7 +7,7 @@
 	<module name='dmi' required='no' />
 
 	<!-- attribute name='url' value='sqlite+http://localhost' / -->
-	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${event}' />
+	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${name}' />
 
 	<users name='users' update-timer='60'>
 	

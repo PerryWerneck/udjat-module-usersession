@@ -70,7 +70,7 @@
 			return description ? "Invalid event id" : "invalid";
  		}
 
- 		return description ? events[event].description : events[event].name;
+ 		return (description ? events[event].description : events[event].name);
 
  	}
 

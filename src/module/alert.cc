@@ -48,7 +48,9 @@
 		}
 
 	} else {
+
 		emit.timer = 0;
+
 	}
 
 	emit.system = getAttribute(node,group,"on-system-session",emit.system);
@@ -67,9 +69,12 @@
 
  bool UserList::Alert::getProperty(const char *key, std::string &value) const noexcept {
 
-	cout << "**********" << key << endl;
+	if(!strcasecmp(key,"eventname")) {
+		value = std::to_string(event,false);
+		return true;
+	}
 
-	return false;
+	return Udjat::Alert::getProperty(key,value);
  }
 
  bool UserList::Alert::test(const Udjat::User::Session &session) const noexcept {
