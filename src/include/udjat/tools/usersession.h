@@ -188,6 +188,10 @@
 			/// @brief Get session name or id.
 			std::string to_string() const override;
 
+			inline std::string name() const {
+				return to_string();
+			}
+
 			bool getProperty(const char *key, std::string &value) const noexcept override;
 
 			/// @brief Is this session a remote one?

@@ -59,9 +59,9 @@
 	try {
 
 		auto activation = alert.ActivationFactory();
+		activation->rename(session.name().c_str());
 		activation->set(session);
 		activation->set(*this);
-		// activation->rename()
 		Udjat::start(activation);
 
 	} catch(const std::exception &e) {
