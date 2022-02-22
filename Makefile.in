@@ -340,6 +340,8 @@ $(BINDBG)/$(PACKAGE_NAME)@LIBEXT@: \
 run: \
 	$(BINDBG)/udjat@EXEEXT@
 
+	@cp "test.xml" "$(BINDBG)"
+
 ifeq ($(VALGRIND),no)
 
 	@LD_LIBRARY_PATH=$(BINDBG) \
