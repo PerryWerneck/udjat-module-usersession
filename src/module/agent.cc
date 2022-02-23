@@ -88,6 +88,7 @@
 			emit(*alert,session);
 
 		}
+
 	}
 
  	return activated;
