@@ -25,14 +25,6 @@
 
  using Session = User::Session;
 
- UserList::Agent::Factory::Factory() : Udjat::Factory("user-list", UserList::info) {
- }
-
- bool UserList::Agent::Factory::parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const {
-	parent.insert(make_shared<UserList::Agent>(node));
-	return true;
- }
-
  UserList::Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node), controller(UserList::Controller::getInstance()) {
 	load(node);
 	controller->insert(this);
@@ -42,26 +34,62 @@
 	controller->remove(this);
  }
 
- void UserList::Agent::append_alert(const pugi::xml_node &node) {
-	alerts.push_back(make_shared<UserList::Alert>(this,node));
+ void UserList::Agent::push_back(std::shared_ptr<Abstract::Alert> alert) {
+
+ 	const UserList::Alert * useralert = dynamic_cast<const UserList::Alert *>(alert.get());
+
+ 	if(useralert) {
+		if(useralert->event == User::pulse) {
+			auto timer = getUpdateInterval();
+			if(!timer) {
+				throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
+			}
+			if(useralert->emit.timer < timer) {
+				alert->warning() << "Pulse interval is lower than agent update timer" << endl;
+			}
+		}
+
+ 	}
+
+	alerts.push_back(alert);
+ }
+
+ void UserList::Agent::emit(Udjat::Abstract::Alert &alert, Session &session) const noexcept {
+
+	try {
+
+		auto activation = alert.ActivationFactory();
+		activation->rename(session.name().c_str());
+		activation->set(session);
+		activation->set(*this);
+		Udjat::start(activation);
+
+	} catch(const std::exception &e) {
+
+		error() << e.what() << endl;
+
+	}
+
  }
 
  bool UserList::Agent::onEvent(Session &session, const Udjat::User::Event event) noexcept {
 
 	bool activated = false;
- 	try {
 
-		cout << session << "\t" << event << endl;
+	cout << session << "\t" << event << endl;
 
-		for(auto alert : alerts) {
-			if(alert->onEvent(alert,session,event)) {
-				activated = true;
-			}
+	for(auto alert : alerts) {
+
+		UserList::Alert * useralert = dynamic_cast<UserList::Alert *>(alert.get());
+
+		if(useralert && useralert->test(event) && useralert->test(session)) {
+
+			activated = true;
+			emit(*alert,session);
+
 		}
 
- 	} catch(const std::exception &e) {
-		error() << e.what() << endl;
- 	}
+	}
 
  	return activated;
  }
@@ -85,15 +113,24 @@
 
 		bool reset = false;
 		for(auto alert : alerts) {
-			auto timer = alert->timer();
 
-			if(!timer || timer > idletime) {
-				continue;
+			UserList::Alert *useralert = dynamic_cast<UserList::Alert *>(alert.get());
+			if(useralert) {
+
+				auto timer = useralert->timer();
+#ifdef DEBUG
+				if(timer) {
+					useralert->info() << "Wait for " << (timer - idletime) << endl;
+				}
+#endif // DEBUG
+
+				// Emit alert.
+				if(timer && timer <= idletime && useralert->test(User::pulse) && useralert->test(*session) ) {
+					reset |= true;
+					emit(*alert,*session);
+				}
+
 			}
-
-			// Emit alert.
-			reset |= alert->onEvent(alert,*session,User::pulse);
-
 		}
 
 		if(reset) {

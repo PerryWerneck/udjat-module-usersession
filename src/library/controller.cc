@@ -17,7 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
  #include <udjat/tools/usersession.h>
+
  #include <cstring>
  #include <iostream>
 
@@ -29,9 +31,7 @@
 
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
-#ifdef DEBUG
 			cout << "users\tInitializing session @" << session->sid << endl;
-#endif // DEBUG
 			session->flags.alive = true;
 			session->emit(already_active);
 		}

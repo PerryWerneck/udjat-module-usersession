@@ -2,21 +2,22 @@
 
 <config>
 
-	<module name='civetweb' required='no' />
+	<!-- module name='civetweb' required='no' / -->
+	<module name='http' required='no' />
 	<module name='information' required='no' />
-	<module name='dmi' required='no' />
+	<!-- module name='dmi' required='no' / -->
 
 	<!-- attribute name='url' value='sqlite+http://localhost' / -->
-	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${alertname}' />
+	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${name}' />
 
-	<user-list name='users' update-timer='60'>
+	<users name='users' update-timer='60'>
 	
 		<!-- Activate when user is active on service start -->
 		<alert name='start' event='Already active'>
 		</alert>
 
 		<!-- Activate when user is active on service stop -->
-		<!-- alert name='stop' event='Still active'>
+		<!--alert name='stop' event='Still active'>
 		</alert -->
 
 		<!-- Activate on user logon -->
@@ -32,14 +33,14 @@
 		</alert>
 
 		<!-- Activate on user lock -->
-		<alert name='lock'>
-		</alert>
+		<!-- alert name='lock'>
+		</alert -->
 		
 		<!-- Activate on user unlock -->
-		<alert name='unlock'>
-		</alert>
+		<!-- alert name='unlock'>
+		</alert -->
 		
-	</user-list>
+	</users>
 	
 </config>
 

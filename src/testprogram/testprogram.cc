@@ -49,8 +49,10 @@ int main(int argc, char **argv) {
 				cout << "http://localhost:8989/api/1.0/info/factories.xml" << endl;
 				cout << "http://localhost:8989/api/1.0/info/services.xml" << endl;
 			}
-			cout << "http://localhost:8989/api/1.0/users.xml" << endl;
-			cout << "http://localhost:8989/api/1.0/agent.xml" << endl;
+			if(Module::find("httpd")) {
+				cout << "http://localhost:8989/api/1.0/users.xml" << endl;
+				cout << "http://localhost:8989/api/1.0/agent.xml" << endl;
+			}
 
 			auto root = Abstract::Agent::root();
 			if(root) {
@@ -63,7 +65,7 @@ int main(int argc, char **argv) {
 
 		/// @brief Deinitialize service.
 		void deinit() override {
-			cout << Application::Name() << "\tDeinitializing" << endl;
+			cout << Application::Name() << "\t**** Deinitializing" << endl;
 			Udjat::Module::unload();
 		}
 
@@ -74,7 +76,10 @@ int main(int argc, char **argv) {
 
 	};
 
-	return Service().run(argc,argv);
+	Service().run(argc,argv);
 
+	cout << "*** Test program finished" << endl;
+
+	return 0;
 
 }

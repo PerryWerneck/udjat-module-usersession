@@ -150,7 +150,7 @@
 		};
 
 		/// @brief User session.
-		class UDJAT_API Session : Udjat::Abstract::Object {
+		class UDJAT_API Session : public Udjat::Abstract::Object {
 		private:
 			friend class Controller;
 
@@ -187,6 +187,10 @@
 
 			/// @brief Get session name or id.
 			std::string to_string() const override;
+
+			inline std::string name() const {
+				return to_string();
+			}
 
 			bool getProperty(const char *key, std::string &value) const noexcept override;
 

@@ -23,23 +23,6 @@
 
  using namespace Udjat;
 
- UserList::Alert::Factory::Factory() : Udjat::Factory("user-action", UserList::info) {
- }
-
- bool UserList::Alert::Factory::parse(Udjat::Abstract::Agent &parent, const pugi::xml_node &node) const {
-
-	UserList::Agent *agent = dynamic_cast<UserList::Agent *>(&parent);
-
-	if(!agent) {
-		parent.error() << "An user-list agent is required for user-action alerts" << endl;
-		return false;
-	}
-
-	agent->insert(make_shared<Alert>(agent,node));
-	return true;
- }
-
-
  inline Udjat::User::Event EventFactory(const pugi::xml_node &node) {
 	return Udjat::User::EventFactory(
 				node.attribute("event")
@@ -49,7 +32,7 @@
 				);
  }
 
- UserList::Alert::Alert(const UserList::Agent *agent, const pugi::xml_node &node) : Udjat::Alert(node), event(EventFactory(node)) {
+ UserList::Alert::Alert(const pugi::xml_node &node) : Udjat::Alert(node), event(EventFactory(node)) {
 
 	const char *group = node.attribute("settings-from").as_string("alert-defaults");
 
@@ -58,9 +41,16 @@
 #endif // DEBUG
 
 	if(event == User::pulse) {
+
 		emit.timer = getAttribute(node,group,"interval",(unsigned int) 14400);
+		if(!emit.timer) {
+			throw runtime_error("Pulse alert requires the 'interval' attribute");
+		}
+
 	} else {
+
 		emit.timer = 0;
+
 	}
 
 	emit.system = getAttribute(node,group,"on-system-session",emit.system);
@@ -72,17 +62,19 @@
 	emit.locked = getAttribute(node,group,"on-locked-session",emit.locked);
 	emit.unlocked = getAttribute(node,group,"on-unlocked-session",emit.unlocked);
 
-	if(event == User::pulse) {
-
-		if(!agent->getUpdateInterval()) {
-			throw runtime_error("'update-timer' attribute is required to use 'pulse' alerts");
-		}
-
-	}
-
  }
 
  UserList::Alert::~Alert() {
+ }
+
+ bool UserList::Alert::getProperty(const char *key, std::string &value) const noexcept {
+
+	if(!strcasecmp(key,"eventname")) {
+		value = std::to_string(event,false);
+		return true;
+	}
+
+	return Udjat::Alert::getProperty(key,value);
  }
 
  bool UserList::Alert::test(const Udjat::User::Session &session) const noexcept {
@@ -106,74 +98,8 @@
 	return true;
  }
 
- std::shared_ptr<Abstract::Alert::Activation> UserList::Alert::ActivationFactory(const std::function<void(std::string &str)> &expander) const {
-
-	class Activation : public Udjat::Alert::Activation {
-	public:
-		Activation(const Udjat::Alert &alert, const std::function<void(std::string &str)> &expander) : Udjat::Alert::Activation(alert,expander) {
-			string name{"${username}"};
-			expander(name);
-			this->name = name;
-		}
-
-	};
-
-	return make_shared<Activation>(*this,expander);
-
+ std::shared_ptr<Abstract::Alert::Activation> UserList::Alert::ActivationFactory() const {
+	return make_shared<Udjat::Alert::Activation>(this);
  }
-
- bool UserList::Alert::onEvent(shared_ptr<UserList::Alert> alert, const Udjat::User::Session &session, const Udjat::User::Event event) noexcept {
-
-	if(event == alert->event && alert->test(session)) {
-
-		Abstract::Alert::activate(alert,[&session,&event,alert](std::string &text) {
-
-			Udjat::expand(text,[&session,&event,alert](const char *key, std::string &value){
-
-				if(session.getProperty(key,value)) {
-					return true;
-				}
-
-				if(!strcasecmp(key,"alertname")) {
-					value = alert->name();
-					return true;
-				};
-
-				if(!strcasecmp(key,"event")) {
-					value = std::to_string(event,false);
-					return true;
-				};
-
-				if(!strcasecmp(key,"description")) {
-					value = std::to_string(event,true);
-					return true;
-				};
-
-				if(!strcasecmp(key,"activation")) {
-					value = session.to_string();
-					value += "/";
-					value += std::to_string(event);
-					return true;
-				};
-
-				return false;
-
-			});
-
-		});
-
-		return true;
-
-	} else {
-
-		alert->deactivate();
-
-	}
-
-	return false;
-
- }
-
-
 
 

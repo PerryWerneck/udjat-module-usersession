@@ -17,6 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
  #include <winsock2.h>
  #include <windows.h>
  #include <wtsapi32.h>
@@ -234,6 +235,10 @@
 
 		User::Controller & controller = *((User::Controller *) GetWindowLongPtr(hWnd,0));
 
+#ifdef DEBUG
+		cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << "\tMSG=" << uMsg << endl;
+#endif // DEBUG
+
 		// https://wiki.winehq.org/List_Of_Windows_Messages
 		switch(uMsg) {
 		case WM_POWERBROADCAST:
@@ -389,12 +394,27 @@
 
 		case WM_START:
 			cout << "users\tLoading active sessions" << endl;
+#ifdef DEBUG
+			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << "(WM_START) " << __FILE__ << " " << __LINE__ << endl;
+#endif // DEBUG
 			controller.load(true);
+#ifdef DEBUG
+			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << endl;
+#endif // DEBUG
 			controller.init();
+#ifdef DEBUG
+			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << endl;
+#endif // DEBUG
 			break;
 
 		case WM_REFRESH:
+#ifdef DEBUG
+			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << endl;
+#endif // DEBUG
 			controller.load(false);
+#ifdef DEBUG
+			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << endl;
+#endif // DEBUG
 			break;
 
 		default:

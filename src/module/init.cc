@@ -27,24 +27,30 @@
 
  using namespace std;
 
- const Udjat::ModuleInfo UserList::info{"User list agent"};
+ const Udjat::ModuleInfo UserList::info{"Users monitor"};
 
  /// @brief Register udjat module.
  Udjat::Module * udjat_module_init() {
 
-	class Module : public Udjat::Module, private Udjat::Worker {
+	class Module : public Udjat::Module, private Udjat::Worker, private Udjat::Factory {
 	private:
 
-		/// @brief Object factories.
-		struct {
-			UserList::Agent::Factory agent;
-			UserList::Alert::Factory alert;
-			Udjat::Alert::Factory urlalert;
-		} factories;
+	protected:
+
+		std::shared_ptr<Abstract::Agent> AgentFactory(const Abstract::Object UDJAT_UNUSED(&parent), const pugi::xml_node &node) const override {
+			return make_shared<UserList::Agent>(node);
+		}
+
+		std::shared_ptr<Abstract::Alert> AlertFactory(const Abstract::Object UDJAT_UNUSED(&parent), const pugi::xml_node &node) const override {
+#ifdef DEBUG
+			Factory::info() << "Creating USER alert" << endl;
+#endif // DEBUG
+			return make_shared<UserList::Alert>(node);
+		}
 
 	public:
 
-		Module() : Udjat::Module("userlist",UserList::info), Udjat::Worker("users",UserList::info) {
+		Module() : Udjat::Module("users",UserList::info), Udjat::Worker("users",UserList::info), Udjat::Factory("users",UserList::info) {
 		};
 
 		virtual ~Module() {
