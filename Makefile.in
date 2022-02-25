@@ -186,6 +186,9 @@ install: \
 	install-module \
 	install-dev
 
+install-debug: \
+	install-@OSNAME@-debug
+
 install-linux: \
 	$(BINRLS)/$(SONAME)
 
@@ -206,6 +209,13 @@ install-windows: \
 		$(BINRLS)/@SONAME@ \
 		$(DESTDIR)$(bindir)/@SONAME@
 		
+install-windows-debug: \
+	$(BINDBG)/@SONAME@
+
+	@$(INSTALL_PROGRAM) \
+		$(BINDBG)/@SONAME@ \
+		$(DESTDIR)$(bindir)/$(PACKAGE_NAME)@LIBEXT@
+
 install-module: \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
