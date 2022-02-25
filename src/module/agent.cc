@@ -64,7 +64,13 @@
 
 		auto activation = alert.ActivationFactory();
 		activation->rename(session.name().c_str());
+#ifdef DEBUG
+		cout << "**************** " << __FILE__ << "(" << __LINE__ << ")" << endl;
+#endif //DEBUG
 		activation->set(session);
+#ifdef DEBUG
+		cout << "**************** " << __FILE__ << "(" << __LINE__ << ")" << endl;
+#endif //DEBUG
 		activation->set(*this);
 		Udjat::start(activation);
 
