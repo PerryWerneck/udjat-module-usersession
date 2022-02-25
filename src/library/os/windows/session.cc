@@ -50,6 +50,7 @@
 		char	* name	= nullptr;
 		DWORD	  szName;
 
+		// https://docs.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsquerysessioninformationa
 		if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName)) {
 			bool rc = (name[0] < ' ');
 			WTSFreeMemory(name);

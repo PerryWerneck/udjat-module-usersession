@@ -99,6 +99,7 @@
 
 		if(!strcasecmp(key,"username")) {
 			value = to_string();
+			cout << "*** sid=" << sid << " username=" << value << endl;
 			return true;
 		};
 
