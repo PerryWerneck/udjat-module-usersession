@@ -142,8 +142,7 @@ Release: \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 $(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
-	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJRLS)/$(SRC).o) \
-	$(BINRLS)/$(SONAME)
+	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJRLS)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
