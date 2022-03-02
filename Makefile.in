@@ -4,12 +4,10 @@
 PACKAGE_NAME=@PACKAGE_NAME@
 SONAME=@SONAME@
 
-LIBRARY_SOURCES= \
+MODULE_SOURCES= \
 	$(wildcard src/library/*.cc) \
 	$(wildcard src/library/os/@OSNAME@/*.cc) \
-	$(wildcard src/library/os/@OSNAME@/*.rc)
-
-MODULE_SOURCES= \
+	$(wildcard src/library/os/@OSNAME@/*.rc) \
 	$(wildcard src/module/*.cc)
 
 TEST_SOURCES= \
@@ -138,32 +136,10 @@ $(OBJRLS)/%.o: \
 #---[ Release Targets ]------------------------------------------------------------------
 
 all: \
-	$(BINRLS)/$(SONAME) \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 Release: \
-	$(BINRLS)/$(SONAME) \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
-
-$(BINRLS)/$(SONAME): \
-	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
-
-	@$(MKDIR) $(@D)
-	@echo $< ...
-	@$(LD) \
-		$(DLL_LDFLAGS) \
-		-Wl,-soname,$(@F) \
-		-o $@ \
-		$(LDFLAGS) \
-		$^ \
-		$(LIBS)
-
-$(BINRLS)/libudjatusers.a: \
-	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
-
-	@$(MKDIR) $(@D)
-	@echo $< ...
-	@$(AR) rcs $@ $^
 
 $(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
 	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJRLS)/$(SRC).o) \
@@ -182,41 +158,6 @@ $(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
 #---[ Install Targets ]------------------------------------------------------------------
 
 install: \
-	install-@OSNAME@ \
-	install-module \
-	install-dev
-
-install-debug: \
-	install-@OSNAME@-debug
-
-install-linux: \
-	$(BINRLS)/$(SONAME)
-
-	# Install library
-	@$(MKDIR) $(DESTDIR)$(libdir)
-
-	@$(INSTALL_PROGRAM) \
-		$(BINRLS)/$(SONAME) \
-		$(DESTDIR)$(libdir)/$(SONAME)
-		
-install-windows: \
-	$(BINRLS)/@SONAME@
-
-	@$(MKDIR) \
-		$(DESTDIR)$(bindir)
-
-	@$(INSTALL_PROGRAM) \
-		$(BINRLS)/@SONAME@ \
-		$(DESTDIR)$(bindir)/@SONAME@
-		
-install-windows-debug: \
-	$(BINDBG)/@SONAME@
-
-	@$(INSTALL_PROGRAM) \
-		$(BINDBG)/@SONAME@ \
-		$(DESTDIR)$(bindir)/$(PACKAGE_NAME)@LIBEXT@
-
-install-module: \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 	@$(MKDIR) \
@@ -226,75 +167,10 @@ install-module: \
 		$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@ \
 		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
 
-install-dev: \
-	install-@OSNAME@-dev \
-	install-@OSNAME@-static 
-	
-	@$(MKDIR) \
-		$(DESTDIR)$(includedir)/udjat/tools
-
-	@$(INSTALL_DATA) \
-		src/include/udjat/tools/*.h \
-		$(DESTDIR)$(includedir)/udjat/tools
-
-	# Install PKG-CONFIG files
-	@$(MKDIR) \
-		$(DESTDIR)$(libdir)/pkgconfig
-
-	@$(INSTALL_DATA) \
-		sdk/@OSNAME@/dynamic.pc \
-		$(DESTDIR)$(libdir)/pkgconfig/udjat-users.pc
-
-	@$(INSTALL_DATA) \
-		sdk/@OSNAME@/static.pc \
-		$(DESTDIR)$(libdir)/pkgconfig/udjat-users-static.pc
-
-install-linux-static: \
-	$(BINRLS)/libudjatusers.a
-
-	# Install static library
-	@$(MKDIR) $(DESTDIR)$(libdir)
-	@$(INSTALL_DATA) \
-		$(BINRLS)/libudjatusers.a \
-		$(DESTDIR)$(libdir)/libudjatusers.static.a
-
-install-windows-static: \
-	$(BINRLS)/libudjatusers.a
-
-	@$(MKDIR) \
-		$(DESTDIR)$(libdir)
-
-	@$(INSTALL_PROGRAM) \
-		$(BINRLS)/libudjatusers.a \
-		$(DESTDIR)$(libdir)/libudjatusers.a
-
-install-linux-dev:
-
-	# Install linux SDK
-	@$(MKDIR) \
-		$(DESTDIR)$(libdir)
-
-	@$(LN_S) \
-		$(SONAME) \
-		$(DESTDIR)$(libdir)/libudjatusers.so
-
-install-windows-dev:
-
-	@$(MKDIR) \
-		$(DESTDIR)$(libdir)
-
-	@$(DLLTOOL) \
-		--input-def $(BINRLS)/udjatusers.def \
-		--dllname @SONAME@ \
-		--output-lib $(DESTDIR)$(libdir)/libudjatusers.dll.a
-		
 	
 #---[ Uninstall Targets ]----------------------------------------------------------------
 
-uninstall: \
-	uninstall-@OSNAME@
-
-uninstall-linux:
+uninstall:
 
 	@rm -f \
 		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
@@ -319,22 +195,8 @@ $(BINDBG)/udjat@EXEEXT@: \
 		$(LIBS) @PUGIXML_LIBS@
 
 
-$(BINDBG)/$(SONAME): \
-	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJDBG)/$(SRC).o)
-
-	@$(MKDIR) $(@D)
-	@echo $< ...
-	@$(LD) \
-		$(DLL_LDFLAGS) \
-		-Wl,-soname,$(@F) \
-		-o $@ \
-		$(LDFLAGS) \
-		$^ \
-		$(LIBS)
-
 $(BINDBG)/$(PACKAGE_NAME)@LIBEXT@: \
-	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJDBG)/$(SRC).o) \
-	$(BINDBG)/$(SONAME)
+	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJDBG)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
@@ -385,7 +247,7 @@ clean: \
 	cleanRelease
 
 
--include $(foreach SRC, $(basename $(LIBRARY_SOURCES) $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJDBG)/$(SRC).d)
--include $(foreach SRC, $(basename $(LIBRARY_SOURCES) $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJRLS)/$(SRC).d)
+-include $(foreach SRC, $(basename $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJDBG)/$(SRC).d)
+-include $(foreach SRC, $(basename $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJRLS)/$(SRC).d)
 
 
