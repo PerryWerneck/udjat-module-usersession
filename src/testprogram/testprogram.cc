@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
 			if(Module::find("httpd")) {
 				cout << "http://localhost:8989/api/1.0/users.xml" << endl;
 				cout << "http://localhost:8989/api/1.0/agent.xml" << endl;
+				cout << "http://localhost:8989/api/1.0/alerts.xml" << endl;
 			}
 
 			auto root = Abstract::Agent::root();

@@ -13,7 +13,7 @@
 	<users name='users' update-timer='60'>
 	
 		<!-- Activate when user is active on service start -->
-		<alert name='start' event='Already active'>
+		<alert name='start' event='Already active' max-retries='1' >
 		</alert>
 
 		<!-- Activate when user is active on service stop -->
@@ -21,15 +21,15 @@
 		</alert -->
 
 		<!-- Activate on user logon -->
-		<alert name='login'>
+		<alert name='login' max-retries='1'>
 		</alert>
 
 		<!-- Activate on user logoff -->
-		<alert name='logout'>
+		<alert name='logout' max-retries='1'>
 		</alert>
 
 		<!-- Timer -->
-		<alert name='pulse' interval='600' on-locked-session='no'>
+		<alert name='pulse' interval='60' on-locked-session='no' max-retries='1'>
 		</alert>
 
 		<!-- Activate on user lock -->
