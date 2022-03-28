@@ -166,7 +166,7 @@
 #ifdef _WIN32
 
 			DWORD sid = 0;				///< @brief Windows Session ID.
-
+			std::string username;		///< @brief Windows user name.
 #else
 
 			std::string sid;			///< @brief LoginD session ID.
