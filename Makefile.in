@@ -166,6 +166,12 @@ install: \
 		$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@ \
 		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
 
+	@$(MKDIR) \
+		$(DESTDIR)$(sysconfdir)/userinfo.conf.d
+
+	@$(INSTALL_DATA) \
+		conf.d/00-userdefs.conf \
+		$(DESTDIR)$(sysconfdir)/userinfo.conf.d/00-userdefs.conf
 	
 #---[ Uninstall Targets ]----------------------------------------------------------------
 
