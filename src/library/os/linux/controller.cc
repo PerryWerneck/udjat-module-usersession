@@ -126,10 +126,12 @@
 
 	void User::Controller::activate() {
 
-		lock_guard<mutex> lock(guard);
-
-		if(monitor) {
-			throw runtime_error("Logind monitor is already active");
+		{
+			lock_guard<mutex> lock(guard);
+			if(enabled) {
+				throw runtime_error("Logind monitor is already active");
+			}
+			enabled = true;
 		}
 
 #ifdef HAVE_DBUS
@@ -175,94 +177,31 @@
 #endif // HAVE_DBUS
 
 		// Activate logind monitor.
-		enabled = true;
-		monitor = new std::thread([this](){
+		init();
 
-			pthread_setname_np(pthread_self(),"logind");
-
-			clog << "users\tlogind monitor is activating" << endl;
-
-			{
-				char **ids = nullptr;
-				int idCount = sd_get_sessions(&ids);
-
-				lock_guard<mutex> lock(guard);
-				for(int id = 0; id < idCount; id++) {
-					std::shared_ptr<Session> session = SessionFactory();
-					session->sid = ids[id];
-					sessions.push_back(session);
-					init(session);
-
-					char *state = nullptr;
-					if(sd_session_get_state(ids[id], &state) >= 0) {
-						session->set(User::StateFactory(state));
-						free(state);
-					}
-
-					free(ids[id]);
-				}
-
-				free(ids);
-
-			}
-
-			init();
-
-			sd_login_monitor * monitor = NULL;
-			sd_login_monitor_new(NULL,&monitor);
-
-			while(enabled) {
-				struct pollfd pfd;
-				memset(&pfd,0,sizeof(pfd));
-
-				pfd.fd = sd_login_monitor_get_fd(monitor);
-				pfd.events = sd_login_monitor_get_events(monitor) | SA_RESTART;
-				pfd.revents = 0;
-
-				uint64_t timeout_usec = 10;
-				sd_login_monitor_get_timeout(monitor,&timeout_usec);
-				if(timeout_usec > 1000)
-					timeout_usec = 1000;
-
-				int rcPoll = poll(&pfd,1,timeout_usec);
-				switch(rcPoll) {
-				case 0:	// Timeout.
-					break;
-
-				case -1: // Error!!
-					if(errno != EINTR) {
-						cerr << "users\tPoll error '" << strerror(errno) << "' on logind monitor, aborting" << endl;
-						enabled = false;
-					}
-					break;
-
-				default:	// Has event.
-					if(pfd.revents) {
-						sd_login_monitor_flush(monitor);
-						refresh();
-					}
-				}
-			}
-
-			clog << "users\tlogind monitor is deactivating" << endl;
-
-			deinit();
-
-		});
+		cout << "users\tLogind monitor is now active" << endl;
 
 	}
 
 	void User::Controller::deactivate() {
 
-		enabled = false;
-		if(monitor) {
+		{
+			lock_guard<mutex> lock(guard);
+			if(!enabled) {
+				return;
+			}
+			enabled = false;
+		}
 
 #ifdef HAVE_DBUS
-			DBus::Connection::getSystemInstance().unsubscribe(this);
+		DBus::Connection::getSystemInstance().unsubscribe(this);
 #endif // HAVE_DBUS
+
+		if(monitor) {
 
 			cout << "users\tWaiting for termination of logind monitor" << endl;
 			monitor->join();
+			deinit();
 			delete monitor;
 			monitor = nullptr;
 			cout << "users\tlogind monitor is now inactive" << endl;
