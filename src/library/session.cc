@@ -97,11 +97,8 @@
 
 	bool User::Session::getProperty(const char *key, std::string &value) const noexcept {
 
-		cout << "*************** " << key << endl;
-
 		if(!strcasecmp(key,"username")) {
 			value = to_string();
-			cout << "*** sid=" << sid << " username=" << value << endl;
 			return true;
 		};
 
