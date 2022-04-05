@@ -157,6 +157,10 @@ $(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
 #---[ Install Targets ]------------------------------------------------------------------
 
 install: \
+	install-@OSNAME@ \
+	install-module
+
+install-module: \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 	@$(MKDIR) \
@@ -166,13 +170,19 @@ install: \
 		$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@ \
 		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
 
+install-linux:
+
 	@$(MKDIR) \
 		$(DESTDIR)$(sysconfdir)/userinfo.conf.d
 
 	@$(INSTALL_DATA) \
 		conf.d/00-userdefs.conf \
 		$(DESTDIR)$(sysconfdir)/userinfo.conf.d/00-userdefs.conf
-	
+
+install-windows:
+
+	@echo No windows configuration.
+		
 #---[ Uninstall Targets ]----------------------------------------------------------------
 
 uninstall:
