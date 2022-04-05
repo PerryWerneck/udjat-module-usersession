@@ -55,6 +55,11 @@
 			}
 		}
 
+		// logind status is 'openint'
+		if(!strcasecmp(statename,"opening")) {
+			return User::SessionIsOpening;
+		}
+
 		cerr << "user\tUnexpected session state '" << statename << "'" << endl;
 
 		return SessionInUnknownState;
@@ -84,10 +89,22 @@
 			cout << to_string() << "\tState changes from '" << this->flags.state << "' to '" << state << "'" << endl;
 			this->flags.state = state;
 
-			if(this->flags.state == SessionInForeground) {
-				emit(User::foreground);
-			} else if(this->flags.state == SessionInBackground) {
-				emit(User::background);
+			try {
+
+				if(this->flags.state == SessionInForeground) {
+					emit(User::foreground);
+				} else if(this->flags.state == SessionInBackground) {
+					emit(User::background);
+				}
+
+			} catch(const std::exception &e) {
+
+				cerr << to_string() << "\tError '" << e.what() << "' updating state" << endl;
+
+			} catch(...) {
+
+				cerr << to_string() << "\tUnexpected error updating state" << endl;
+
 			}
 
 		}

@@ -79,23 +79,38 @@
 
  bool UserList::Alert::test(const Udjat::User::Session &session) const noexcept {
 
-	if(!emit.system && session.system()) {
-		return false;
+	try {
+
+		if(!emit.system && session.system()) {
+			return false;
+		}
+
+		if(!emit.remote && session.remote()) {
+			return false;
+		}
+
+		if(!emit.locked && session.locked()) {
+			return false;
+		}
+
+		if(!emit.unlocked && !session.locked()) {
+			return false;
+		}
+
+		return true;
+
+	} catch(const std::exception &e) {
+
+		cerr << session << "\tError '" << e.what() << "' checking alert flags" << endl;
+
+	} catch(...) {
+
+		cerr << session << "\tUnexpected error checking alert flags" << endl;
+
 	}
 
-	if(!emit.remote && session.remote()) {
-		return false;
-	}
+	return false;
 
-	if(!emit.locked && session.locked()) {
-		return false;
-	}
-
-	if(!emit.unlocked && !session.locked()) {
-		return false;
-	}
-
-	return true;
  }
 
  std::shared_ptr<Abstract::Alert::Activation> UserList::Alert::ActivationFactory() const {

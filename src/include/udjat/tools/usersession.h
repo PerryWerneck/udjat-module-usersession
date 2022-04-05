@@ -62,6 +62,7 @@
 		enum State : uint8_t {
 			SessionInBackground,		///< @brief Session logged in, but session not active, i.e. not in the foreground
 			SessionInForeground,		///< @brief Session logged in and active, i.e. in the foreground
+			SessionIsOpening,			///< @brief
 			SessionIsClosing,			///< @brief Session nominally logged out, but some processes belonging to it are still around.
 
 			SessionInUnknownState,		///< @brief Session in unknown state.
