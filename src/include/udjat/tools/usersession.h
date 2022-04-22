@@ -171,6 +171,7 @@
 #else
 
 			std::string sid;			///< @brief LoginD session ID.
+			uid_t uid = -1;				///< @brief Session user id.
 			void *bus = nullptr;		///< @brief Connection with the user's bus
 
 #endif // _WIN32
