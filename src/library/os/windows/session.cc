@@ -50,6 +50,7 @@
 		char	* name	= nullptr;
 		DWORD	  szName;
 
+		// https://docs.microsoft.com/en-us/windows/win32/api/wtsapi32/nf-wtsapi32-wtsquerysessioninformationa
 		if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName)) {
 			bool rc = (name[0] < ' ');
 			WTSFreeMemory(name);
@@ -62,6 +63,10 @@
 	}
 
 	std::string User::Session::to_string() const {
+
+		if(!username.empty()) {
+			return username;
+		}
 
 		char	* name	= nullptr;
 		DWORD	  szName;
@@ -76,10 +81,10 @@
 			return string{"@"} + std::to_string((int) sid);
 		}
 
-		string user((const char *) name);
+		const_cast<std::string *>(&username)->assign((const char *) name);
 		WTSFreeMemory(name);
 
-		return user;
+		return username;
 
 	}
 

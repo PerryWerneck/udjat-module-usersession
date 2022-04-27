@@ -62,6 +62,7 @@
 		enum State : uint8_t {
 			SessionInBackground,		///< @brief Session logged in, but session not active, i.e. not in the foreground
 			SessionInForeground,		///< @brief Session logged in and active, i.e. in the foreground
+			SessionIsOpening,			///< @brief
 			SessionIsClosing,			///< @brief Session nominally logged out, but some processes belonging to it are still around.
 
 			SessionInUnknownState,		///< @brief Session in unknown state.
@@ -166,10 +167,11 @@
 #ifdef _WIN32
 
 			DWORD sid = 0;				///< @brief Windows Session ID.
-
+			std::string username;		///< @brief Windows user name.
 #else
 
 			std::string sid;			///< @brief LoginD session ID.
+			uid_t uid = -1;				///< @brief Session user id.
 			void *bus = nullptr;		///< @brief Connection with the user's bus
 
 #endif // _WIN32

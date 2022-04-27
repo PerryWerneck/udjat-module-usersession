@@ -171,26 +171,24 @@
 	}
 
 	bool User::Session::system() const {
-
-		uid_t uid = (uid_t) 0;
-
-		int rc = sd_session_get_uid(sid.c_str(), &uid);
-		if(rc < 0) {
-			throw system_error(-rc,system_category(),string{"Cant get UID for session '"} + sid + "'");
-		}
-
-		return uid < 1000;
-
+		return userid() < 1000;
 	}
 
 	int User::Session::userid() const {
-		uid_t uid = (uid_t) -1;
 
-		if(sd_session_get_uid(sid.c_str(), &uid)) {
-			throw runtime_error("Can't get user's id");
+		if(this->uid != (uid_t) -1) {
+			return this->uid;
 		}
 
-		return uid;
+		User::Session *session = const_cast<User::Session *>(this);
+
+		int rc = sd_session_get_uid(session->sid.c_str(), &session->uid);
+
+		if(rc < 0) {
+			throw system_error(-rc,system_category(),string{"Cant get UID for session '"} + session->sid + "'");
+		}
+
+		return session->uid;
 	}
 
 	void User::Session::call(const std::function<void()> exec) {

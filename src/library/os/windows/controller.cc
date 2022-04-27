@@ -394,27 +394,12 @@
 
 		case WM_START:
 			cout << "users\tLoading active sessions" << endl;
-#ifdef DEBUG
-			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << "(WM_START) " << __FILE__ << " " << __LINE__ << endl;
-#endif // DEBUG
 			controller.load(true);
-#ifdef DEBUG
-			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << endl;
-#endif // DEBUG
 			controller.init();
-#ifdef DEBUG
-			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << endl;
-#endif // DEBUG
 			break;
 
 		case WM_REFRESH:
-#ifdef DEBUG
-			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << endl;
-#endif // DEBUG
 			controller.load(false);
-#ifdef DEBUG
-			cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << endl;
-#endif // DEBUG
 			break;
 
 		default:

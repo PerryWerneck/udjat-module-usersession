@@ -126,64 +126,64 @@
 
 	void User::Controller::activate() {
 
-		lock_guard<mutex> lock(guard);
-
-		if(monitor) {
-			throw runtime_error("Logind monitor is already active");
+		{
+			lock_guard<mutex> lock(guard);
+			if(enabled) {
+				throw runtime_error("Logind monitor is already active");
+			}
+			enabled = true;
 		}
 
-		enabled = true;
+#ifdef HAVE_DBUS
+		if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",true)) {
+			try {
+				DBus::Connection::getSystemInstance().subscribe(
+					(void *) this,
+					"org.freedesktop.login1.Manager",
+					"PrepareForSleep",
+					[this](DBus::Message &message) {
+
+						if(DBus::Value(message).as_bool()) {
+							sleep();
+						} else {
+							resume();
+						}
+
+					}
+				);
+			} catch(const std::exception &e) {
+				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.PrepareForSleep" << endl;
+			}
+		}
+
+		if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",true)) {
+			try {
+				DBus::Connection::getSystemInstance().subscribe(
+					(void *) this,
+					"org.freedesktop.login1.Manager",
+					"PrepareForShutdown",
+					[this](DBus::Message &message) {
+
+						if(DBus::Value(message).as_bool()) {
+							shutdown();
+						}
+
+					}
+				);
+			} catch(const std::exception &e) {
+				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.PrepareForShutdown" << endl;
+			}
+		}
+#endif // HAVE_DBUS
+
+		// Activate logind monitor.
+		init();
+
 		monitor = new std::thread([this](){
 
 			pthread_setname_np(pthread_self(),"logind");
 
 			clog << "users\tlogind monitor is activating" << endl;
-
-#ifdef HAVE_DBUS
-
-			bool sysbus = false;
-
-			if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",false)) {
-				try {
-					sysbus = true;
-					DBus::Connection::getSystemInstance().subscribe(
-						(void *) this,
-						"org.freedesktop.login1.Manager",
-						"PrepareForSleep",
-						[this](DBus::Message &message) {
-
-							if(DBus::Value(message).as_bool()) {
-								sleep();
-							} else {
-								resume();
-							}
-
-						}
-					);
-				} catch(const std::exception &e) {
-					cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.PrepareForSleep" << endl;
-				}
-			}
-			if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",false)) {
-				try {
-					sysbus = true;
-					DBus::Connection::getSystemInstance().subscribe(
-						(void *) this,
-						"org.freedesktop.login1.Manager",
-						"PrepareForShutdown",
-						[this](DBus::Message &message) {
-
-							if(DBus::Value(message).as_bool()) {
-								shutdown();
-							}
-
-						}
-					);
-				} catch(const std::exception &e) {
-					cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.PrepareForShutdown" << endl;
-				}
-			}
-#endif // HAVE_DBUS
 
 			{
 				char **ids = nullptr;
@@ -249,26 +249,36 @@
 
 			clog << "users\tlogind monitor is deactivating" << endl;
 
-#ifdef HAVE_DBUS
-			if(sysbus) {
-				DBus::Connection::getSystemInstance().unsubscribe(this);
-			}
-#endif // HAVE_DBUS
-
 			deinit();
 
 		});
+
+		cout << "users\tLogind monitor is now active" << endl;
 
 	}
 
 	void User::Controller::deactivate() {
 
-		enabled = false;
+		{
+			lock_guard<mutex> lock(guard);
+			if(!enabled) {
+				return;
+			}
+			enabled = false;
+		}
+
+#ifdef HAVE_DBUS
+		DBus::Connection::getSystemInstance().unsubscribe(this);
+#endif // HAVE_DBUS
+
 		if(monitor) {
+
 			cout << "users\tWaiting for termination of logind monitor" << endl;
 			monitor->join();
+			deinit();
 			delete monitor;
 			monitor = nullptr;
+			cout << "users\tlogind monitor is now inactive" << endl;
 		}
 
 		deinit(); // Just in case.

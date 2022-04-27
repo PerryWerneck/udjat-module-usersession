@@ -58,6 +58,10 @@
 
 	try {
 
+#ifdef DEBUG
+		cout << "** Emitting agent alert" << endl;
+#endif // DEBUG
+
 		auto activation = alert.ActivationFactory();
 		activation->rename(session.name().c_str());
 		activation->set(session);
@@ -118,17 +122,26 @@
 			if(useralert) {
 
 				auto timer = useralert->timer();
+
+				if(timer && useralert->test(User::pulse) && useralert->test(*session)) {
+
+					// Check for pulse.
+					if(timer <= idletime) {
 #ifdef DEBUG
-				if(timer) {
-					useralert->info() << "Wait for " << (timer - idletime) << endl;
-				}
+						useralert->info() << "Emiting 'PULSE' " << (timer - idletime) << endl;
+#endif // DEBUG
+						reset |= true;
+						emit(*alert,*session);
+					}
+#ifdef DEBUG
+					else {
+						useralert->info() << "Wait for " << (timer - idletime) << endl;
+					}
 #endif // DEBUG
 
-				// Emit alert.
-				if(timer && timer <= idletime && useralert->test(User::pulse) && useralert->test(*session) ) {
-					reset |= true;
-					emit(*alert,*session);
+
 				}
+
 
 			}
 		}
@@ -138,35 +151,6 @@
 		}
 
 	});
-
-	/*
-	bool updated = false;
-
-	controller->User::Controller::for_each([this](shared_ptr<Udjat::User::Session> ses){
-
-		Session * session = dynamic_cast<Session *>(ses.get());
-		if(!session) {
-			cerr << *ses << "\tInvalid session type" << endl;
-			return;
-		}
-
-		time_t idletime = time(0) - session->alerttime();
-		time_t limit = (session->locked() ? pulse.locked : pulse.unlocked);
-
-#ifdef DEBUG
-		cout << *session << "\t" << dec << idletime << endl;
-#endif // DEBUG
-
-		if(limit && idletime >= limit) {
-			if(onEvent(*session,User::pulse)) {
-				session->reset();
-			}
-		}
-
-	});
-
-	return updated;
-	*/
 
 	return false;
  }

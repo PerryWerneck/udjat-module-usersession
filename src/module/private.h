@@ -45,7 +45,7 @@
 	private:
 
 		/// @brief Timestamp of the last alert emission.
-		time_t lastreset = 0;
+		time_t lastreset = time(0);
 
 	protected:
 		Udjat::User::Session & onEvent(const Udjat::User::Event &event) noexcept override;

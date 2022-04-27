@@ -99,7 +99,7 @@
 
 							bool locked = DBus::Value(message).as_bool();
 							if(locked != session->flags.locked) {
-								cout << *session << "\tSession was " << (locked ? "locked" : "unlocked") << " by gnome screensaver" << endl;
+								cout << *session << "\tGnome scrensaver is now " << (locked ? "active" : "inactive") << endl;
 								session->flags.locked = locked;
 								ThreadPool::getInstance().push([session,locked](){
 									session->emit( (locked ? User::lock : User::unlock) );
