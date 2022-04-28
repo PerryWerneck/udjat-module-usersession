@@ -114,6 +114,8 @@
 		/// @return true if an alert was activated.
 		bool onEvent(Session &session, const Udjat::User::Event event) noexcept;
 
+		void get(const Request &request, Report &report) override;
+
 	};
 
 	/// @brief Userlist alert.

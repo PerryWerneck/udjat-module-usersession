@@ -98,9 +98,25 @@
  	return activated;
  }
 
+ void UserList::Agent::get(const Request UDJAT_UNUSED(&request), Report &report) {
+
+	report.start(name(),"username","state","locked","remote","system",nullptr);
+
+	controller->User::Controller::for_each([&report](shared_ptr<Udjat::User::Session> user) {
+
+		report	<< user->name()
+				<< user->state()
+				<< user->locked()
+				<< user->remote()
+				<< user->system();
+
+	});
+
+ }
+
  bool UserList::Agent::refresh() {
 
-	controller->User::Controller::for_each([this](shared_ptr<Udjat::User::Session> ses){
+	controller->User::Controller::for_each([this](shared_ptr<Udjat::User::Session> ses) {
 
 		Session * session = dynamic_cast<Session *>(ses.get());
 		if(!session) {
