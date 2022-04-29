@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 			if(root) {
 				for(auto agent : *root) {
 					cout << "http://localhost:8989/api/1.0/agent/" << agent->name() << ".xml" << endl;
-					cout << "http://localhost:8989/api/1.0/report/" << agent->name() << ".xml" << endl;
+					cout << "http://localhost:8989/api/1.0/report/agent/" << agent->name() << ".html" << endl;
 				}
 			}
 
