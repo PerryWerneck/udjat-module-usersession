@@ -44,7 +44,7 @@
 	}
 
 	/// @brief Find session (Requires an active guard!!!)
-	std::shared_ptr<User::Session> User::Controller::find(const DWORD sid) {
+	std::shared_ptr<User::Session> User::Controller::find(const DWORD sid, bool create) {
 
 		for(auto session : sessions) {
 			if(session->sid == sid) {
@@ -52,12 +52,19 @@
 			}
 		}
 
-		// Not found, create a new one.
-		std::shared_ptr<Session> session = SessionFactory();
-		session->sid = sid;
-		sessions.push_back(session);
+		// Not found.
 
-		return session;
+		if(create) {
+			// Create a new session.
+			std::shared_ptr<Session> session = SessionFactory();
+			session->sid = sid;
+			sessions.push_back(session);
+			return session;
+		}
+
+		// Return an empty session.
+		return std::shared_ptr<User::Session>();
+
 	}
 
 	User::Controller::Controller() {
@@ -288,79 +295,121 @@
 
 			try {
 
-				auto session = controller.find((DWORD) lParam);
-
 				switch((int) wParam) {
 				case WTS_SESSION_LOCK:				// The session has been locked.
-					cout << "@" << session->sid << "\tWTS_SESSION_LOCK " << endl;
-					if(!session->flags.locked) {
-						session->flags.locked = true;
-						session->emit(lock);
+					{
+						auto session = controller.find((DWORD) lParam);
+						cout << "@" << session->sid << "\tWTS_SESSION_LOCK" << endl;
+						if(!session->flags.locked) {
+							session->flags.locked = true;
+							session->emit(lock);
+						}
 					}
 					break;
 
 				case WTS_SESSION_UNLOCK:			// The session identified has been unlocked.
-					cout << "@" << session->sid << "\tWTS_SESSION_UNLOCK " << endl;
-					if(session->flags.locked) {
-						session->flags.locked = false;
-						session->emit(unlock);
+					{
+						auto session = controller.find((DWORD) lParam);
+						cout << "@" << session->sid << "\tWTS_SESSION_UNLOCK" << endl;
+						if(session->flags.locked) {
+							session->flags.locked = false;
+							session->emit(unlock);
+						}
 					}
 					break;
 
 				case WTS_CONSOLE_CONNECT:			// The session was connected to the console terminal or RemoteFX session.
-					cout << "@" << session->sid << "\tWTS_CONSOLE_CONNECT " << endl;
-					session->set(User::SessionInForeground);
-					break;
-
-				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
-					cout << "@" << session->sid << "\tWTS_CONSOLE_DISCONNECT " << endl;
-					session->set(User::SessionInBackground);
+					{
+						auto session = controller.find((DWORD) lParam);
+						cout << "@" << session->sid << "\tWTS_CONSOLE_CONNECT" << endl;
+						session->set(User::SessionInForeground);
+					}
 					break;
 
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
-					cout << "@" << session->sid << "\tWTS_REMOTE_CONNECT " << endl;
-					session->flags.remote = true;
+					{
+						auto session = controller.find((DWORD) lParam);
+						cout << "@" << session->sid << "\tWTS_REMOTE_CONNECT" << endl;
+						session->flags.remote = true;
+					}
 					break;
 
 				case WTS_REMOTE_DISCONNECT:			// The session was disconnected from the remote terminal.
-					cout << "@" << session->sid << "\tWTS_REMOTE_DISCONNECT " << endl;
-					session->flags.remote = true;
-					session->set(User::SessionIsClosing);
+					{
+						auto session = controller.find((DWORD) lParam,false);
+						if(session) {
+							cout << "@" << session->sid << "\tWTS_REMOTE_DISCONNECT" << endl;
+							session->flags.remote = true;
+							session->set(User::SessionIsClosing);
+							{
+								lock_guard<mutex> lock(controller.guard);
+								controller.sessions.remove(session);
+							}
+						} else {
+							cout << "@" << ((DWORD) lParam) << "\tWTS_REMOTE_DISCONNECT" << endl;
+						}
+					}
+					break;
+
+				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
+					{
+						auto session = controller.find((DWORD) lParam,false);
+						if(session) {
+							cout << "@" << session->sid << "\tWTS_CONSOLE_DISCONNECT" << endl;
+							session->flags.remote = false;
+							session->set(User::SessionIsClosing);
+							{
+								lock_guard<mutex> lock(controller.guard);
+								controller.sessions.remove(session);
+							}
+						} else {
+							cout << "@" << ((DWORD) lParam) << "\tWTS_CONSOLE_DISCONNECT" << endl;
+						}
+					}
 					break;
 
 				case WTS_SESSION_LOGON:				// A user has logged on to the session.
-					cout << "@" << session->sid << "\tWTS_SESSION_LOGON " << endl;
+					{
+						auto session = controller.find((DWORD) lParam);
+						cout << "@" << session->sid << "\tWTS_SESSION_LOGON" << endl;
 
-					// Set to foreground on logon.
-					session->flags.state = SessionInForeground;
-					session->emit(logon);
-
+						// Set to foreground on logon.
+						session->set(User::SessionInForeground);
+						session->emit(logon);
+					}
 					break;
 
 				case WTS_SESSION_LOGOFF:			// A user has logged off the session.
-					cout << "@" << session->sid << "\tWTS_SESSION_LOGOFF " << endl;
-					session->emit(logoff);
-					session->set(User::SessionIsClosing);
 					{
-						lock_guard<mutex> lock(controller.guard);
-						controller.sessions.remove(session);
+						auto session = controller.find((DWORD) lParam,false);
+						if(session) {
+							cout << "@" << session->sid << "\tWTS_SESSION_LOGOFF" << endl;
+							session->emit(logoff);
+							session->set(User::SessionIsClosing);
+							{
+								lock_guard<mutex> lock(controller.guard);
+								controller.sessions.remove(session);
+							}
+						} else {
+							cout << "@" << ((DWORD) lParam) << "\tWTS_CONSOLE_DISCONNECT" << endl;
+						}
 					}
 					break;
 
 				case WTS_SESSION_REMOTE_CONTROL:	// The session has changed its remote controlled status.
-					cout << "@" << session->sid << "\tWTS_SESSION_REMOTE_CONTROL " << endl;
+					cout << "@" << ((DWORD) lParam) << "\tWTS_SESSION_REMOTE_CONTROL" << endl;
 					break;
 
 				case WTS_SESSION_CREATE:			// Reserved for future use.
-					cout << "@" << session->sid << "\tWTS_SESSION_CREATE " << endl;
+					cout << "@" << ((DWORD) lParam) << "\tWTS_SESSION_CREATE" << endl;
 					break;
 
 				case WTS_SESSION_TERMINATE:			// Reserved for future use.
-					cout << "@" << session->sid << "\tWTS_SESSION_TERMINATE " << endl;
+					cout << "@" << ((DWORD) lParam) << "\tWTS_SESSION_TERMINATE" << endl;
 					break;
 
 				default:
-					cerr	<< "@" << session->sid << "\tWM_WTSSESSION_CHANGE sent an unexpected state '"
+					cerr	<< "@" << ((DWORD) lParam) << "\tWM_WTSSESSION_CHANGE sent an unexpected state '"
 							<< ((int) wParam) << "'" << endl;
 				}
 

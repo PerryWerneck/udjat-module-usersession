@@ -95,7 +95,11 @@
 			HWND hwnd = 0;
 			static LRESULT WINAPI hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 			void load(bool starting) noexcept;
-			std::shared_ptr<Session> find(DWORD sid);
+
+			// @brief			Find session by SID.
+			// @param sid 		SID of the requested session.
+			// @param create	If true will create a new session when not found.
+			std::shared_ptr<Session> find(DWORD sid, bool create = true);
 #else
 
 
