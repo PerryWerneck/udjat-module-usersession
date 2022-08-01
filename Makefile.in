@@ -4,17 +4,16 @@
 PACKAGE_NAME=@PACKAGE_NAME@
 SONAME=@SONAME@
 
-MODULE_SOURCES= \
+LIBRARY_SOURCES= \
 	$(wildcard src/library/*.cc) \
-	$(wildcard src/library/os/@OSNAME@/*.cc) \
-	$(wildcard src/library/os/@OSNAME@/*.rc) \
-	$(wildcard src/module/*.cc)
+	$(wildcard src/library/os/@OSNAME@/*.cc)
 
+MODULE_SOURCES= \
+	$(wildcard src/module/*.cc) \
+	$(wildcard src/library/os/@OSNAME@/*.rc)
+	
 TEST_SOURCES= \
-	$(wildcard src/testprogram/*.cc) 
-
-#	Disable due to some windows 'craziness' (Error 'Acessing a corrupted library' when enabled)
-#	$(wildcard src/testprogram/@OSNAME@/*.rc)
+	$(wildcard src/testprogram/*.cc)
 
 #---[ Tools ]----------------------------------------------------------------------------
 
@@ -136,12 +135,35 @@ $(OBJRLS)/%.o: \
 #---[ Release Targets ]------------------------------------------------------------------
 
 all: \
+	$(BINRLS)/$(SONAME) \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 Release: \
+	$(BINRLS)/$(SONAME) \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
+$(BINRLS)/$(SONAME): \
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		$(DLL_LDFLAGS) \
+		-Wl,-soname,$(@F) \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS)
+
+$(BINRLS)/libudjatusers.a: \
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(AR) rcs $@ $^
+
 $(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
+	$(BINRLS)/$(SONAME) \
 	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJRLS)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
@@ -151,12 +173,37 @@ $(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
 		-o $@ \
 		$(LDFLAGS) \
 		$^ \
-		$(LIBS) @PUGIXML_LIBS@
+		$(LIBS)
 
 
 #---[ Install Targets ]------------------------------------------------------------------
 
 install: \
+	install-@OSNAME@ \
+	install-module \
+	install-dev
+
+install-linux: \
+	$(BINRLS)/$(SONAME)
+
+	# Install library
+	@$(MKDIR) $(DESTDIR)$(libdir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/$(SONAME) \
+		$(DESTDIR)$(libdir)/$(SONAME)
+		
+install-windows: \
+	$(BINRLS)/@SONAME@
+
+	@$(MKDIR) \
+		$(DESTDIR)$(bindir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/@SONAME@ \
+		$(DESTDIR)$(bindir)/@SONAME@
+		
+install-module: \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 	@$(MKDIR) \
@@ -166,9 +213,75 @@ install: \
 		$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@ \
 		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
 
+install-dev: \
+	install-@OSNAME@-dev \
+	install-@OSNAME@-static 
+	
+	@$(MKDIR) \
+		$(DESTDIR)$(includedir)/udjat/tools
+
+	@$(INSTALL_DATA) \
+		src/include/udjat/tools/*.h \
+		$(DESTDIR)$(includedir)/udjat/tools
+
+	# Install PKG-CONFIG files
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)/pkgconfig
+
+	@$(INSTALL_DATA) \
+		sdk/@OSNAME@/dynamic.pc \
+		$(DESTDIR)$(libdir)/pkgconfig/udjat-users.pc
+
+	@$(INSTALL_DATA) \
+		sdk/@OSNAME@/static.pc \
+		$(DESTDIR)$(libdir)/pkgconfig/udjat-users-static.pc
+
+install-linux-static: \
+	$(BINRLS)/libudjatusers.a
+
+	# Install static library
+	@$(MKDIR) $(DESTDIR)$(libdir)
+	@$(INSTALL_DATA) \
+		$(BINRLS)/libudjatusers.a \
+		$(DESTDIR)$(libdir)/libudjatusers.static.a
+
+install-windows-static: \
+	$(BINRLS)/libudjatusers.a
+
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/libudjatusers.a \
+		$(DESTDIR)$(libdir)/libudjatusers.a
+
+install-linux-dev:
+
+	# Install linux SDK
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)
+
+	@$(LN_S) \
+		$(SONAME) \
+		$(DESTDIR)$(libdir)/libudjatusers.so
+
+install-windows-dev:
+
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)
+
+	@$(DLLTOOL) \
+		--input-def $(BINRLS)/udjatdbus.def \
+		--dllname @SONAME@ \
+		--output-lib $(DESTDIR)$(libdir)/libudjatusers.dll.a
+		
+	
 #---[ Uninstall Targets ]----------------------------------------------------------------
 
-uninstall:
+uninstall: \
+	uninstall-@OSNAME@
+
+uninstall-linux:
 
 	@rm -f \
 		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
@@ -176,9 +289,12 @@ uninstall:
 #---[ Debug Targets ]--------------------------------------------------------------------
 
 Debug: \
+	$(BINDBG)/$(SONAME) \
+	$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@ \
 	$(BINDBG)/udjat@EXEEXT@
 
 $(BINDBG)/udjat@EXEEXT@: \
+	$(BINDBG)/$(SONAME) \
 	$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@ \
 	$(foreach SRC, $(basename $(TEST_SOURCES)), $(OBJDBG)/$(SRC).o)
 
@@ -190,10 +306,24 @@ $(BINDBG)/udjat@EXEEXT@: \
 		-L$(BINDBG) \
 		-Wl,-rpath,$(BINDBG) \
 		$(LDFLAGS) \
-		$(LIBS) @PUGIXML_LIBS@
+		$(LIBS)
 
+
+$(BINDBG)/$(SONAME): \
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJDBG)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		$(DLL_LDFLAGS) \
+		-Wl,-soname,$(@F) \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS)
 
 $(BINDBG)/$(PACKAGE_NAME)@LIBEXT@: \
+	$(BINDBG)/$(SONAME) \
 	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJDBG)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
@@ -204,12 +334,11 @@ $(BINDBG)/$(PACKAGE_NAME)@LIBEXT@: \
 		-o $@ \
 		$(LDFLAGS) \
 		$^ \
-		$(LIBS) @PUGIXML_LIBS@
+		$(LIBS)
+
 
 run: \
 	$(BINDBG)/udjat@EXEEXT@
-
-	@cp "test.xml" "$(BINDBG)"
 
 ifeq ($(VALGRIND),no)
 
@@ -245,7 +374,7 @@ clean: \
 	cleanRelease
 
 
--include $(foreach SRC, $(basename $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJDBG)/$(SRC).d)
--include $(foreach SRC, $(basename $(MODULE_SOURCES) $(TEST_SOURCES)), $(OBJRLS)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJDBG)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).d)
 
 
