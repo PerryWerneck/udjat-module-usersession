@@ -26,7 +26,6 @@
  using Session = User::Session;
 
  UserList::Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node), controller(UserList::Controller::getInstance()) {
-	load(node);
 	controller->insert(this);
  }
 
@@ -40,7 +39,7 @@
 
  	if(useralert) {
 		if(useralert->event == User::pulse) {
-			auto timer = getUpdateInterval();
+			auto timer = this->timer();
 			if(!timer) {
 				throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
 			}
