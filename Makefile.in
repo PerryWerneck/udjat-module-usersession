@@ -273,7 +273,7 @@ install-windows-dev:
 		$(DESTDIR)$(libdir)
 
 	@$(DLLTOOL) \
-		--input-def $(BINRLS)/udjatdbus.def \
+		--input-def $(BINRLS)/udjatusers.def \
 		--dllname @SONAME@ \
 		--output-lib $(DESTDIR)$(libdir)/libudjatusers.dll.a
 		
