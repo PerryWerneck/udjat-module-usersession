@@ -23,7 +23,7 @@
  #include <udjat/defs.h>
  #include <udjat/tools/usersession.h>
  #include <udjat/tools/mainloop.h>
- #include <udjat/alert.h>
+ #include <udjat/alerts/url.h>
  #include <system_error>
  #include <udjat/agent.h>
  #include <udjat/factory.h>
@@ -100,7 +100,7 @@
 		std::shared_ptr<UserList::Controller> controller;
 		std::list<shared_ptr<Abstract::Alert>> alerts;
 
-		 void emit(Abstract::Alert &alert, Session &session) const noexcept;
+		void emit(Abstract::Alert &alert, Session &session) const noexcept;
 
 	public:
 		Agent(const pugi::xml_node &node);
@@ -119,7 +119,7 @@
 	};
 
 	/// @brief Userlist alert.
-	class Alert : public Udjat::Alert {
+	class Alert : public Udjat::Alert::URL {
 	private:
 		friend class Agent;
 

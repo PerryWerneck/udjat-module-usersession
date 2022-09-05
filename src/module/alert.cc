@@ -18,7 +18,7 @@
  */
 
  #include "private.h"
- #include <udjat/alert.h>
+ #include <udjat/alerts/url.h>
  #include <udjat/tools/expander.h>
 
  using namespace Udjat;
@@ -32,7 +32,7 @@
 				);
  }
 
- UserList::Alert::Alert(const pugi::xml_node &node) : Udjat::Alert(node), event(EventFactory(node)) {
+ UserList::Alert::Alert(const pugi::xml_node &node) : Udjat::Alert::URL(node), event(EventFactory(node)) {
 
 	const char *group = node.attribute("settings-from").as_string("alert-defaults");
 
@@ -74,7 +74,7 @@
 		return true;
 	}
 
-	return Udjat::Alert::getProperty(key,value);
+	return Udjat::Alert::URL::getProperty(key,value);
  }
 
  bool UserList::Alert::test(const Udjat::User::Session &session) const noexcept {
@@ -114,7 +114,7 @@
  }
 
  std::shared_ptr<Abstract::Alert::Activation> UserList::Alert::ActivationFactory() const {
-	return make_shared<Udjat::Alert::Activation>(this);
+	return make_shared<Udjat::Alert::URL::Activation>(this);
  }
 
 

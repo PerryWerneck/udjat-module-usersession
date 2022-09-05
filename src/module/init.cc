@@ -22,7 +22,7 @@
  #include <udjat/module.h>
  #include <udjat/worker.h>
  #include <udjat/request.h>
- #include <udjat/alert.h>
+ #include <udjat/alerts/url.h>
  #include <udjat/moduleinfo.h>
 
  using namespace std;
