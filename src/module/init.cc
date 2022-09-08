@@ -22,7 +22,6 @@
  #include <udjat/module.h>
  #include <udjat/worker.h>
  #include <udjat/request.h>
- #include <udjat/alerts/url.h>
  #include <udjat/moduleinfo.h>
 
  using namespace std;
@@ -41,12 +40,14 @@
 			return make_shared<UserList::Agent>(node);
 		}
 
+		/*
 		std::shared_ptr<Abstract::Alert> AlertFactory(const Abstract::Object UDJAT_UNUSED(&parent), const pugi::xml_node &node) const override {
 #ifdef DEBUG
 			Factory::info() << "Creating USER alert" << endl;
 #endif // DEBUG
-			return make_shared<UserList::Alert>(node);
+			return make_shared<UserList::Proxy>(node);
 		}
+		*/
 
 	public:
 

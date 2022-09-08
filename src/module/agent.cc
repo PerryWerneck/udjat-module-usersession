@@ -19,6 +19,8 @@
 
  #include "private.h"
  #include <udjat/tools/object.h>
+ #include <udjat/alert/activation.h>
+ #include <udjat/alert.h>
 
  using namespace std;
  using namespace Udjat;
@@ -33,6 +35,7 @@
 	controller->remove(this);
  }
 
+ /*
  void UserList::Agent::push_back(std::shared_ptr<Abstract::Alert> alert) {
 
  	const UserList::Alert * useralert = dynamic_cast<const UserList::Alert *>(alert.get());
@@ -52,6 +55,7 @@
 
 	alerts.push_back(alert);
  }
+ */
 
  void UserList::Agent::emit(Udjat::Abstract::Alert &alert, Session &session) const noexcept {
 
@@ -81,14 +85,14 @@
 
 	cout << session << "\t" << event << endl;
 
-	for(auto alert : alerts) {
+	for(AlertProxy &alert : alerts) {
 
-		UserList::Alert * useralert = dynamic_cast<UserList::Alert *>(alert.get());
+		if(alert.test(event) && alert.test(session)) {
 
-		if(useralert && useralert->test(event) && useralert->test(session)) {
-
+			/*
 			activated = true;
 			emit(*alert,session);
+			*/
 
 		}
 
@@ -96,6 +100,47 @@
 
  	return activated;
  }
+
+ void UserList::Agent::push_back(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> alert) {
+
+	alerts.emplace_back(node,alert);
+
+	AlertProxy &proxy = alerts.back();
+
+	if(proxy.test(User::pulse)) {
+		auto timer = this->timer();
+		if(!timer) {
+			throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
+		}
+		if(proxy.timer() < timer) {
+			alert->warning() << "Pulse interval is lower than agent update timer" << endl;
+		}
+	}
+
+ }
+
+ /*
+ std::shared_ptr<Abstract::Alert> UserList::Agent::AlertFactory(const pugi::xml_node &node) {
+
+	std::shared_ptr<Abstract::Alert> alert = Udjat::AlertFactory(*this,node);
+
+	alerts.emplace_back(node,alert);
+
+	AlertProxy &proxy = alerts.back();
+
+	if(proxy.test(User::pulse)) {
+		auto timer = this->timer();
+		if(!timer) {
+			throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
+		}
+		if(proxy.timer() < timer) {
+			alert->warning() << "Pulse interval is lower than agent update timer" << endl;
+		}
+	}
+
+	return alert;
+ }
+ */
 
  void UserList::Agent::get(const Request UDJAT_UNUSED(&request), Report &report) {
 
@@ -131,34 +176,37 @@
 #endif // DEBUG
 
 		bool reset = false;
-		for(auto alert : alerts) {
+		for(AlertProxy &alert : alerts) {
 
-			UserList::Alert *useralert = dynamic_cast<UserList::Alert *>(alert.get());
-			if(useralert) {
+			auto timer = alert.timer();
 
-				auto timer = useralert->timer();
+			if(timer && alert.test(User::pulse) && alert.test(*session)) {
 
-				if(timer && useralert->test(User::pulse) && useralert->test(*session)) {
+				// Check for pulse.
+				if(timer <= idletime) {
 
-					// Check for pulse.
-					if(timer <= idletime) {
 #ifdef DEBUG
-						useralert->info() << "Emiting 'PULSE' " << (timer - idletime) << endl;
+					info() << "Emiting 'PULSE' " << (timer - idletime) << endl;
 #endif // DEBUG
-						reset |= true;
-						emit(*alert,*session);
-					}
-#ifdef DEBUG
-					else {
-						useralert->info() << "Wait for " << (timer - idletime) << endl;
-					}
-#endif // DEBUG
+					reset |= true;
 
+					auto activation = alert.ActivationFactory();
 
+					activation->rename(name());
+					activation->set(*this);
+					activation->set(*session);
+
+					Udjat::start(activation);
 				}
+#ifdef DEBUG
+				 else {
+					info() << "Wait for " << (timer - idletime) << endl;
+				}
+#endif // DEBUG
 
 
 			}
+
 		}
 
 		if(reset) {
