@@ -151,6 +151,9 @@
 		bool test(const Udjat::User::Session &session) const noexcept;
 
 		inline bool test(Udjat::User::Event event) const noexcept {
+#ifdef DEBUG
+			cout << " ***** alert-event=" << hex << ((unsigned int) this->event) << " event=" << ((unsigned int) event) << " rc=" << ((unsigned int) (this->event & event)) << dec << endl;
+#endif // DEBUG
 			return (this->event & event) != 0;
 		}
 

@@ -21,6 +21,7 @@
  #include <udjat/tools/object.h>
  #include <udjat/alert/activation.h>
  #include <udjat/alert.h>
+ #include <udjat/tools/threadpool.h>
 
  using namespace std;
  using namespace Udjat;
@@ -34,28 +35,6 @@
  UserList::Agent::~Agent() {
 	controller->remove(this);
  }
-
- /*
- void UserList::Agent::push_back(std::shared_ptr<Abstract::Alert> alert) {
-
- 	const UserList::Alert * useralert = dynamic_cast<const UserList::Alert *>(alert.get());
-
- 	if(useralert) {
-		if(useralert->event == User::pulse) {
-			auto timer = this->timer();
-			if(!timer) {
-				throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
-			}
-			if(useralert->emit.timer < timer) {
-				alert->warning() << "Pulse interval is lower than agent update timer" << endl;
-			}
-		}
-
- 	}
-
-	alerts.push_back(alert);
- }
- */
 
  void UserList::Agent::emit(Udjat::Abstract::Alert &alert, Session &session) const noexcept {
 
@@ -83,16 +62,27 @@
 
 	bool activated = false;
 
+#ifdef DEBUG
+	cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") " << event << " (" << alerts.size() << " alert(s))" << endl;
+#else
 	cout << session << "\t" << event << endl;
+#endif // DEBUG
 
 	for(AlertProxy &alert : alerts) {
 
 		if(alert.test(event) && alert.test(session)) {
 
-			/*
+			// Emit alert.
+
 			activated = true;
-			emit(*alert,session);
-			*/
+
+			auto activation = alert.ActivationFactory();
+			activation->set(session);
+			activation->set(*this);
+
+			ThreadPool::getInstance().push([activation]() {
+				activation->run();
+			});
 
 		}
 
@@ -118,29 +108,6 @@
 	}
 
  }
-
- /*
- std::shared_ptr<Abstract::Alert> UserList::Agent::AlertFactory(const pugi::xml_node &node) {
-
-	std::shared_ptr<Abstract::Alert> alert = Udjat::AlertFactory(*this,node);
-
-	alerts.emplace_back(node,alert);
-
-	AlertProxy &proxy = alerts.back();
-
-	if(proxy.test(User::pulse)) {
-		auto timer = this->timer();
-		if(!timer) {
-			throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
-		}
-		if(proxy.timer() < timer) {
-			alert->warning() << "Pulse interval is lower than agent update timer" << endl;
-		}
-	}
-
-	return alert;
- }
- */
 
  void UserList::Agent::get(const Request UDJAT_UNUSED(&request), Report &report) {
 

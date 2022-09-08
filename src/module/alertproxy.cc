@@ -60,18 +60,30 @@
 	try {
 
 		if(!emit.system && session.system()) {
+#ifdef DEBUG
+			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'system' flag" << endl;
+#endif // DEBUG
 			return false;
 		}
 
 		if(!emit.remote && session.remote()) {
+#ifdef DEBUG
+			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'remote' flag" << endl;
+#endif // DEBUG
 			return false;
 		}
 
 		if(!emit.locked && session.locked()) {
+#ifdef DEBUG
+			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'locked' flag" << endl;
+#endif // DEBUG
 			return false;
 		}
 
 		if(!emit.unlocked && !session.locked()) {
+#ifdef DEBUG
+			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'unlocked' flag" << endl;
+#endif // DEBUG
 			return false;
 		}
 
