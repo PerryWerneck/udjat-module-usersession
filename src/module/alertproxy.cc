@@ -18,31 +18,22 @@
  */
 
  #include "private.h"
- #include <udjat/alerts/url.h>
  #include <udjat/tools/expander.h>
 
  using namespace Udjat;
 
- inline Udjat::User::Event EventFactory(const pugi::xml_node &node) {
-	return Udjat::User::EventFactory(
-				node.attribute("event")
-						.as_string(
-							node.attribute("name").as_string()
-						)
-				);
- }
-
- UserList::Alert::Alert(const pugi::xml_node &node) : Udjat::Alert::URL(node), event(EventFactory(node)) {
+ UserList::AlertProxy::AlertProxy(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> a)
+		 : event(User::EventFactory(node)), alert(a) {
 
 	const char *group = node.attribute("settings-from").as_string("alert-defaults");
 
 #ifdef DEBUG
-	cout << "alert\tAlert(" << c_str() << ")= '" << event << "'" << endl;
+	cout << "alert\tAlert(" << alert->c_str() << ")= '" << event << "'" << endl;
 #endif // DEBUG
 
-	if(event == User::pulse) {
+	if(event & User::pulse) {
 
-		emit.timer = getAttribute(node,group,"interval",(unsigned int) 14400);
+		emit.timer = Object::getAttribute(node,group,"interval",(unsigned int) 14400);
 		if(!emit.timer) {
 			throw runtime_error("Pulse alert requires the 'interval' attribute");
 		}
@@ -53,47 +44,46 @@
 
 	}
 
-	emit.system = getAttribute(node,group,"on-system-session",emit.system);
-	emit.remote = getAttribute(node,group,"on-remote-session",emit.remote);
+	emit.system = Object::getAttribute(node,group,"on-system-session",emit.system);
+	emit.remote = Object::getAttribute(node,group,"on-remote-session",emit.remote);
 
-	emit.background = getAttribute(node,group,"on-background-session",emit.background);
-	emit.foreground = getAttribute(node,group,"on-foreground-session",emit.foreground);
+	emit.background = Object::getAttribute(node,group,"on-background-session",emit.background);
+	emit.foreground = Object::getAttribute(node,group,"on-foreground-session",emit.foreground);
 
-	emit.locked = getAttribute(node,group,"on-locked-session",emit.locked);
-	emit.unlocked = getAttribute(node,group,"on-unlocked-session",emit.unlocked);
+	emit.locked = Object::getAttribute(node,group,"on-locked-session",emit.locked);
+	emit.unlocked = Object::getAttribute(node,group,"on-unlocked-session",emit.unlocked);
 
  }
 
- UserList::Alert::~Alert() {
- }
-
- bool UserList::Alert::getProperty(const char *key, std::string &value) const noexcept {
-
-	if(!strcasecmp(key,"eventname")) {
-		value = std::to_string(event,false);
-		return true;
-	}
-
-	return Udjat::Alert::URL::getProperty(key,value);
- }
-
- bool UserList::Alert::test(const Udjat::User::Session &session) const noexcept {
+ bool UserList::AlertProxy::test(const Udjat::User::Session &session) const noexcept {
 
 	try {
 
 		if(!emit.system && session.system()) {
+#ifdef DEBUG
+			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'system' flag" << endl;
+#endif // DEBUG
 			return false;
 		}
 
 		if(!emit.remote && session.remote()) {
+#ifdef DEBUG
+			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'remote' flag" << endl;
+#endif // DEBUG
 			return false;
 		}
 
 		if(!emit.locked && session.locked()) {
+#ifdef DEBUG
+			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'locked' flag" << endl;
+#endif // DEBUG
 			return false;
 		}
 
 		if(!emit.unlocked && !session.locked()) {
+#ifdef DEBUG
+			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'unlocked' flag" << endl;
+#endif // DEBUG
 			return false;
 		}
 
@@ -111,10 +101,6 @@
 
 	return false;
 
- }
-
- std::shared_ptr<Abstract::Alert::Activation> UserList::Alert::ActivationFactory() const {
-	return make_shared<Udjat::Alert::URL::Activation>(this);
  }
 
 

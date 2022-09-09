@@ -17,6 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
+ #include <udjat/tools/intl.h>
  #include <udjat/tools/usersession.h>
  #include <iostream>
  #include <cstring>
@@ -24,11 +26,11 @@
  using namespace std;
 
  static const char *statenames[] = {
-	"background",
-	"foreground",
-	"closing",
+	N_( "background" ),
+	N_( "foreground" ),
+	N_( "closing" ),
 
-	"unknown",
+	N_( "unknown" ),
  };
 
  namespace Udjat {
@@ -143,10 +145,17 @@
  namespace std {
 
 	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept {
-		if((size_t) state > (sizeof(statenames)/sizeof(statenames[0]))) {
-			return "unkown";
+
+		if( ((size_t) state) >= (sizeof(statenames)/sizeof(statenames[0]))) {
+			return _( "unknown" );
 		}
+
+#if defined(GETTEXT_PACKAGE)
+		return dgettext(GETTEXT_PACKAGE,statenames[state]);
+#else
 		return statenames[state];
+#endif
+
 	}
 
  }

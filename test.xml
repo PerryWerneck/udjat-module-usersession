@@ -3,7 +3,7 @@
 <config>
 
 	<!-- module name='civetweb' required='no' / -->
-	<module name='http' required='no' />
+	<module name='http' required='yes' preload='yes' />
 	<module name='information' required='no' />
 	<!-- module name='dmi' required='no' / -->
 

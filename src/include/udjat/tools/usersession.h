@@ -36,26 +36,31 @@
 		class Session;
 
 		/// @brief User events.
-		enum Event : uint8_t {
-			already_active,		///< @brief Session is active on controller startup.
-			still_active,		///< @brief Session is active on controller shutdown.
-			logon,				///< @brief User logon detected.
-			logoff,				///< @brief User logoff detected.
-			lock,				///< @brief Session was locked.
-			unlock,				///< @brief Session was unlocked.
-			foreground,			///< @brief Session is in foreground.
-			background,			///< @brief Session is in background.
-			sleep,				///< @brief System is preparing to sleep.
-			resume,				///< @brief System is resuming from sleep.
-			shutdown,			///< @brief System is shutting down.
+		enum Event : uint16_t {
+			already_active	= 0x0001,		///< @brief Session is active on controller startup.
+			still_active	= 0x0002,		///< @brief Session is active on controller shutdown.
+			logon			= 0x0004,		///< @brief User logon detected.
+			logoff			= 0x0008,		///< @brief User logoff detected.
+			lock			= 0x0010,		///< @brief Session was locked.
+			unlock			= 0x0020,		///< @brief Session was unlocked.
+			foreground		= 0x0040,		///< @brief Session is in foreground.
+			background		= 0x0080,		///< @brief Session is in background.
+			sleep			= 0x0100,		///< @brief System is preparing to sleep.
+			resume			= 0x0200,		///< @brief System is resuming from sleep.
+			shutdown		= 0x0400,		///< @brief System is shutting down.
 
-			// Pulse is always the last one.
-			pulse,				///< @brief 'Pulse' event.
+			pulse			= 0x0800,		///< @brief 'Pulse' event.
 		};
 
-		//UDJAT_API const char * EventName(Event event) noexcept;
-		//UDJAT_API const char * EventDescription(Event event) noexcept;
-		UDJAT_API Event EventFactory(const char *name);
+		/// @brief Create an event id.
+		/// @param names The list of event names delimited by ','
+		/// @return The event id mixing all names.
+		UDJAT_API Event EventFactory(const char *names);
+
+		/// @brief Create an event id.
+		/// @param names The list of event names delimited by ','
+		/// @return The event id mixing all names.
+		UDJAT_API Event EventFactory(const pugi::xml_node &node);
 
 		/// @brief Session state, as reported by logind.
 		/// @see sd_session_get_state
@@ -250,7 +255,7 @@
 
  namespace std {
 
-	UDJAT_API const char * to_string(const Udjat::User::Event event, bool description = false) noexcept;
+	UDJAT_API const std::string to_string(const Udjat::User::Event event, bool description = false) noexcept;
 
 	inline ostream& operator<< (ostream& os, const Udjat::User::Event event) {
 		return os << to_string(event, true);

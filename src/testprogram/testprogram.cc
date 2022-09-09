@@ -43,24 +43,27 @@ int main(int argc, char **argv) {
 
 			SystemService::init();
 
-			if(Module::find("information")) {
-				cout << "http://localhost:8989/api/1.0/info/modules.xml" << endl;
-				cout << "http://localhost:8989/api/1.0/info/workers.xml" << endl;
-				cout << "http://localhost:8989/api/1.0/info/factories.xml" << endl;
-				cout << "http://localhost:8989/api/1.0/info/services.xml" << endl;
-			}
 			if(Module::find("httpd")) {
+
+				if(Module::find("information")) {
+					cout << "http://localhost:8989/api/1.0/info/modules.xml" << endl;
+					cout << "http://localhost:8989/api/1.0/info/workers.xml" << endl;
+					cout << "http://localhost:8989/api/1.0/info/factories.xml" << endl;
+					cout << "http://localhost:8989/api/1.0/info/services.xml" << endl;
+				}
+
 				cout << "http://localhost:8989/api/1.0/users.xml" << endl;
 				cout << "http://localhost:8989/api/1.0/agent.xml" << endl;
 				cout << "http://localhost:8989/api/1.0/alerts.xml" << endl;
-			}
 
-			auto root = Abstract::Agent::root();
-			if(root) {
-				for(auto agent : *root) {
-					cout << "http://localhost:8989/api/1.0/agent/" << agent->name() << ".xml" << endl;
-					cout << "http://localhost:8989/api/1.0/report/agent/" << agent->name() << ".html" << endl;
+				auto root = Abstract::Agent::root();
+				if(root) {
+					for(auto agent : *root) {
+						cout << "http://localhost:8989/api/1.0/agent/" << agent->name() << ".xml" << endl;
+						cout << "http://localhost:8989/api/1.0/report/agent/" << agent->name() << ".html" << endl;
+					}
 				}
+
 			}
 
 		}
