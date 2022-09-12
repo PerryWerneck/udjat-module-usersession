@@ -80,9 +80,7 @@
 			activation->set(session);
 			activation->set(*this);
 
-			ThreadPool::getInstance().push([activation]() {
-				activation->run();
-			});
+			Udjat::start(activation);
 
 		}
 
