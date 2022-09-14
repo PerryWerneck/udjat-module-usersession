@@ -31,12 +31,9 @@
  UserList::Controller::Controller() : Udjat::MainLoop::Service("userlist",moduleinfo) {
  }
 
- std::shared_ptr<UserList::Controller> UserList::Controller::getInstance() {
+ UserList::Controller & UserList::Controller::getInstance() {
 	lock_guard<mutex> lock(guard);
-	static std::shared_ptr<Controller> instance;
-	if(!instance) {
-		instance = make_shared<Controller>();
-	}
+	static Controller instance;
 	return instance;
  }
 
@@ -58,10 +55,12 @@
  }
 
  void UserList::Controller::remove(UserList::Agent *agent) {
+
 	lock_guard<mutex> lock(guard);
 	agents.remove_if([agent](const UserList::Agent *ag) {
 		return ag == agent;
 	});
+
  }
 
  void UserList::Controller::for_each(std::function<void(UserList::Agent &agent)> callback) {

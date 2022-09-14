@@ -40,7 +40,7 @@
 	class AlertProxy;
 
 	/// @brief User Session Agent
-	class Session : public Udjat::User::Session {
+	class UDJAT_PRIVATE Session : public Udjat::User::Session {
 	private:
 
 		/// @brief Timestamp of the last alert emission.
@@ -68,7 +68,7 @@
 	extern const Udjat::ModuleInfo info;
 
 	/// @brief Singleton with the real userlist.
-	class Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
+	class UDJAT_PRIVATE Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
 	private:
 		static std::mutex guard;
 
@@ -81,7 +81,7 @@
 
 	public:
 		Controller();
-		static std::shared_ptr<Controller> getInstance();
+		static Controller & getInstance();
 
 		void start() override;
 		void stop() override;
@@ -94,11 +94,9 @@
 	};
 
 	/// @brief Userlist agent.
-	class Agent : public Udjat::Abstract::Agent {
+	class UDJAT_PRIVATE Agent : public Udjat::Abstract::Agent {
 	private:
-		std::shared_ptr<UserList::Controller> controller;
 		std::list<AlertProxy> alerts;
-
 		void emit(Abstract::Alert &alert, Session &session) const noexcept;
 
 	public:
@@ -118,7 +116,7 @@
 	};
 
 	/// @brief Proxy for user's alerts.
-	class AlertProxy  {
+	class UDJAT_PRIVATE AlertProxy  {
 	private:
 
 		Udjat::User::Event event = (Udjat::User::Event) 0;

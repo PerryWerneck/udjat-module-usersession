@@ -61,8 +61,7 @@
 
 			response.reset(Value::Array);
 
-			auto sessions = UserList::Controller::getInstance();
-			for(auto session : *sessions) {
+			for(auto session : UserList::Controller::getInstance()) {
 
 				Value &row = response.append(Value::Object);
 
