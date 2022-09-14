@@ -72,6 +72,24 @@
 		onEvent(event);
 	}
 
+	std::string User::Session::to_string() const {
+		if(username.empty()) {
+			name(true);
+		}
+		return username;
+	}
+
+	std::ostream & User::Session::info() const {
+		return cout << name() << "\t";
+	}
+
+	std::ostream & User::Session::warning() const {
+		return clog << name() << "\t";
+	}
+
+	std::ostream & User::Session::error() const {
+		return cerr << name() << "\t";
+	}
 
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG

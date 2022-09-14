@@ -218,34 +218,46 @@
 
 	}
 
+	const char * User::Session::name(bool update) const {
 
-	std::string User::Session::to_string() const {
+		if(update || username.empty()) {
 
-		uid_t uid = (uid_t) -1;
+			User::Session *session = const_cast<User::Session *>(this);
+			if(!session) {
+				throw runtime_error("const_cast<> error");
+			}
 
-		if(sd_session_get_uid(sid.c_str(), &uid)) {
-			string rc{"@"};
-			return rc + sid;
+			uid_t uid = (uid_t) -1;
+
+			if(sd_session_get_uid(sid.c_str(), &uid)) {
+
+				session->username = "@";
+				session->username += sid;
+
+			} else {
+
+				int bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+				if (bufsize < 0)
+					bufsize = 16384;
+
+				string rc;
+				char * buf = new char[bufsize];
+
+				struct passwd     pwd;
+				struct passwd   * result;
+				if(getpwuid_r(uid, &pwd, buf, bufsize, &result)) {
+					session->username = "@";
+					session->username += sid;
+				} else {
+					session->username = buf;
+				}
+				delete[] buf;
+
+			}
+
 		}
 
-		int bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-		if (bufsize < 0)
-			bufsize = 16384;
-
-		string rc;
-		char * buf = new char[bufsize];
-
-		struct passwd     pwd;
-		struct passwd   * result;
-		if(getpwuid_r(uid, &pwd, buf, bufsize, &result)) {
-			rc = "@";
-			rc += sid;
-		} else {
-			rc = buf;
-		}
-		delete[] buf;
-
-		return rc;
+		return username.c_str();
 
 	}
 

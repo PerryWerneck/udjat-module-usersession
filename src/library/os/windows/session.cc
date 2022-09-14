@@ -62,29 +62,41 @@
 
 	}
 
-	std::string User::Session::to_string() const {
+	const char * User::Session::name(bool update) const {
 
-		if(!username.empty()) {
-			return username;
-		}
+		if(update || username.empty()) {
 
-		char	* name	= nullptr;
-		DWORD	  szName;
+			User::Session *session = const_cast<User::Session *>(this);
+			if(!session) {
+				throw runtime_error("const_cast<> error");
+			}
 
-		if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName) == 0) {
-			cerr << "users\t" << Win32::Exception::format( (string{"Can't get username for sid @"} + std::to_string((int) sid)).c_str());
-			return string{"@"} + std::to_string((int) sid);
-		}
+			char	* name	= nullptr;
+			DWORD	  szName;
 
-		if(name[0] < ' ') {
+			if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName) == 0) {
+
+				cerr << "users\t" << Win32::Exception::format( (string{"Can't get username for sid @"} + std::to_string((int) sid)).c_str());
+				session->username = "@";
+				session->username += std::to_string((int) sid);
+				return username.c_str();
+
+			} else if(name[0] < ' ') {
+
+				session->username = "@";
+				session->username += std::to_string((int) sid);
+
+			} else {
+
+				session->username = name;
+
+			}
+
 			WTSFreeMemory(name);
-			return string{"@"} + std::to_string((int) sid);
+
 		}
 
-		const_cast<std::string *>(&username)->assign((const char *) name);
-		WTSFreeMemory(name);
-
-		return username;
+		return username.c_str();
 
 	}
 

@@ -106,8 +106,6 @@
 			// @param create	If true will create a new session when not found.
 			std::shared_ptr<Session> find(DWORD sid, bool create = true);
 #else
-
-
 			std::shared_ptr<Session> find(const char * sid);
 			std::thread *monitor = nullptr;
 			bool enabled = false;
@@ -137,10 +135,10 @@
 			Controller();
 			virtual ~Controller();
 
-			/// @brief Start monitor, load users.
+			/// @brief Start monitor, load sessions.
 			void activate();
 
-			/// @brief Stop monitor, unload users.
+			/// @brief Stop monitor, unload sessions.
 			void deactivate();
 
 			void for_each(std::function<void(std::shared_ptr<Session>)> callback);
@@ -173,10 +171,11 @@
 #endif // _WIN32
 			} flags;
 
+			std::string username;		///< @brief Windows user name.
+
 #ifdef _WIN32
 
 			DWORD sid = 0;				///< @brief Windows Session ID.
-			std::string username;		///< @brief Windows user name.
 #else
 
 			std::string sid;			///< @brief LoginD session ID.
@@ -199,9 +198,7 @@
 			/// @brief Get session name or id.
 			std::string to_string() const override;
 
-			inline std::string name() const {
-				return to_string();
-			}
+			const char * name(bool update = false) const;
 
 			bool getProperty(const char *key, std::string &value) const noexcept override;
 
@@ -233,6 +230,10 @@
 			inline bool alive() const noexcept {
 				return flags.alive;
 			}
+
+			std::ostream & info() const;
+			std::ostream & warning() const;
+			std::ostream & error() const;
 
 #ifndef _WIN32
 			/// @brief Get session's user id

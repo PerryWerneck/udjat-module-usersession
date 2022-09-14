@@ -49,7 +49,7 @@
 	#endif // DEBUG
 
 			auto activation = alert.ActivationFactory();
-			activation->rename(session.name().c_str());
+			activation->rename(session.name());
 			activation->set(session);
 			activation->set(*this);
 			Udjat::start(activation);
