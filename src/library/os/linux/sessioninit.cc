@@ -101,7 +101,7 @@
 							if(locked != session->flags.locked) {
 								cout << *session << "\tGnome scrensaver is now " << (locked ? "active" : "inactive") << endl;
 								session->flags.locked = locked;
-								ThreadPool::getInstance().push([session,locked](){
+								ThreadPool::getInstance().push("user-lock-emission",[session,locked](){
 									session->emit( (locked ? User::lock : User::unlock) );
 								});
 							}
