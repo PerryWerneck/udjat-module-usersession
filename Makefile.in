@@ -203,6 +203,33 @@ install-windows: \
 		$(BINRLS)/@SONAME@ \
 		$(DESTDIR)$(bindir)/@SONAME@
 		
+install-debug: \
+	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
+
+	# Install library
+	@$(MKDIR) $(DESTDIR)$(libdir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINDBG)/$(SONAME) \
+		$(DESTDIR)$(libdir)/$(SONAME)
+		
+	@$(MKDIR) \
+		$(DESTDIR)@MODULE_PATH@
+
+	@$(INSTALL_PROGRAM) \
+		$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@ \
+		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
+		
+install-windows-debug: \
+	$(BINDBG)/$(SONAME)
+
+	@$(MKDIR) \
+		$(DESTDIR)$(bindir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINDBG)/@SONAME@ \
+		$(DESTDIR)$(bindir)/@SONAME@
+
 install-module: \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
