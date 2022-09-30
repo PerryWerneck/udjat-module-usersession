@@ -204,7 +204,7 @@ install-windows: \
 		$(DESTDIR)$(bindir)/@SONAME@
 		
 install-debug: \
-	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
+	$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@
 
 	# Install library
 	@$(MKDIR) $(DESTDIR)$(libdir)
