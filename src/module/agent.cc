@@ -115,15 +115,44 @@
 
 	void Agent::get(const Request UDJAT_UNUSED(&request), Report &report) {
 
-		report.start(name(),"username","state","locked","remote","system",nullptr);
+		report.start("username","state","locked","remote","system","activity","pulsetime",nullptr);
 
-		UserList::Controller::getInstance().User::Controller::for_each([&report](shared_ptr<Udjat::User::Session> user) {
+		UserList::Controller::getInstance().User::Controller::for_each([this,&report](shared_ptr<Udjat::User::Session> user) {
 
 			report	<< user->name()
 					<< user->state()
 					<< user->locked()
 					<< user->remote()
 					<< user->system();
+
+			time_t pulse = 0;
+
+			UserList::Session * session = dynamic_cast<UserList::Session *>(user.get());
+
+			if(session) {
+				time_t alerttime = session->alerttime();
+				report << TimeStamp(alerttime);
+
+				if(alerttime) {
+					for(AlertProxy &alert : alerts) {
+						time_t timer = alert.timer();
+						time_t next = alerttime + timer;
+						if(timer && alert.test(User::pulse) && alert.test(*session) && next > time(0)) {
+							if(pulse) {
+								pulse = std::min(pulse,next);
+							} else {
+								pulse = next;
+							}
+						}
+					}
+				}
+
+
+			} else {
+				report << "";
+			}
+
+			report << TimeStamp(pulse);
 
 		});
 
