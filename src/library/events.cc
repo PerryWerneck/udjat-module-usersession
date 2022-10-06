@@ -75,19 +75,6 @@
 
 		}
 
-		/*
-		for(size_t ix = 0; ix < (sizeof(events)/sizeof(events[0])); ix++) {
-			if(!strcasecmp(name,events[ix].name)) {
-				return (User::Event) ix;
-			}
-		}
-		for(size_t ix = 0; ix < (sizeof(events)/sizeof(events[0])); ix++) {
-			if(!strcasecmp(name,events[ix].description)) {
-				return (User::Event) ix;
-			}
-		}
-		*/
-
 		if(rc) {
 			return (User::Event) rc;
 		}
@@ -142,14 +129,6 @@
 			}
 
 		}
-
-		/*
- 		if(event > (sizeof(events)/sizeof(events[0]))) {
-			return description ? "Invalid event id" : "invalid";
- 		}
-
- 		return (description ? events[event].description : events[event].name);
- 		*/
 
  		return rc;
 

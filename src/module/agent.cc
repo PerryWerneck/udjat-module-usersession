@@ -23,6 +23,7 @@
  #include <udjat/alert/activation.h>
  #include <udjat/alert.h>
  #include <udjat/tools/threadpool.h>
+ #include <udjat/tools/logger.h>
 
  using namespace std;
  using namespace Udjat;
@@ -101,6 +102,7 @@
 
 		if(proxy.test(User::pulse)) {
 			auto timer = this->timer();
+			trace("Pulse timer is set to ",timer);
 			if(!timer) {
 				throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
 			}
@@ -129,7 +131,10 @@
 
 	bool Agent::refresh() {
 
-		UserList::Controller::getInstance().User::Controller::for_each([this](shared_ptr<Udjat::User::Session> ses) {
+		trace("Updating agent ",name());
+
+		time_t required_wait = 60;
+		UserList::Controller::getInstance().User::Controller::for_each([this,&required_wait](shared_ptr<Udjat::User::Session> ses) {
 
 			Session * session = dynamic_cast<Session *>(ses.get());
 			if(!session) {
@@ -140,9 +145,7 @@
 			time_t idletime = time(0) - session->alerttime();
 
 			// Check pulse alerts against idle time.
-	#ifdef DEBUG
-			cout << *session << "\tidle = " << idletime << endl;
-	#endif // DEBUG
+			trace(session->name()," idle time is ",idletime);
 
 			bool reset = false;
 			for(AlertProxy &alert : alerts) {
@@ -154,9 +157,8 @@
 					// Check for pulse.
 					if(timer <= idletime) {
 
-	#ifdef DEBUG
-						info() << "Emiting 'PULSE' " << (timer - idletime) << endl;
-	#endif // DEBUG
+						trace("Emiting 'PULSE' for ",session->name()," time=",(timer - idletime));
+
 						reset |= true;
 
 						auto activation = alert.ActivationFactory();
@@ -166,13 +168,11 @@
 						activation->set(*session);
 
 						Udjat::start(activation);
+					} else {
+						time_t seconds{timer - idletime};
+						required_wait = std::min(required_wait,seconds);
+						trace(session->name()," will wait for ",seconds," seconds");
 					}
-	#ifdef DEBUG
-					 else {
-						info() << "Wait for " << (timer - idletime) << endl;
-					}
-	#endif // DEBUG
-
 
 				}
 
@@ -183,6 +183,11 @@
 			}
 
 		});
+
+		if(required_wait) {
+			trace("Time to next refresh will be set to ",required_wait);
+			this->timer(required_wait);
+		}
 
 		return false;
 	}
