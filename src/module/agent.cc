@@ -35,6 +35,10 @@
 
 	Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node) {
 		UserList::Controller::getInstance().insert(this);
+
+		if(!(properties.icon && *properties.icon)) {
+			properties.icon = "user-info-symbolic";
+		}
 	}
 
 	Agent::~Agent() {
@@ -111,6 +115,25 @@
 			}
 		}
 
+	}
+
+	void Agent::get(const Udjat::Request &request, Udjat::Response &response) {
+
+		super::get(request,response);
+
+		Udjat::Value &users = response["users"];
+
+		UserList::Controller::getInstance().User::Controller::for_each([this,&users](shared_ptr<Udjat::User::Session> user) {
+
+			Udjat::Value &row = users.append(Udjat::Value::Object);
+
+			row["name"] = user->name();
+			row["state"] = std::to_string(user->state());
+			row["locked"] = user->locked();
+			row["remote"] = user->remote();
+			row["system"] = user->system();
+
+		});
 	}
 
 	void Agent::get(const Request UDJAT_UNUSED(&request), Report &report) {

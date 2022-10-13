@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 				auto root = Abstract::Agent::root();
 				if(root) {
 					for(auto agent : *root) {
-						cout << "http://localhost:8989/api/1.0/agent/" << agent->name() << ".xml" << endl;
+						cout << "http://localhost:8989/api/1.0/agent/" << agent->name() << ".html" << endl;
 						cout << "http://localhost:8989/api/1.0/report/agent/" << agent->name() << ".html" << endl;
 					}
 				}
