@@ -106,7 +106,7 @@
 
 		if(proxy.test(User::pulse)) {
 			auto timer = this->timer();
-			trace("Pulse timer is set to ",timer);
+			debug("Pulse timer is set to ",timer);
 			if(!timer) {
 				throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
 			}
@@ -183,7 +183,7 @@
 
 	bool Agent::refresh() {
 
-		trace("Updating agent ",name());
+		debug("Updating agent ",name());
 
 		time_t required_wait = 60;
 		UserList::Controller::getInstance().User::Controller::for_each([this,&required_wait](shared_ptr<Udjat::User::Session> ses) {
@@ -197,7 +197,7 @@
 			time_t idletime = time(0) - session->alerttime();
 
 			// Check pulse alerts against idle time.
-			trace(session->name()," idle time is ",idletime);
+			debug(session->name()," idle time is ",idletime);
 
 			bool reset = false;
 			for(AlertProxy &alert : alerts) {
@@ -209,7 +209,7 @@
 					// Check for pulse.
 					if(timer <= idletime) {
 
-						trace("Emiting 'PULSE' for ",session->name()," time=",(timer - idletime));
+						debug("Emiting 'PULSE' for ",session->name()," time=",(timer - idletime));
 
 						reset |= true;
 
@@ -223,7 +223,7 @@
 					} else {
 						time_t seconds{timer - idletime};
 						required_wait = std::min(required_wait,seconds);
-						trace(session->name()," will wait for ",seconds," seconds");
+						debug(session->name()," will wait for ",seconds," seconds");
 					}
 
 				}
@@ -237,7 +237,7 @@
 		});
 
 		if(required_wait) {
-			trace("Time to next refresh will be set to ",required_wait);
+			debug("Time to next refresh will be set to ",required_wait);
 			this->timer(required_wait);
 		}
 
