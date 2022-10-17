@@ -22,6 +22,7 @@
  #include <windows.h>
  #include <wtsapi32.h>
  #include <udjat/win32/exception.h>
+ #include <udjat/tools/quark.h>
 
  using namespace std;
 
@@ -77,14 +78,19 @@
 			if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName) == 0) {
 
 				cerr << "users\t" << Win32::Exception::format( (string{"Can't get username for sid @"} + std::to_string((int) sid)).c_str());
-				session->username = "@";
-				session->username += std::to_string((int) sid);
-				return username.c_str();
+				string tempname{"@"};
+				tempname += std::to_string((int) sid);
+				return Quark(tempname).c_str();
 
 			} else if(name[0] < ' ') {
 
-				session->username = "@";
-				session->username += std::to_string((int) sid);
+				cerr << "users\tUnexpected username for sid @" << sid << endl;
+				string tempname{"@"};
+				tempname += std::to_string((int) sid);
+
+				WTSFreeMemory(name);
+
+				return Quark(tempname).c_str();
 
 			} else {
 

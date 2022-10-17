@@ -368,6 +368,9 @@
 						auto session = controller.find((DWORD) lParam);
 						cout << "@" << session->sid << "\tWTS_SESSION_LOGON" << endl;
 
+						// Force username update.
+						session->name(true);
+
 						// Set to foreground on logon.
 						session->set(User::SessionInForeground);
 						session->emit(logon);
