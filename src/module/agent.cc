@@ -243,7 +243,7 @@
 
 			// Check pulse alerts against idle time.
 			if(timers.trace) {
-				Logger::trace() << session->name() << "\tIDLE time is" << idletime << endl;
+				Logger::trace() << session->name() << "\tIDLE time is " << idletime << endl;
 			}
 
 			bool reset = false;
