@@ -25,14 +25,11 @@
 
  #include <udjat/tools/usersession.h>
  #include <udjat/win32/exception.h>
+ #include <udjat/tools/logger.h>
  #include <cstring>
  #include <iostream>
 
  using namespace std;
-
- #ifndef PACKAGE_NAME
-	#define PACKAGE_NAME "UDJAT-USER-MONITOR"
- #endif // PACKAGE_NAME
 
  #define WM_START		WM_USER+100
  #define WM_REFRESH		WM_USER+101
@@ -242,9 +239,7 @@
 
 		User::Controller & controller = *((User::Controller *) GetWindowLongPtr(hWnd,0));
 
-#ifdef DEBUG
-		cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << "\tMSG=" << uMsg << endl;
-#endif // DEBUG
+		debug("uMsg=",uMsg);
 
 		// https://wiki.winehq.org/List_Of_Windows_Messages
 		switch(uMsg) {

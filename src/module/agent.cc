@@ -39,6 +39,10 @@
 		if(!(properties.icon && *properties.icon)) {
 			properties.icon = "user-info-symbolic";
 		}
+
+		timers.max_pulse_check = getAttribute(node, "user-session", "max-update-timer", timers.max_pulse_check);
+		timers.trace = getAttribute(node, "user-session", "trace", timers.trace);
+
 	}
 
 	Agent::~Agent() {
@@ -183,9 +187,11 @@
 
 	bool Agent::refresh() {
 
-		debug("Updating agent ",name());
+		if(timers.trace) {
+			trace() << "Checking for updates" << endl;
+		}
 
-		time_t required_wait = 60;
+		time_t required_wait = timers.max_pulse_check;
 		UserList::Controller::getInstance().User::Controller::for_each([this,&required_wait](shared_ptr<Udjat::User::Session> ses) {
 
 			Session * session = dynamic_cast<Session *>(ses.get());
@@ -197,7 +203,9 @@
 			time_t idletime = time(0) - session->alerttime();
 
 			// Check pulse alerts against idle time.
-			debug(session->name()," idle time is ",idletime);
+			if(timers.trace) {
+				Logger::trace() << session->name() << "\tIDLE time is" << idletime << endl;
+			}
 
 			bool reset = false;
 			for(AlertProxy &alert : alerts) {
@@ -220,10 +228,13 @@
 						activation->set(*session);
 
 						Udjat::start(activation);
+
 					} else {
+
 						time_t seconds{timer - idletime};
 						required_wait = std::min(required_wait,seconds);
 						debug(session->name()," will wait for ",seconds," seconds");
+
 					}
 
 				}
@@ -237,8 +248,10 @@
 		});
 
 		if(required_wait) {
-			debug("Time to next refresh will be set to ",required_wait);
 			this->timer(required_wait);
+			if(timers.trace) {
+				trace() << "Next refresh set to " << TimeStamp(time(0)+required_wait) << " seconds" << endl;
+			}
 		}
 
 		return false;
