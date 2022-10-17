@@ -109,14 +109,23 @@
 		AlertProxy &proxy = alerts.back();
 
 		if(proxy.test(User::pulse)) {
+
 			auto timer = this->timer();
-			debug("Pulse timer is set to ",timer);
+
 			if(!timer) {
-				throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
+				this->warning() << "Agent 'update-timer' attribute is required to use 'pulse' alerts" << endl;
+				this->timer(timer);
 			}
+
 			if(proxy.timer() < timer) {
 				alert->warning() << "Pulse interval is lower than agent update timer" << endl;
+				this->timer(timer);
 			}
+
+			if(timers.trace) {
+				trace() << "Agent timer set to " << this->timer() << endl;
+			}
+
 		}
 
 	}
@@ -136,6 +145,12 @@
 			row["locked"] = user->locked();
 			row["remote"] = user->remote();
 			row["system"] = user->system();
+
+			Session * usession = dynamic_cast<Session *>(user.get());
+			if(usession) {
+				row["alert"] = TimeStamp(usession->alerttime());
+				row["idle"] =  time(0) - usession->alerttime();
+			}
 
 		});
 	}
@@ -173,7 +188,6 @@
 						}
 					}
 				}
-
 
 			} else {
 				report << "";
