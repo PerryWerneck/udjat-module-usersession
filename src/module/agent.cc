@@ -49,6 +49,31 @@
 		UserList::Controller::getInstance().remove(this);
 	}
 
+	Udjat::Value & Agent::get(Value &value) const {
+
+		time_t idle = 0;
+		UserList::Controller::getInstance().User::Controller::for_each([&idle](shared_ptr<Udjat::User::Session> user) {
+
+			Session * usession = dynamic_cast<Session *>(user.get());
+			if(usession && usession->alerttime()) {
+
+				time_t uidle = (time(0) - usession->alerttime());
+
+				if(uidle) {
+					idle = std::max(idle,uidle);
+				} else {
+					idle = uidle;
+				}
+
+			}
+
+		});
+
+		value = idle;
+
+		return value;
+	}
+
 	void Agent::emit(Udjat::Abstract::Alert &alert, Session &session) const noexcept {
 
 		try {

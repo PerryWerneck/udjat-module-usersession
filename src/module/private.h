@@ -116,6 +116,8 @@
 
 		void push_back(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> alert) override;
 
+		Value & get(Value &value) const override;
+
 		// Value & getProperties(Value &value) const noexcept override;
 		void get(const Request &request, Report &report) override;
 
