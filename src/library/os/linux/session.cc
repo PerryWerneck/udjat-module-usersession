@@ -218,13 +218,14 @@
 
 	}
 
-	const char * User::Session::name(bool update) const {
+	const char * User::Session::name(bool update) const noexcept {
 
 		if(update || username.empty()) {
 
 			User::Session *session = const_cast<User::Session *>(this);
 			if(!session) {
-				throw runtime_error("const_cast<> error");
+				cerr << "user\tconst_cast<> error" << endl;
+				return "";
 			}
 
 			uid_t uid = (uid_t) -1;

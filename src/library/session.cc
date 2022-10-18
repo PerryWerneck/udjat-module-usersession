@@ -72,7 +72,7 @@
 		onEvent(event);
 	}
 
-	std::string User::Session::to_string() const {
+	std::string User::Session::to_string() const noexcept {
 		if(username.empty()) {
 			name(true);
 		}

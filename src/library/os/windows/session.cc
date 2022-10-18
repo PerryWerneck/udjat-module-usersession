@@ -63,34 +63,35 @@
 
 	}
 
-	const char * User::Session::name(bool update) const {
+	static const char * defname(DWORD sid) noexcept {
+		string tempname{"@"};
+		tempname += std::to_string((int) sid);
+		return Quark(tempname).c_str();
+	}
+
+	const char * User::Session::name(bool update) const noexcept {
 
 		if(update || username.empty()) {
 
 			User::Session *session = const_cast<User::Session *>(this);
 			if(!session) {
-				throw runtime_error("const_cast<> error");
+				cerr << "users\tconst_cast<> error getting username" << endl;
+				return defname(sid);
 			}
 
-			char	* name	= nullptr;
-			DWORD	  szName;
+			char * name	= nullptr;
+			DWORD szName;
 
 			if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName) == 0) {
 
 				cerr << "users\t" << Win32::Exception::format( (string{"Can't get username for sid @"} + std::to_string((int) sid)).c_str());
-				string tempname{"@"};
-				tempname += std::to_string((int) sid);
-				return Quark(tempname).c_str();
+				return defname(sid);
 
 			} else if(name[0] < ' ') {
 
 				cerr << "users\tUnexpected username for sid @" << sid << endl;
-				string tempname{"@"};
-				tempname += std::to_string((int) sid);
-
 				WTSFreeMemory(name);
-
-				return Quark(tempname).c_str();
+				return defname(sid);
 
 			} else {
 

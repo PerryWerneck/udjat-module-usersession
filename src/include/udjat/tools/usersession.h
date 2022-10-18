@@ -196,9 +196,9 @@
 			virtual ~Session();
 
 			/// @brief Get session name or id.
-			std::string to_string() const override;
+			std::string to_string() const noexcept override;
 
-			const char * name(bool update = false) const;
+			const char * name(bool update = false) const noexcept;
 
 			bool getProperty(const char *key, std::string &value) const noexcept override;
 
