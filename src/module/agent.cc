@@ -289,7 +289,7 @@
 		if(required_wait) {
 			this->timer(required_wait);
 			if(timers.trace) {
-				trace() << "Next refresh set to " << TimeStamp(time(0)+required_wait) << " seconds" << endl;
+				trace() << "Next refresh set to " << TimeStamp(time(0)+required_wait) << "(" << required_wait << " seconds)" << endl;
 			}
 		}
 

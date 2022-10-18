@@ -100,7 +100,7 @@
 		void emit(Abstract::Alert &alert, Session &session) const noexcept;
 
 		struct {
-			bool trace = true;		///< @brief Trace pulse checks.
+			bool trace = false;					///< @brief Trace pulse checks.
 			unsigned int max_pulse_check = 600;	///< @brief Max value for pulse checks.
 		} timers;
 
