@@ -78,10 +78,6 @@
 
 		try {
 
-	#ifdef DEBUG
-			cout << "** Emitting agent alert" << endl;
-	#endif // DEBUG
-
 			auto activation = alert.ActivationFactory();
 			activation->rename(session.name());
 			activation->set(session);
@@ -256,7 +252,7 @@
 					// Check for pulse.
 					if(timer <= idletime) {
 
-						debug("Emiting 'PULSE' for ",session->name()," time=",(timer - idletime));
+						debug("Emiting 'PULSE' for ",session->name()," idletime=",idletime," alert-timer=",alert.timer());
 
 						reset |= true;
 
@@ -268,11 +264,14 @@
 
 						Udjat::start(activation);
 
+						required_wait = std::min(required_wait,timer);
+						trace() << "Will wait for " << timer << " seconds" << endl;
+
 					} else {
 
 						time_t seconds{timer - idletime};
 						required_wait = std::min(required_wait,seconds);
-						debug(session->name()," will wait for ",seconds," seconds");
+						trace() << "Will wait for " << seconds << " seconds" << endl;
 
 					}
 
