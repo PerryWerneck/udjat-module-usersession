@@ -91,7 +91,7 @@
 
 				// cerr << "users\tUnexpected username for sid @" << sid << endl;
 				WTSFreeMemory(name);
-				return defname(sid);
+				return UsernameFactory(sid);
 
 			} else {
 
