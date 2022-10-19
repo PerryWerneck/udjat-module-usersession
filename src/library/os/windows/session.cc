@@ -63,7 +63,7 @@
 
 	}
 
-	static const char * defname(DWORD sid) noexcept {
+	static const char * UsernameFactory(DWORD sid) noexcept {
 		string tempname{"@"};
 		tempname += std::to_string((int) sid);
 		return Quark(tempname).c_str();
@@ -76,7 +76,7 @@
 			User::Session *session = const_cast<User::Session *>(this);
 			if(!session) {
 				cerr << "users\tconst_cast<> error getting username" << endl;
-				return defname(sid);
+				return UsernameFactory(sid);
 			}
 
 			char * name	= nullptr;
@@ -85,11 +85,11 @@
 			if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName) == 0) {
 
 				cerr << "users\t" << Win32::Exception::format( (string{"Can't get username for sid @"} + std::to_string((int) sid)).c_str());
-				return defname(sid);
+				return UsernameFactory(sid);
 
 			} else if(name[0] < ' ') {
 
-				cerr << "users\tUnexpected username for sid @" << sid << endl;
+				// cerr << "users\tUnexpected username for sid @" << sid << endl;
 				WTSFreeMemory(name);
 				return defname(sid);
 
