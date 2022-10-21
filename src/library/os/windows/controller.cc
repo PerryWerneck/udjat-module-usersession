@@ -294,7 +294,7 @@
 				case WTS_SESSION_LOCK:				// The session has been locked.
 					{
 						auto session = controller.find((DWORD) lParam);
-						cout << "@" << session->sid << "\tWTS_SESSION_LOCK" << endl;
+						session->trace() << "WTS_SESSION_LOCK  (" << session->sid << ")" << endl;
 						if(!session->flags.locked) {
 							session->flags.locked = true;
 							session->emit(lock);
@@ -305,7 +305,7 @@
 				case WTS_SESSION_UNLOCK:			// The session identified has been unlocked.
 					{
 						auto session = controller.find((DWORD) lParam);
-						cout << "@" << session->sid << "\tWTS_SESSION_UNLOCK" << endl;
+						session->trace() << "WTS_SESSION_UNLOCK  (" << session->sid << ")" << endl;
 						if(session->flags.locked) {
 							session->flags.locked = false;
 							session->emit(unlock);
@@ -316,7 +316,8 @@
 				case WTS_CONSOLE_CONNECT:			// The session was connected to the console terminal or RemoteFX session.
 					{
 						auto session = controller.find((DWORD) lParam);
-						cout << "@" << session->sid << "\tWTS_CONSOLE_CONNECT" << endl;
+						session->name(true);
+						session->trace() << "WTS_CONSOLE_CONNECT  (" << session->sid << ")" << endl;
 						session->set(User::SessionInForeground);
 					}
 					break;
@@ -324,7 +325,8 @@
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
 					{
 						auto session = controller.find((DWORD) lParam);
-						cout << "@" << session->sid << "\tWTS_REMOTE_CONNECT" << endl;
+						session->name(true);
+						session->trace() << "WTS_REMOTE_CONNECT  (" << session->sid << ")" << endl;
 						session->flags.remote = true;
 					}
 					break;
@@ -333,7 +335,7 @@
 					{
 						auto session = controller.find((DWORD) lParam,false);
 						if(session) {
-							cout << "@" << session->sid << "\tWTS_REMOTE_DISCONNECT" << endl;
+							session->trace() << "WTS_REMOTE_DISCONNECT  (" << session->sid << ")" << endl;
 							session->flags.remote = true;
 							session->set(User::SessionIsClosing);
 							{
@@ -350,7 +352,7 @@
 					{
 						auto session = controller.find((DWORD) lParam,false);
 						if(session) {
-							cout << "@" << session->sid << "\tWTS_CONSOLE_DISCONNECT" << endl;
+							session->trace() << "WTS_CONSOLE_DISCONNECT  (" << session->sid << ")" << endl;
 							session->flags.remote = false;
 							session->set(User::SessionIsClosing);
 							{
@@ -366,10 +368,10 @@
 				case WTS_SESSION_LOGON:				// A user has logged on to the session.
 					{
 						auto session = controller.find((DWORD) lParam);
-						cout << "@" << session->sid << "\tWTS_SESSION_LOGON" << endl;
 
 						// Force username update.
 						session->name(true);
+						session->trace() << "WTS_SESSION_LOGON  (" << session->sid << ")" << endl;
 
 						// Set to foreground on logon.
 						session->set(User::SessionInForeground);
@@ -381,7 +383,7 @@
 					{
 						auto session = controller.find((DWORD) lParam,false);
 						if(session) {
-							cout << "@" << session->sid << "\tWTS_SESSION_LOGOFF" << endl;
+							session->trace() << "WTS_SESSION_LOGOFF  (" << session->sid << ")" << endl;
 							session->emit(logoff);
 							session->set(User::SessionIsClosing);
 							{
@@ -389,7 +391,7 @@
 								controller.sessions.remove(session);
 							}
 						} else {
-							cout << "@" << ((DWORD) lParam) << "\tWTS_CONSOLE_DISCONNECT" << endl;
+							cout << "@" << ((DWORD) lParam) << "\tWTS_SESSION_LOGOFF" << endl;
 						}
 					}
 					break;
