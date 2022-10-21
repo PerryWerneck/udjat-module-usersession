@@ -168,6 +168,7 @@
 				bool locked = false;						///< @brief True if the session is locked.
 #ifdef _WIN32
 				bool remote = false;						///< @brief True if the session is remote.
+				bool system = true;							///< @brief True if its a system session.
 #endif // _WIN32
 			} flags;
 

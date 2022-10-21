@@ -19,6 +19,7 @@
 
  #include "private.h"
  #include <udjat/tools/expander.h>
+ #include <udjat/tools/logger.h>
 
  using namespace Udjat;
 
@@ -60,30 +61,22 @@
 	try {
 
 		if(!emit.system && session.system()) {
-#ifdef DEBUG
-			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'system' flag" << endl;
-#endif // DEBUG
+			debug("rejecting ", session.name(), " by 'system' flag");
 			return false;
 		}
 
 		if(!emit.remote && session.remote()) {
-#ifdef DEBUG
-			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'remote' flag" << endl;
-#endif // DEBUG
+			debug("rejecting ", session.name(), " by 'remote' flag");
 			return false;
 		}
 
 		if(!emit.locked && session.locked()) {
-#ifdef DEBUG
-			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'locked' flag" << endl;
-#endif // DEBUG
+			debug("rejecting ", session.name(), " by 'locked' flag");
 			return false;
 		}
 
 		if(!emit.unlocked && !session.locked()) {
-#ifdef DEBUG
-			cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") rejecting by 'unlocked' flag" << endl;
-#endif // DEBUG
+			debug("rejecting ", session.name(), " by 'unlocked' flag");
 			return false;
 		}
 

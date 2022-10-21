@@ -93,7 +93,7 @@
 
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG
-		cout << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
+		trace() << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
 				<< " Alive=" << (alive() ? "Yes" : "No")
 				<< " Remote=" << (remote() ? "Yes" : "No")
 				<< " User=" << to_string()
@@ -106,7 +106,16 @@
 
 		if(state != this->flags.state) {
 
-			cout << to_string() << "\tState changes from '" << this->flags.state << "' to '" << state << "'" << endl;
+			cout	<< to_string() 
+					<< "\tState changes from '"
+					<< this->flags.state 
+					<< "' to '" 
+					<< state << "' (" 
+					<< ((int) this->flags.state)
+					<< "->"
+					<< ((int) state)
+					<< ")"
+					<< endl;
 			this->flags.state = state;
 
 			try {

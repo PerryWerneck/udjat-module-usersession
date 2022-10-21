@@ -171,23 +171,24 @@
 				// https://msdn.microsoft.com/en-us/library/aa383860(v=vs.85).aspx
 				switch(sessions[ix].State) {
 				case WTSActive:
-					cout << "@" << session->sid << "\tA user is logged on to the WinStation." << endl;
+					session->name(true);
+					session->trace() << "WTSActive(" << session->sid << "): A user is logged on to the WinStation." << endl;
 					break;
 
 				case WTSConnected:
-					cout << "@" << session->sid << "\tThe WinStation is connected to the client." << endl;
+					session->trace() << "WTSConnected(" << session->sid << "): The WinStation is connected to the client." << endl;
 					break;
 
 				case WTSConnectQuery:
-					cout << "@" << session->sid << "\tThe WinStation is in the process of connecting to the client." << endl;
+					session->trace() << "WTSConnectQuery(" << session->sid << "): The WinStation is in the process of connecting to the client." << endl;
 					break;
 
 				case WTSShadow:
-					cout << "@" << session->sid << "\tThe WinStation is shadowing another WinStation." << endl;
+					session->trace() << "WTSShadow(" << session->sid << "): The WinStation is shadowing another WinStation." << endl;
 					break;
 
 				case WTSDisconnected:
-					cout << "@" << session->sid << "\tThe WinStation is active but the client is disconnected." << endl;
+					session->trace() << "WTSDisconnected(" << session->sid << "): The WinStation is active but the client is disconnected." << endl;
 					session->flags.locked = true;
 					if(!starting) {
 						session->emit(lock);
@@ -195,27 +196,27 @@
 					break;
 
 				case WTSIdle:
-					cout << "@" << session->sid << "\tThe WinStation is waiting for a client to connect." << endl;
+					session->trace() << "WTSIdle(" << session->sid << "): The WinStation is waiting for a client to connect." << endl;
 					break;
 
 				case WTSListen:
-					cout << "@" << session->sid << "\tThe WinStation is listening for a connection." << endl;
+					session->trace() << "WTSListen(" << session->sid << "): The WinStation is listening for a connection." << endl;
 					break;
 
 				case WTSReset:
-					cout << "@" << session->sid << "\tThe WinStation is being reset." << endl;
+					session->trace() << "WTSReset(" << session->sid << "): The WinStation is being reset." << endl;
 					break;
 
 				case WTSDown:
-					cout << "@" << session->sid << "\tThe WinStation is down due to an error." << endl;
+					session->trace() << "WTSDown(" << session->sid << "): The WinStation is down due to an error." << endl;
 					break;
 
 				case WTSInit:
-					cout << "@" << sessions[ix].SessionId << "\tThe WinStation is initializing." << endl;
+					session->trace() << "WTSInit(" << session->sid << "): The WinStation is initializing." << endl;
 					break;
 
 				default:
-					cout << "@" << sessions[ix].SessionId << "\tUnexpected session state" << endl;
+					session->trace() << sessions[ix].State << "(" << session->sid << "): Unexpected session state" << endl;
 					break;
 				}
 
@@ -343,7 +344,7 @@
 								controller.sessions.remove(session);
 							}
 						} else {
-							cout << "@" << ((DWORD) lParam) << "\tWTS_REMOTE_DISCONNECT" << endl;
+							Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_REMOTE_DISCONNECT" << endl;
 						}
 					}
 					break;
@@ -360,7 +361,7 @@
 								controller.sessions.remove(session);
 							}
 						} else {
-							cout << "@" << ((DWORD) lParam) << "\tWTS_CONSOLE_DISCONNECT" << endl;
+							Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_CONSOLE_DISCONNECT" << endl;
 						}
 					}
 					break;
@@ -391,21 +392,21 @@
 								controller.sessions.remove(session);
 							}
 						} else {
-							cout << "@" << ((DWORD) lParam) << "\tWTS_SESSION_LOGOFF" << endl;
+							Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_SESSION_LOGOFF" << endl;
 						}
 					}
 					break;
 
 				case WTS_SESSION_REMOTE_CONTROL:	// The session has changed its remote controlled status.
-					cout << "@" << ((DWORD) lParam) << "\tWTS_SESSION_REMOTE_CONTROL" << endl;
+					Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_SESSION_REMOTE_CONTROL" << endl;
 					break;
 
 				case WTS_SESSION_CREATE:			// Reserved for future use.
-					cout << "@" << ((DWORD) lParam) << "\tWTS_SESSION_CREATE" << endl;
+					Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_SESSION_CREATE" << endl;
 					break;
 
 				case WTS_SESSION_TERMINATE:			// Reserved for future use.
-					cout << "@" << ((DWORD) lParam) << "\tWTS_SESSION_TERMINATE" << endl;
+					Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_SESSION_TERMINATE" << endl;
 					break;
 
 				default:

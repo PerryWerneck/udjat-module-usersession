@@ -48,6 +48,9 @@
 
 	bool User::Session::system() const {
 
+		return flags.system;
+
+		/*
 		char	* name	= nullptr;
 		DWORD	  szName;
 
@@ -58,8 +61,9 @@
 			return rc;
 		}
 
-		cerr << "users\t" << Win32::Exception::format( (string{"Can't get username for sid @"} + std::to_string((int) sid)).c_str());
+		cerr << "users\t" << Win32::Exception::format( (string{"Can't get usersystem state for sid @"} + std::to_string((int) sid)).c_str());
 		return false;
+		*/
 
 	}
 
@@ -85,16 +89,19 @@
 			if(WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSUserName,&name,&szName) == 0) {
 
 				cerr << "users\t" << Win32::Exception::format( (string{"Can't get username for sid @"} + std::to_string((int) sid)).c_str());
+				session->flags.system = true;
 				return UsernameFactory(sid);
 
 			} else if(name[0] < ' ') {
 
 				// cerr << "users\tUnexpected username for sid @" << sid << endl;
+				session->flags.system = true;
 				WTSFreeMemory(name);
 				return UsernameFactory(sid);
 
 			} else {
 
+				session->flags.system = false;
 				session->username = name;
 
 			}
