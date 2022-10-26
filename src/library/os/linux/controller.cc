@@ -38,6 +38,7 @@
  #include <poll.h>
  #include <signal.h>
  #include <udjat/tools/configuration.h>
+ #include <udjat/tools/logger.h>
  #include <pthread.h>
 
 #ifdef HAVE_DBUS
@@ -183,7 +184,7 @@
 
 			pthread_setname_np(pthread_self(),"logind");
 
-			clog << "users\tlogind monitor is activating" << endl;
+			Logger::trace() << "users\tlogind monitor is activating" << endl;
 
 			{
 				char **ids = nullptr;

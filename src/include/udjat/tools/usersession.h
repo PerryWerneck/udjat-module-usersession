@@ -199,7 +199,9 @@
 			/// @brief Get session name or id.
 			std::string to_string() const noexcept override;
 
-			const char * name(bool update = false) const noexcept;
+			const char * name() const noexcept override;
+
+			const char * name(bool update) const noexcept;
 
 			bool getProperty(const char *key, std::string &value) const noexcept override;
 
@@ -231,10 +233,6 @@
 			inline bool alive() const noexcept {
 				return flags.alive;
 			}
-
-			std::ostream & info() const;
-			std::ostream & warning() const;
-			std::ostream & error() const;
 
 #ifndef _WIN32
 			/// @brief Get session's user id

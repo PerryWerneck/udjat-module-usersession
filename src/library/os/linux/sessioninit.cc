@@ -67,17 +67,17 @@
 								if(active) {
 
 									session->flags.locked = true;
-									cout << *session << "\tgnome-screensaver is active" << endl;
+									session->info() << "gnome-screensaver is active" << endl;
 
 								} else {
 
-									cout << *session << "\tgnome-screensaver is not active" << endl;
+									session->info() << "gnome-screensaver is not active" << endl;
 
 								}
 
 							} else {
 
-								cerr << "Error '" << message.error_message() << "' calling org.gnome.ScreenSaver.GetActiveTime" << endl;
+								session->error() << "Error calling org.gnome.ScreenSaver.GetActiveTime: "  << message.error_message() << endl;
 
 							}
 						}
@@ -99,7 +99,7 @@
 
 							bool locked = DBus::Value(message).as_bool();
 							if(locked != session->flags.locked) {
-								cout << *session << "\tGnome scrensaver is now " << (locked ? "active" : "inactive") << endl;
+								session->info() << "Gnome screensaver is now " << (locked ? "active" : "inactive") << endl;
 								session->flags.locked = locked;
 								ThreadPool::getInstance().push("user-lock-emission",[session,locked](){
 									session->emit( (locked ? User::lock : User::unlock) );
@@ -113,12 +113,13 @@
 
 			} catch(const exception &e) {
 
-				cerr << *session << "\t" << e.what() << endl;
+				session->error() << e.what() << endl;
+
 			}
 
 #else
 
-			clog << *session << "\tBuilt without Udjat::DBus, unable to watch gnome screensaver" << endl;
+			session->warning() << "Built without Udjat::DBus, unable to watch gnome screensaver" << endl;
 
 #endif // HAVE_DBUS
 

@@ -79,18 +79,6 @@
 		return username;
 	}
 
-	std::ostream & User::Session::info() const {
-		return cout << name() << "\t";
-	}
-
-	std::ostream & User::Session::warning() const {
-		return clog << name() << "\t";
-	}
-
-	std::ostream & User::Session::error() const {
-		return cerr << name() << "\t";
-	}
-
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG
 		trace() << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
@@ -106,11 +94,11 @@
 
 		if(state != this->flags.state) {
 
-			cout	<< to_string() 
+			cout	<< to_string()
 					<< "\tState changes from '"
-					<< this->flags.state 
-					<< "' to '" 
-					<< state << "' (" 
+					<< this->flags.state
+					<< "' to '"
+					<< state << "' ("
 					<< ((int) this->flags.state)
 					<< "->"
 					<< ((int) state)
@@ -164,6 +152,10 @@
 		};
 
 		return false;
+	}
+
+	const char * User::Session::name() const noexcept {
+		return name(false);
 	}
 
  }

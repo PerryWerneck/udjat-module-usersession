@@ -34,7 +34,7 @@
 
 #ifdef HAVE_DBUS
 		if(session->bus) {
-			cout << *session << "\tDisconnecting from user's bus" << endl;
+			session->info() << "Disconnecting from user's bus" << endl;
 			((DBus::Connection *) session->bus)->unsubscribe(this);
 			delete ((DBus::Connection *) session->bus);
 			session->bus = nullptr;

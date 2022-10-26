@@ -96,11 +96,7 @@
 
 		bool activated = false;
 
-	#ifdef DEBUG
-		cout << session << "\t" << __FILE__ << "(" << __LINE__ << ") " << event << " (" << alerts.size() << " alert(s))" << endl;
-	#else
-		cout << session << "\t" << event << endl;
-	#endif // DEBUG
+		session.trace() << event << endl;
 
 		for(AlertProxy &alert : alerts) {
 
