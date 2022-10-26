@@ -163,10 +163,19 @@
 			row["remote"] = user->remote();
 			row["system"] = user->system();
 
+#ifndef _WIN32
+			row["uid"] = user->userid();
+			row["type"] = user->type();
+			row["display"] = user->display();
+#endif // _WIN32
+
 			Session * usession = dynamic_cast<Session *>(user.get());
 			if(usession) {
 				row["alert"] = TimeStamp(usession->alerttime());
 				row["idle"] =  time(0) - usession->alerttime();
+			} else {
+				row["alert"] = "";
+				row["idle"] =  "";
 			}
 
 		});

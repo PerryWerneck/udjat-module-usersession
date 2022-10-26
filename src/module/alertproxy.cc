@@ -84,11 +84,11 @@
 
 	} catch(const std::exception &e) {
 
-		cerr << session << "\tError '" << e.what() << "' checking alert flags" << endl;
+		session.error() << "Error checking alert flags: " << e.what() << endl;
 
 	} catch(...) {
 
-		cerr << session << "\tUnexpected error checking alert flags" << endl;
+		session.error() << "Unexpected error checking alert flags" << endl;
 
 	}
 

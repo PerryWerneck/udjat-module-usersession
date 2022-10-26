@@ -33,6 +33,15 @@
 
 	void User::Controller::init(std::shared_ptr<Session> session) {
 
+#ifdef DEBUG
+		session->trace()	<< "Initializing Sid=" << session->sid
+							<< " Uid=" << session->uid
+							<< " System=" << session->system()
+							<< " type=" << session->type()
+							<< " display=" << session->display()
+							<< endl;
+#endif // DEBUG
+
 		if(Config::Value<bool>("user-session","open-session-bus",true)) {
 
 #ifdef HAVE_DBUS

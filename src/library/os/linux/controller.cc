@@ -80,9 +80,6 @@
 		for(int id = 0; id < idCount; id++) {
 			auto session = find(ids[id]);
 			if(!session->flags.alive) {
-#ifdef DEBUG
-				cout << "Logon on SID " << ids[id] << endl;
-#endif // DEBUG
 				session->flags.alive = true;
 				session->emit(logon);
 			}

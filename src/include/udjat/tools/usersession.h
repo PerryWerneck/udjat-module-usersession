@@ -238,6 +238,12 @@
 			/// @brief Get session's user id
 			int userid() const;
 
+			/// @brief Get X11 display of the session.
+			std::string display() const;
+
+			/// @brief Get session type.
+			std::string type() const;
+
 			/// @brief Get environment value from user session.
 			std::string getenv(const char *varname) const;
 

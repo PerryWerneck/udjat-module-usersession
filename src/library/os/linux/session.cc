@@ -174,6 +174,36 @@
 		return userid() < 1000;
 	}
 
+	std::string User::Session::display() const {
+
+		char *display = NULL;
+
+		int rc = sd_session_get_display(sid.c_str(),&display);
+		if(rc < 0 || !display) {
+			return "";
+		}
+
+		std::string str{display};
+		free(display);
+		return str;
+
+	}
+
+	std::string User::Session::type() const {
+
+		char *type = NULL;
+
+		int rc = sd_session_get_type(sid.c_str(),&type);
+		if(rc < 0 || !type) {
+			return "";
+		}
+
+		std::string str{type};
+		free(type);
+		return str;
+
+	}
+
 	int User::Session::userid() const {
 
 		if(this->uid != (uid_t) -1) {
@@ -228,10 +258,9 @@
 				return "";
 			}
 
-			uid_t uid = (uid_t) -1;
+			if(sd_session_get_uid(sid.c_str(), &session->uid)) {
 
-			if(sd_session_get_uid(sid.c_str(), &uid)) {
-
+				session->uid = -1;
 				session->username = "@";
 				session->username += sid;
 
