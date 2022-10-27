@@ -171,6 +171,10 @@
 	}
 
 	bool User::Session::system() const {
+		if(this->uid != (uid_t) -1) {
+
+		}
+
 		return userid() < 1000;
 	}
 
@@ -200,6 +204,36 @@
 
 		std::string str{type};
 		free(type);
+		return str;
+
+	}
+
+	std::string User::Session::service() const {
+
+		char *service = NULL;
+
+		int rc = sd_session_get_service(sid.c_str(),&service);
+		if(rc < 0 || !service) {
+			return "";
+		}
+
+		std::string str{service};
+		free(service);
+		return str;
+
+	}
+
+	std::string User::Session::classname() const {
+
+		char *classname = NULL;
+
+		int rc = sd_session_get_class(sid.c_str(),&classname);
+		if(rc < 0 || !classname) {
+			return "";
+		}
+
+		std::string str{classname};
+		free(classname);
 		return str;
 
 	}

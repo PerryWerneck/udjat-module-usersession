@@ -244,6 +244,12 @@
 			/// @brief Get session type.
 			std::string type() const;
 
+			/// @brief The name of the service (as passed during PAM session setup) that registered the session.
+			std::string service() const;
+
+			/// @brief The class of the session.
+			std::string classname() const;
+
 			/// @brief Get environment value from user session.
 			std::string getenv(const char *varname) const;
 

@@ -101,7 +101,6 @@
 		void emit(Abstract::Alert &alert, Session &session) const noexcept;
 
 		struct {
-			bool trace = false;					///< @brief Trace pulse checks.
 			unsigned int max_pulse_check = 600;	///< @brief Max value for pulse checks.
 		} timers;
 
@@ -133,13 +132,18 @@
 		Udjat::User::Event event = (Udjat::User::Event) 0;
 
 		struct {
-			time_t timer = 0;			///< @brief Emission timer (for pulse alerts).
-			bool system = false;		///< @brief Emit alert for system sessions?
-			bool remote = false;		///< @brief Emit alert for remote sessions?
-			bool locked = false;		///< @brief Emit alert on locked session?
-			bool unlocked = true;		///< @brief Emit alert on unlocked session?
-			bool background = false;	///< @brief Emit alert for background session?
-			bool foreground = true;		///< @brief Emit alert for foreground session?
+			time_t timer = 0;				///< @brief Emission timer (for pulse alerts).
+			bool system = false;			///< @brief Emit alert for system sessions?
+			bool remote = false;			///< @brief Emit alert for remote sessions?
+			bool locked = false;			///< @brief Emit alert on locked session?
+			bool unlocked = true;			///< @brief Emit alert on unlocked session?
+			bool background = false;		///< @brief Emit alert for background session?
+			bool foreground = true;			///< @brief Emit alert for foreground session?
+
+#ifndef _WIN32
+			const char *classname = "";		///< @brief Filter by session classname.
+#endif // !_WIN32
+
 		} emit;
 
 	protected:

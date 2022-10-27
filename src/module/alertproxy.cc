@@ -18,6 +18,7 @@
  */
 
  #include "private.h"
+ #include <udjat/tools/object.h>
  #include <udjat/tools/expander.h>
  #include <udjat/tools/logger.h>
 
@@ -45,14 +46,18 @@
 
 	}
 
-	emit.system = Object::getAttribute(node,group,"on-system-session",emit.system);
-	emit.remote = Object::getAttribute(node,group,"on-remote-session",emit.remote);
+	emit.system = Object::getAttribute(node,group,"system-session",emit.system);
+	emit.remote = Object::getAttribute(node,group,"remote-session",emit.remote);
 
-	emit.background = Object::getAttribute(node,group,"on-background-session",emit.background);
-	emit.foreground = Object::getAttribute(node,group,"on-foreground-session",emit.foreground);
+	emit.background = Object::getAttribute(node,group,"background-session",emit.background);
+	emit.foreground = Object::getAttribute(node,group,"foreground-session",emit.foreground);
 
-	emit.locked = Object::getAttribute(node,group,"on-locked-session",emit.locked);
-	emit.unlocked = Object::getAttribute(node,group,"on-unlocked-session",emit.unlocked);
+	emit.locked = Object::getAttribute(node,group,"locked-session",emit.locked);
+	emit.unlocked = Object::getAttribute(node,group,"unlocked-session",emit.unlocked);
+
+#ifndef _WIN32
+	emit.classname = Object::getAttribute(node,group,"session-class",emit.classname);
+#endif // !_WIN32
 
  }
 
@@ -77,6 +82,11 @@
 
 		if(!emit.unlocked && !session.locked()) {
 			debug("rejecting ", session.name(), " by 'unlocked' flag");
+			return false;
+		}
+
+		if(emit.classname && *emit.classname && strcasecmp(emit.classname,session.classname().c_str())) {
+			debug("rejecting ", session.name(), " by 'classname' flag");
 			return false;
 		}
 

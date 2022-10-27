@@ -41,7 +41,6 @@
 		}
 
 		timers.max_pulse_check = getAttribute(node, "user-session", "max-update-timer", timers.max_pulse_check);
-		timers.trace = getAttribute(node, "user-session", "trace", timers.trace);
 
 	}
 
@@ -139,9 +138,7 @@
 				this->timer(timer);
 			}
 
-			if(timers.trace) {
-				trace() << "Agent timer set to " << this->timer() << endl;
-			}
+			Logger::String("Agent timer set to ",this->timer()).write(Logger::Debug,name());
 
 		}
 
@@ -227,9 +224,7 @@
 
 	bool Agent::refresh() {
 
-		if(timers.trace) {
-			trace() << "Checking for updates" << endl;
-		}
+		Logger::String("Checking for updates").write(Logger::Debug,name());
 
 		time_t required_wait = timers.max_pulse_check;
 		UserList::Controller::getInstance().User::Controller::for_each([this,&required_wait](shared_ptr<Udjat::User::Session> ses) {
@@ -243,9 +238,7 @@
 			time_t idletime = time(0) - session->alerttime();
 
 			// Check pulse alerts against idle time.
-			if(timers.trace) {
-				Logger::trace() << session->name() << "\tIDLE time is " << idletime << endl;
-			}
+			Logger::String("IDLE time is ",idletime).write(Logger::Debug,session->name());
 
 			bool reset = false;
 			for(AlertProxy &alert : alerts) {
@@ -270,13 +263,13 @@
 						Udjat::start(activation);
 
 						required_wait = std::min(required_wait,timer);
-						trace() << "Will wait for " << timer << " seconds" << endl;
+						Logger::String("Will wait for ",timer," seconds").write(Logger::Debug,name());
 
 					} else {
 
 						time_t seconds{timer - idletime};
 						required_wait = std::min(required_wait,seconds);
-						trace() << "Will wait for " << seconds << " seconds" << endl;
+						Logger::String("Will wait for ",seconds," seconds").write(Logger::Debug,name());
 
 					}
 
@@ -292,9 +285,7 @@
 
 		if(required_wait) {
 			this->timer(required_wait);
-			if(timers.trace) {
-				trace() << "Next refresh set to " << TimeStamp(time(0)+required_wait) << " (" << required_wait << " seconds)" << endl;
-			}
+			Logger::String("Next refresh set to ",TimeStamp(time(0)+required_wait)," (",required_wait," seconds)").write(Logger::Debug,name());
 		}
 
 		return false;

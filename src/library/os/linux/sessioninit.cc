@@ -20,8 +20,10 @@
  #include <config.h>
  #include "private.h"
  #include <udjat/tools/configuration.h>
+ #include <systemd/sd-login.h>
  #include <iostream>
  #include <udjat/tools/threadpool.h>
+ #include <udjat/tools/logger.h>
 
  #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
@@ -33,16 +35,23 @@
 
 	void User::Controller::init(std::shared_ptr<Session> session) {
 
-#ifdef DEBUG
-		session->trace()	<< "Initializing Sid=" << session->sid
-							<< " Uid=" << session->uid
-							<< " System=" << session->system()
-							<< " type=" << session->type()
-							<< " display=" << session->display()
-							<< endl;
-#endif // DEBUG
+		// Get UID (if available).
+		if(sd_session_get_uid(session->sid.c_str(), &session->uid) < 0) {
+			session->uid = -1;
+		}
 
-		if(Config::Value<bool>("user-session","open-session-bus",true)) {
+		Logger::String(
+			"Sid=",session->sid,
+			" Uid=",session->userid(),
+			" System=",session->system(),
+			" type=",session->type(),
+			" display=",session->display(),
+			" remote=",session->remote(),
+			" service=",session->service(),
+			" class=",session->classname()
+		).write(Logger::Debug,session->name());
+
+		if(!session->remote() && Config::Value<bool>("user-session","open-session-bus",true)) {
 
 #ifdef HAVE_DBUS
 			try {
