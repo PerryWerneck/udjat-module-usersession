@@ -46,6 +46,9 @@
 
 	}
 
+	//
+	// 'old' style filters for compatibility.
+	//
 	emit.system = Object::getAttribute(node,group,"system-session",emit.system);
 	emit.remote = Object::getAttribute(node,group,"remote-session",emit.remote);
 
@@ -54,6 +57,18 @@
 
 	emit.locked = Object::getAttribute(node,group,"locked-session",emit.locked);
 	emit.unlocked = Object::getAttribute(node,group,"unlocked-session",emit.unlocked);
+
+	//
+	// Filters
+	//
+	emit.system = Object::getAttribute(node,group,"allow-on-system-session",emit.system);
+	emit.remote = Object::getAttribute(node,group,"allow-on-remote-session",emit.remote);
+
+	emit.background = Object::getAttribute(node,group,"allow-on-background-session",emit.background);
+	emit.foreground = Object::getAttribute(node,group,"allow-on-foreground-session",emit.foreground);
+
+	emit.locked = Object::getAttribute(node,group,"allow-on-locked-session",emit.locked);
+	emit.unlocked = Object::getAttribute(node,group,"allow-on-unlocked-session",emit.unlocked);
 
 #ifndef _WIN32
 	emit.classname = Object::getAttribute(node,group,"session-class",emit.classname);

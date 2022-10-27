@@ -164,6 +164,9 @@
 			row["uid"] = user->userid();
 			row["type"] = user->type();
 			row["display"] = user->display();
+			row["type"] = user->type();
+			row["service"] = user->service();
+			row["class"] = user->classname();
 #endif // _WIN32
 
 			Session * usession = dynamic_cast<Session *>(user.get());
@@ -180,7 +183,7 @@
 
 	void Agent::get(const Request UDJAT_UNUSED(&request), Report &report) {
 
-		report.start("username","state","locked","remote","system","activity","pulsetime",nullptr);
+		report.start("username","state","locked","remote","system","display","type","service","class","activity","pulsetime",nullptr);
 
 		UserList::Controller::getInstance().User::Controller::for_each([this,&report](shared_ptr<Udjat::User::Session> user) {
 
@@ -188,7 +191,19 @@
 					<< user->state()
 					<< user->locked()
 					<< user->remote()
-					<< user->system();
+					<< user->system()
+#ifdef _WIN32
+					<< ""
+					<< ""
+					<< ""
+					<< ""
+#else
+					<< user->display()
+					<< user->type()
+					<< user->service()
+					<< user->classname()
+#endif // _WIN32
+					;
 
 			time_t pulse = 0;
 
