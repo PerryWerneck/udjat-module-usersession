@@ -57,6 +57,7 @@
 
 #ifndef _WIN32
 	emit.classname = Object::getAttribute(node,group,"session-class",emit.classname);
+	emit.service = Object::getAttribute(node,group,"session-service",emit.service);
 #endif // !_WIN32
 
  }
@@ -85,10 +86,17 @@
 			return false;
 		}
 
+#ifndef _WIN32
 		if(emit.classname && *emit.classname && strcasecmp(emit.classname,session.classname().c_str())) {
 			debug("rejecting ", session.name(), " by 'classname' flag");
 			return false;
 		}
+
+		if(emit.service && *emit.service && strcasecmp(emit.service,session.service().c_str())) {
+			debug("rejecting ", session.name(), " by 'service' flag");
+			return false;
+		}
+#endif // !_WIN32
 
 		return true;
 

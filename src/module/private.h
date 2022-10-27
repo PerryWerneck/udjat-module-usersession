@@ -142,6 +142,7 @@
 
 #ifndef _WIN32
 			const char *classname = "";		///< @brief Filter by session classname.
+			const char *service = "";		///< @brief Filter by session service.
 #endif // !_WIN32
 
 		} emit;
