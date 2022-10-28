@@ -28,6 +28,7 @@
  static const char *statenames[] = {
 	N_( "background" ),
 	N_( "foreground" ),
+	N_( "opening" ),
 	N_( "closing" ),
 
 	N_( "unknown" ),
