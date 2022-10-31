@@ -30,6 +30,7 @@
  #include <sys/types.h>
  #include <unistd.h>
  #include <mutex>
+ #include <udjat/tools/logger.h>
 
 #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
@@ -61,7 +62,12 @@
 
 	}
 
-	static std::string getSessionPath(sd_bus *bus, const std::string &sid) {
+	std::string User::Session::path() const {
+
+		if(!dbpath.empty()) {
+			return dbpath;
+		}
+
 /*
 	dbus-send \
 			--system \
@@ -72,46 +78,67 @@
 			string:1
 
 */
+		sd_bus* bus = NULL;
+		sd_bus_default_system(&bus);
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 		sd_bus_message *reply = NULL;
 
-		int rc = sd_bus_call_method(
-						bus,
-						"org.freedesktop.login1",
-						"/org/freedesktop/login1",
-						"org.freedesktop.login1.Manager",
-						"GetSession",
-						&error,
-						&reply,
-						"s", sid.c_str()
-					);
-
-		if(rc < 0) {
-			string message = error.message;
-			sd_bus_error_free(&error);
-			throw system_error(-rc,system_category(),message);
-		} else if(!reply) {
-			throw runtime_error("No reply from org.freedesktop.login1.Manager.GetSession");
-		}
-
-		const char *path = NULL;
 		std::string response;
-		rc = sd_bus_message_read_basic(reply,SD_BUS_TYPE_OBJECT_PATH,&path);
-		if(rc < 0) {
+
+		try {
+
+			int rc = sd_bus_call_method(
+							bus,
+							"org.freedesktop.login1",
+							"/org/freedesktop/login1",
+							"org.freedesktop.login1.Manager",
+							"GetSession",
+							&error,
+							&reply,
+							"s", sid.c_str()
+						);
+
+			if(rc < 0) {
+				string message{error.message};
+				sd_bus_error_free(&error);
+				throw system_error(-rc,system_category(),message);
+			} else if(!reply) {
+				throw runtime_error("No reply from org.freedesktop.login1.Manager.GetSession");
+			}
+
+			const char *path = NULL;
+			rc = sd_bus_message_read_basic(reply,SD_BUS_TYPE_OBJECT_PATH,&path);
+			if(rc < 0) {
+				sd_bus_message_unref(reply);
+				throw system_error(-rc,system_category(),"org.freedesktop.login1.Manager.GetSession");
+
+			}
+			if(!(path && *path)) {
+				sd_bus_message_unref(reply);
+				throw runtime_error("Empty response from org.freedesktop.login1.Manager.GetSession");
+			}
+
+			response = path;
+			trace() << "D-Bus Session path is " << response << endl;
+
 			sd_bus_message_unref(reply);
-			throw system_error(-rc,system_category(),"org.freedesktop.login1.Manager.GetSession");
+
+			User::Session *session = const_cast<User::Session *>(this);
+			if(session) {
+				session->dbpath = response;
+			}
+
+		} catch(...) {
+
+			sd_bus_unref(bus);
+			throw;
 
 		}
-		if(!(path && *path)) {
-			sd_bus_message_unref(reply);
-			throw runtime_error("Empty response from org.freedesktop.login1.Manager.GetSession");
-		}
 
-		response = path;
-
-		sd_bus_message_unref(reply);
+		sd_bus_unref(bus);
 
 		return response;
+
 	}
 
 	bool User::Session::locked() const {
@@ -125,7 +152,7 @@
 
 		try {
 
-			string path = getSessionPath(bus,sid);
+			string path = this->path();
 
 			int rc = sd_bus_call_method(
 							bus,
@@ -139,14 +166,14 @@
 						);
 
 			if(rc < 0) {
-				throw system_error(-rc,system_category(),error.message);
+				throw system_error(-rc,system_category(),string{"org.freedesktop.login1.LockedHint: "} + error.message);
 			} else if(!reply) {
-				throw runtime_error("Empty response from org.freedesktop.DBus.Properties.LockedHint");
+				throw runtime_error("Empty response from org.freedesktop.login1.LockedHint");
 			} else {
 
 				// Get reply.
 				if(sd_bus_message_read(reply,"v","b",&hint) < 0) {
-					throw system_error(-rc,system_category(),"Can't read response from org.freedesktop.DBus.Properties.LockedHint");
+					throw system_error(-rc,system_category(),"Can't read response from org.freedesktop.login1.LockedHint");
 				}
 
 			}

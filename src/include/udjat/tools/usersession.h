@@ -180,6 +180,7 @@
 #else
 
 			std::string sid;			///< @brief LoginD session ID.
+			std::string dbpath;			///< @brief D-Bus session path.
 			uid_t uid = -1;				///< @brief Session user id.
 			void *bus = nullptr;		///< @brief Connection with the user's bus
 
@@ -249,6 +250,9 @@
 
 			/// @brief The class of the session.
 			std::string classname() const;
+
+			/// @brief The D-Bus session path.
+			std::string path() const;
 
 			/// @brief Get environment value from user session.
 			std::string getenv(const char *varname) const;
