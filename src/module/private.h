@@ -139,6 +139,8 @@
 			bool unlocked = true;			///< @brief Emit alert on unlocked session?
 			bool background = false;		///< @brief Emit alert for background session?
 			bool foreground = true;			///< @brief Emit alert for foreground session?
+			bool active = true;				///< @brief Emit alert on active session?
+			bool inactive = true;			///< @brief Emit alert on inactive session.
 
 #ifndef _WIN32
 			const char *classname = "";		///< @brief Filter by session classname.

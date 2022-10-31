@@ -147,10 +147,12 @@
 
 	bool User::Session::locked() const {
 
+		/*
 		if(!active()) {
 			trace() << "Session @" << sid << " is not available for user input, 'locked' will be 'true'" << endl;
 			return true;
 		}
+		*/
 
 		int hint = 0;
 		sd_bus* bus = NULL;

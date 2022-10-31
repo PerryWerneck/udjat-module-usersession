@@ -58,6 +58,9 @@
 	emit.locked = Object::getAttribute(node,group,"locked-session",emit.locked);
 	emit.unlocked = Object::getAttribute(node,group,"unlocked-session",emit.unlocked);
 
+	emit.active = Object::getAttribute(node,group,"active-session",emit.active);
+	emit.inactive = Object::getAttribute(node,group,"inactive-session",emit.inactive);
+
 	//
 	// Filters
 	//
@@ -91,16 +94,30 @@
 			return false;
 		}
 
-		bool locked = session.locked();
+		if(session.active()) {
 
-		if(!emit.locked && locked) {
-			debug("rejecting ", session.name(), " by 'locked' flag");
-			return false;
-		}
+			bool locked = session.locked();
 
-		if(!emit.unlocked && !locked) {
-			debug("rejecting ", session.name(), " by 'unlocked' flag");
+			if(!emit.active) {
+				debug("rejecting ", session.name(), " by 'active' flag");
+				return false;
+			}
+
+			if(!emit.locked && locked) {
+				debug("rejecting ", session.name(), " by 'locked' flag");
+				return false;
+			}
+
+			if(!emit.unlocked && !locked) {
+				debug("rejecting ", session.name(), " by 'unlocked' flag");
+				return false;
+			}
+
+		} else if(!emit.inactive) {
+
+			debug("rejecting ", session.name(), " by 'inactive' flag");
 			return false;
+
 		}
 
 #ifndef _WIN32
