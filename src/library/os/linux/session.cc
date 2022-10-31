@@ -144,7 +144,7 @@
 	bool User::Session::locked() const {
 
 		if(!active()) {
-			trace() << "Session is not active, 'locked' will be 'true'" << endl;
+			trace() << "Session @" << sid << " is not active, 'locked' will be 'true'" << endl;
 			return true;
 		}
 
