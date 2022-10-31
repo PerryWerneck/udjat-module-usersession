@@ -91,12 +91,14 @@
 			return false;
 		}
 
-		if(!emit.locked && session.locked()) {
+		bool locked = session.locked();
+
+		if(!emit.locked && locked) {
 			debug("rejecting ", session.name(), " by 'locked' flag");
 			return false;
 		}
 
-		if(!emit.unlocked && !session.locked()) {
+		if(!emit.unlocked && !locked) {
 			debug("rejecting ", session.name(), " by 'unlocked' flag");
 			return false;
 		}

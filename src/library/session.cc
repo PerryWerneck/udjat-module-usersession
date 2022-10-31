@@ -152,6 +152,41 @@
 			return true;
 		};
 
+		if(!strcasecmp(key,"display")) {
+#ifndef _WIN32
+			value = display();
+#endif // !_WIN32
+			return true;
+		}
+
+		if(!strcasecmp(key,"type")) {
+#ifndef _WIN32
+			value = type();
+#endif // !_WIN32
+			return true;
+		}
+
+		if(!strcasecmp(key,"service")) {
+#ifndef _WIN32
+			value = service();
+#endif // !_WIN32
+			return true;
+		}
+
+		if(!strcasecmp(key,"classname")) {
+#ifndef _WIN32
+			value = classname();
+#endif // !_WIN32
+			return true;
+		}
+
+		if(!strcasecmp(key,"path")) {
+#ifndef _WIN32
+			value = path();
+#endif // !_WIN32
+			return true;
+		}
+
 		return false;
 	}
 

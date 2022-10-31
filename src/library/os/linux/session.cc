@@ -119,7 +119,7 @@
 			}
 
 			response = path;
-			trace() << "D-Bus Session path is " << response << endl;
+			trace() << "D-Bus Session path for @" << sid << " is " << response << endl;
 
 			sd_bus_message_unref(reply);
 
@@ -143,6 +143,11 @@
 
 	bool User::Session::locked() const {
 
+		if(!active()) {
+			trace() << "Session is not active, 'locked' will be 'true'" << endl;
+			return true;
+		}
+
 		int hint = 0;
 		sd_bus* bus = NULL;
 		sd_bus_error error = SD_BUS_ERROR_NULL;
@@ -152,12 +157,10 @@
 
 		try {
 
-			string path = this->path();
-
 			int rc = sd_bus_call_method(
 							bus,
 							"org.freedesktop.login1",
-							path.c_str(),
+							this->path().c_str(),
 							"org.freedesktop.DBus.Properties",
 							"Get",
 							&error,
