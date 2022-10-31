@@ -55,7 +55,11 @@
 
 		int rc = sd_session_is_active(sid.c_str());
 		if(rc < 0) {
-			throw system_error(-rc,system_category(),"sd_session_is_active");
+			if(rc != -ENODEV) {
+				throw system_error(-rc,system_category(),"sd_session_is_active");
+			}
+			trace() << "Session @" << sid << ": " << strerror(-rc);
+			return 0;
 		}
 
 		return rc > 0;
