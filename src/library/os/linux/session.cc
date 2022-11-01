@@ -56,10 +56,19 @@
 		int rc = sd_session_is_active(sid.c_str());
 		if(rc < 0) {
 			if(rc != -ENODEV) {
-				throw system_error(-rc,system_category(),"sd_session_is_active");
+				throw system_error(
+							-rc,
+							system_category(),
+							Logger::String{
+								"sd_session_is_active(",
+								sid,
+								") exits with rc=",
+								-rc
+							}
+						);
 			}
 			trace() << "Session @" << sid << ": " << strerror(-rc);
-			return 0;
+			return false;
 		}
 
 		return rc > 0;
