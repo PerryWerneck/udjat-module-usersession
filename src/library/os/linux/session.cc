@@ -156,23 +156,22 @@
 
 	bool User::Session::locked() const {
 
-		/*
-		if(!active()) {
-			trace() << "Session @" << sid << " is not available for user input, 'locked' will be 'true'" << endl;
-			return true;
-		}
-		*/
-
 		int hint = 0;
+		int rc = 0;
 		sd_bus* bus = NULL;
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 		sd_bus_message *reply = NULL;
 
-		sd_bus_default_system(&bus);
+		//sd_bus_default_system(&bus);
+		rc = sd_bus_open_system_with_description(&bus,"Locked hint check");
+		if(rc < 0) {
+
+			throw system_error(-rc,system_category(),string{"Unable to open system bus (rc="}+std::to_string(rc)+")");
+		}
 
 		try {
 
-			int rc = sd_bus_call_method(
+			rc = sd_bus_call_method(
 							bus,
 							"org.freedesktop.login1",
 							this->path().c_str(),
@@ -184,7 +183,7 @@
 						);
 
 			if(rc < 0) {
-				throw system_error(-rc,system_category(),string{"org.freedesktop.login1.LockedHint: "} + error.message);
+				throw system_error(-rc,system_category(),Logger::Message(error.message," (rc=",-rc,")"));
 			} else if(!reply) {
 				throw runtime_error("Empty response from org.freedesktop.login1.LockedHint");
 			} else {
@@ -211,15 +210,11 @@
 		}
 		sd_bus_unref(bus);
 
-		return hint != 0;
+		return (hint != 0);
 
 	}
 
 	bool User::Session::system() const {
-		if(this->uid != (uid_t) -1) {
-
-		}
-
 		return userid() < 1000;
 	}
 
