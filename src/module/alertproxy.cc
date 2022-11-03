@@ -96,12 +96,12 @@
 
 		if(session.active()) {
 
-			bool locked = session.locked();
-
 			if(!emit.active) {
 				debug("rejecting ", session.name(), " by 'active' flag");
 				return false;
 			}
+
+			bool locked = session.locked();
 
 			if(!emit.locked && locked) {
 				debug("rejecting ", session.name(), " by 'locked' flag");

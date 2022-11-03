@@ -67,7 +67,7 @@
 							}
 						);
 			}
-			trace() << "Session @" << sid << ": " << strerror(-rc);
+			trace() << "Session @" << sid << ": " << strerror(-rc) << " rc=" << -rc << ")" << endl;
 			return false;
 		}
 
@@ -92,7 +92,16 @@
 
 */
 		sd_bus* bus = NULL;
-		sd_bus_default_system(&bus);
+		int rc;
+
+		//sd_bus_default_system(&bus);
+		// rc = sd_bus_open_system_with_description(&bus,"Get session path");
+		rc = sd_bus_open_system(&bus);
+		if(rc < 0) {
+
+			throw system_error(-rc,system_category(),string{"Unable to open system bus (rc="}+std::to_string(rc)+")");
+		}
+
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 		sd_bus_message *reply = NULL;
 
@@ -100,7 +109,7 @@
 
 		try {
 
-			int rc = sd_bus_call_method(
+			rc = sd_bus_call_method(
 							bus,
 							"org.freedesktop.login1",
 							"/org/freedesktop/login1",
@@ -163,7 +172,8 @@
 		sd_bus_message *reply = NULL;
 
 		//sd_bus_default_system(&bus);
-		rc = sd_bus_open_system_with_description(&bus,"Locked hint check");
+		// rc = sd_bus_open_system_with_description(&bus,"Locked hint check");
+		rc = sd_bus_open_system(&bus);
 		if(rc < 0) {
 
 			throw system_error(-rc,system_category(),string{"Unable to open system bus (rc="}+std::to_string(rc)+")");
