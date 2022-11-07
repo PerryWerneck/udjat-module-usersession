@@ -13,7 +13,8 @@
 	<users name='users' update-timer='60'>
 	
 		<!-- Activate when user is active on service start -->
-		<alert name='start' event='Already active' max-retries='1' >
+		<alert name='start' event='Already active' max-retries='1' action='post' url='http://localhost'>
+			{"user":"${username}","macaddress":"${macaddress}"}
 		</alert>
 
 		<!-- Activate when user is active on service stop -->

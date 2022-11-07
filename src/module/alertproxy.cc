@@ -19,7 +19,6 @@
 
  #include "private.h"
  #include <udjat/tools/object.h>
- #include <udjat/tools/expander.h>
  #include <udjat/tools/logger.h>
 
  using namespace Udjat;
