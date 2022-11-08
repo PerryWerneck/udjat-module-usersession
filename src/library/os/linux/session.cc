@@ -51,23 +51,18 @@
 		return (sd_session_is_remote(sid.c_str()) > 0);
 	}
 
-	bool User::Session::active() const {
+	bool User::Session::active() const noexcept {
 
 		int rc = sd_session_is_active(sid.c_str());
 		if(rc < 0) {
-			if(rc != -ENODEV) {
-				throw system_error(
-							-rc,
-							system_category(),
-							Logger::String{
-								"sd_session_is_active(",
-								sid,
-								") exits with rc=",
-								-rc
-							}
-						);
+
+			rc = -rc;
+			if(rc == ENXIO) {
+				info() << "sd_session_is_active(" << sid << "): " << strerror(rc) << " (rc=" << rc << "), assuming inactive" << endl;
+			} else {
+				error() << "sd_session_is_active(" << sid << "): " << strerror(rc) << " (rc=" << rc << ")" << endl;
 			}
-			trace() << "Session @" << sid << ": " << strerror(-rc) << " rc=" << -rc << ")" << endl;
+
 			return false;
 		}
 

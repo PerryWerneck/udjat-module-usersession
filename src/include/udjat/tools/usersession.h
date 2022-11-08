@@ -213,7 +213,7 @@
 			bool locked() const;
 
 			/// @brief Is this session active?
-			bool active() const;
+			bool active() const noexcept;
 
 			/// @brief Get session state.
 			inline State state() const noexcept {

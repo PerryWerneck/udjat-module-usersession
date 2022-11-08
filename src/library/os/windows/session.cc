@@ -38,7 +38,7 @@
 		return flags.remote;
 	}
 
-	bool User::Session::active() const {
+	bool User::Session::active() const noexcept {
 		return flags.state == SessionInForeground;
 	}
 
