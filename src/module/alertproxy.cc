@@ -84,53 +84,54 @@
 	try {
 
 		if(!emit.system && session.system()) {
-			Logger::String{"Rejecting alert '",alert->name(),"' by 'system' flag"}.write(Logger::Debug,session.name());
+			Logger::String{"Denying alert '",alert->name(),"' by 'system' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}
 
 		if(!emit.remote && session.remote()) {
-			Logger::String{"Rejecting alert '",alert->name(),"' by 'remote' flag"}.write(Logger::Debug,session.name());
+			Logger::String{"Denying alert '",alert->name(),"' by 'remote' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}
 
 		if(session.active()) {
 
 			if(!emit.active) {
-			Logger::String{"Rejecting alert '",alert->name(),"' by 'active' flag"}.write(Logger::Debug,session.name());
+			Logger::String{"Denying alert '",alert->name(),"' by 'active' flag"}.write(Logger::Debug,session.name());
 				return false;
 			}
 
 			bool locked = session.locked();
 
 			if(!emit.locked && locked) {
-				Logger::String{"Rejecting alert '",alert->name(),"' by 'locked' flag"}.write(Logger::Debug,session.name());
+				Logger::String{"Denying alert '",alert->name(),"' by 'locked' flag"}.write(Logger::Debug,session.name());
 				return false;
 			}
 
 			if(!emit.unlocked && !locked) {
-				Logger::String{"Rejecting alert '",alert->name(),"' by 'unlocked' flag"}.write(Logger::Debug,session.name());
+				Logger::String{"Denying alert '",alert->name(),"' by 'unlocked' flag"}.write(Logger::Debug,session.name());
 				return false;
 			}
 
 		} else if(!emit.inactive) {
 
-			Logger::String{"Rejecting alert '",alert->name(),"' by 'inactive' flag"}.write(Logger::Debug,session.name());
+			Logger::String{"Denying alert '",alert->name(),"' by 'inactive' flag"}.write(Logger::Debug,session.name());
 			return false;
 
 		}
 
 #ifndef _WIN32
 		if(emit.classname && *emit.classname && strcasecmp(emit.classname,session.classname().c_str())) {
-			Logger::String{"Rejecting alert '",alert->name(),"' by 'classname' flag"}.write(Logger::Debug,session.name());
+			Logger::String{"Denying alert '",alert->name(),"' by 'classname' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}
 
 		if(emit.service && *emit.service && strcasecmp(emit.service,session.service().c_str())) {
-			Logger::String{"Rejecting alert '",alert->name(),"' by 'service' flag"}.write(Logger::Debug,session.name());
+			Logger::String{"Denying alert '",alert->name(),"' by 'service' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}
 #endif // !_WIN32
 
+		Logger::String{"Allowing alert '",alert->name(),"'"}.write(Logger::Debug,session.name());
 		return true;
 
 	} catch(const std::exception &e) {
