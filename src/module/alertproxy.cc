@@ -84,49 +84,49 @@
 	try {
 
 		if(!emit.system && session.system()) {
-			debug("rejecting ", session.name(), " by 'system' flag");
+			Logger::String{"Rejecting alert '",alert->name(),"' by 'system' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}
 
 		if(!emit.remote && session.remote()) {
-			debug("rejecting ", session.name(), " by 'remote' flag");
+			Logger::String{"Rejecting alert '",alert->name(),"' by 'remote' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}
 
 		if(session.active()) {
 
 			if(!emit.active) {
-				debug("rejecting ", session.name(), " by 'active' flag");
+			Logger::String{"Rejecting alert '",alert->name(),"' by 'active' flag"}.write(Logger::Debug,session.name());
 				return false;
 			}
 
 			bool locked = session.locked();
 
 			if(!emit.locked && locked) {
-				debug("rejecting ", session.name(), " by 'locked' flag");
+				Logger::String{"Rejecting alert '",alert->name(),"' by 'locked' flag"}.write(Logger::Debug,session.name());
 				return false;
 			}
 
 			if(!emit.unlocked && !locked) {
-				debug("rejecting ", session.name(), " by 'unlocked' flag");
+				Logger::String{"Rejecting alert '",alert->name(),"' by 'unlocked' flag"}.write(Logger::Debug,session.name());
 				return false;
 			}
 
 		} else if(!emit.inactive) {
 
-			debug("rejecting ", session.name(), " by 'inactive' flag");
+			Logger::String{"Rejecting alert '",alert->name(),"' by 'inactive' flag"}.write(Logger::Debug,session.name());
 			return false;
 
 		}
 
 #ifndef _WIN32
 		if(emit.classname && *emit.classname && strcasecmp(emit.classname,session.classname().c_str())) {
-			debug("rejecting ", session.name(), " by 'classname' flag");
+			Logger::String{"Rejecting alert '",alert->name(),"' by 'classname' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}
 
 		if(emit.service && *emit.service && strcasecmp(emit.service,session.service().c_str())) {
-			debug("rejecting ", session.name(), " by 'service' flag");
+			Logger::String{"Rejecting alert '",alert->name(),"' by 'service' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}
 #endif // !_WIN32
@@ -135,11 +135,11 @@
 
 	} catch(const std::exception &e) {
 
-		session.error() << "Error checking alert flags: " << e.what() << endl;
+		session.error() << "Error checking alert '" << alert->name() << "' flags: " << e.what() << endl;
 
 	} catch(...) {
 
-		session.error() << "Unexpected error checking alert flags" << endl;
+		session.error() << "Unexpected error checking alert '" << alert->name() << "' flags" << endl;
 
 	}
 
