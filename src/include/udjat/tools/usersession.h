@@ -186,6 +186,7 @@
 			uid_t uid = -1;					///< @brief Session user id.
 			void *bus = nullptr;			///< @brief Connection with the user's bus
 			const char * cname = nullptr;	///< @brief Session class.
+			const char * sname = nullptr;	///< @brief Session service.
 
 #endif // _WIN32
 

@@ -70,6 +70,16 @@
 
 			// Reset states, just in case of some other one have an instance of this session.
 			if(session->flags.alive) {
+				Logger::String(
+					"Sid=",session->sid,
+					" Uid=",session->userid(),
+					" System=",session->system(),
+					" type=",session->type(),
+					" display=",session->display(),
+					" remote=",session->remote(),
+					" service=",session->service(),
+					" class=",session->classname()
+				).write(Logger::Debug,session->name());
 				session->emit(logoff);
 				session->flags.alive = false;
 			}

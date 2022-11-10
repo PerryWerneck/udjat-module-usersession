@@ -275,6 +275,34 @@
 
 	std::string User::Session::service() const {
 
+	if(this->sname) {
+			return this->sname;
+		}
+
+		//
+		// Get session class name.
+		//
+		char *servicename = NULL;
+
+		int rc = sd_session_get_service(sid.c_str(),&servicename);
+		if(rc < 0 || !servicename) {
+			rc = -rc;
+			warning() << "sd_session_get_service(" << sid << "): " << strerror(rc) << " (rc=" << rc << "), assuming empty" << endl;
+			return "";
+		}
+
+		const char *name = Quark{servicename}.c_str();
+		free(servicename);
+
+		User::Session * ses = const_cast<User::Session *>(this);
+		if(ses) {
+			ses->sname = name;
+		}
+
+		debug("Got service '",name,"' for session @",sid);
+		return name;
+
+		/*
 		char *service = NULL;
 
 		int rc = sd_session_get_service(sid.c_str(),&service);
@@ -285,6 +313,7 @@
 		std::string str{service};
 		free(service);
 		return str;
+		*/
 
 	}
 
