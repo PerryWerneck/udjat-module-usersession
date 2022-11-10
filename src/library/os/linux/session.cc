@@ -31,6 +31,7 @@
  #include <unistd.h>
  #include <mutex>
  #include <udjat/tools/logger.h>
+ #include <udjat/tools/quark.h>
 
 #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
@@ -268,18 +269,34 @@
 
 	}
 
-	std::string User::Session::classname() const {
+	const char * User::Session::classname() const noexcept {
 
+		if(this->cname) {
+			return this->cname;
+		}
+
+		//
+		// Get session class name.
+		//
 		char *classname = NULL;
 
 		int rc = sd_session_get_class(sid.c_str(),&classname);
 		if(rc < 0 || !classname) {
+			rc = -rc;
+			warning() << "sd_session_get_class(" << sid << "): " << strerror(rc) << " (rc=" << rc << "), assuming empty" << endl;
 			return "";
 		}
 
-		std::string str{classname};
+		const char *name = Quark{classname}.c_str();
 		free(classname);
-		return str;
+
+		User::Session * ses = const_cast<User::Session *>(this);
+		if(ses) {
+			ses->cname = name;
+		}
+
+		debug("Got classname '",name,"' for session @",sid);
+		return name;
 
 	}
 

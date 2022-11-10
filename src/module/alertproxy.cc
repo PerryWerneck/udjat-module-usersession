@@ -120,7 +120,7 @@
 		}
 
 #ifndef _WIN32
-		if(emit.classname && *emit.classname && strcasecmp(emit.classname,session.classname().c_str())) {
+		if(emit.classname && *emit.classname && strcasecmp(emit.classname,session.classname())) {
 			Logger::String{"Denying alert '",alert->name(),"' by 'classname' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}

@@ -40,6 +40,10 @@
 			session->uid = -1;
 		}
 
+		// Load session class name.
+		session->classname();
+
+		// Log session info.
 		Logger::String(
 			"Sid=",session->sid,
 			" Uid=",session->userid(),
