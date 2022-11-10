@@ -169,6 +169,8 @@
 #ifdef _WIN32
 				bool remote = false;						///< @brief True if the session is remote.
 				bool system = true;							///< @brief True if its a system session.
+#else
+				uint8_t remote = 0xFF;						///< @brief Remote state.
 #endif // _WIN32
 			} flags;
 

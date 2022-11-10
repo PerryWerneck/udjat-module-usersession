@@ -48,8 +48,27 @@
 	}
 
 	bool User::Session::remote() const {
-		// https://www.carta.tech/man-pages/man3/sd_session_is_remote.3.html
-		return (sd_session_is_remote(sid.c_str()) > 0);
+
+		if(flags.remote == 0xFF) {
+
+			// https://www.carta.tech/man-pages/man3/sd_session_is_remote.3.html
+			int rc = sd_session_is_remote(sid.c_str());
+
+			if(rc < 0) {
+				error() << "sd_session_is_remote(" << sid << "): " << strerror(rc) << " (rc=" << rc << ")" << endl;
+				return false;
+			}
+
+			User::Session * session = const_cast<User::Session *>(this);
+			if(session) {
+				session->flags.remote = rc > 0 ? 1 : 0;
+			}
+
+			return rc > 0;
+
+		}
+
+		return flags.remote != 0;
 	}
 
 	bool User::Session::active() const noexcept {

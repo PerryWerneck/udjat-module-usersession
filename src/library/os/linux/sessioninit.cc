@@ -40,8 +40,11 @@
 			session->uid = -1;
 		}
 
-		// Load session class name.
+		// Store session class name.
 		session->classname();
+
+		// Store session remote state
+		session->remote();
 
 		// Log session info.
 		Logger::String(
