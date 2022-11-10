@@ -250,7 +250,7 @@
 			std::string type() const;
 
 			/// @brief The name of the service (as passed during PAM session setup) that registered the session.
-			std::string service() const;
+			const char * service() const;
 
 			/// @brief The class of the session.
 			const char * classname() const noexcept;

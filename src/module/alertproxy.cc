@@ -125,7 +125,7 @@
 			return false;
 		}
 
-		if(emit.service && *emit.service && strcasecmp(emit.service,session.service().c_str())) {
+		if(emit.service && *emit.service && strcasecmp(emit.service,session.service())) {
 			Logger::String{"Denying alert '",alert->name(),"' by 'service' flag"}.write(Logger::Debug,session.name());
 			return false;
 		}

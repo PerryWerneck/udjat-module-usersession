@@ -273,9 +273,9 @@
 
 	}
 
-	std::string User::Session::service() const {
+	const char * User::Session::service() const {
 
-	if(this->sname) {
+		if(this->sname) {
 			return this->sname;
 		}
 
@@ -301,19 +301,6 @@
 
 		debug("Got service '",name,"' for session @",sid);
 		return name;
-
-		/*
-		char *service = NULL;
-
-		int rc = sd_session_get_service(sid.c_str(),&service);
-		if(rc < 0 || !service) {
-			return "";
-		}
-
-		std::string str{service};
-		free(service);
-		return str;
-		*/
 
 	}
 
