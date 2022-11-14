@@ -19,138 +19,291 @@
 
  #include "private.h"
  #include <udjat/tools/object.h>
+ #include <udjat/agent/abstract.h>
+ #include <udjat/alert/activation.h>
+ #include <udjat/alert.h>
+ #include <udjat/tools/threadpool.h>
+ #include <udjat/tools/logger.h>
 
  using namespace std;
  using namespace Udjat;
 
- using Session = User::Session;
+ // using Session = User::Session;
+ // using Controller = UserList::Controller;
 
- UserList::Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node), controller(UserList::Controller::getInstance()) {
-	load(node);
-	controller->insert(this);
- }
+ namespace UserList {
 
- UserList::Agent::~Agent() {
-	controller->remove(this);
- }
+	Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node) {
+		UserList::Controller::getInstance().insert(this);
 
- void UserList::Agent::push_back(std::shared_ptr<Abstract::Alert> alert) {
+		if(!(properties.icon && *properties.icon)) {
+			properties.icon = "user-info-symbolic";
+		}
 
- 	const UserList::Alert * useralert = dynamic_cast<const UserList::Alert *>(alert.get());
+		timers.max_pulse_check = getAttribute(node, "user-session", "max-update-timer", timers.max_pulse_check);
 
- 	if(useralert) {
-		if(useralert->event == User::pulse) {
-			auto timer = getUpdateInterval();
+	}
+
+	Agent::~Agent() {
+		UserList::Controller::getInstance().remove(this);
+	}
+
+	Udjat::Value & Agent::get(Value &value) const {
+
+		time_t idle = 0;
+		UserList::Controller::getInstance().User::Controller::for_each([&idle](shared_ptr<Udjat::User::Session> user) {
+
+			Session * usession = dynamic_cast<Session *>(user.get());
+			if(usession && usession->alerttime()) {
+
+				time_t uidle = (time(0) - usession->alerttime());
+
+				if(uidle) {
+					idle = std::max(idle,uidle);
+				} else {
+					idle = uidle;
+				}
+
+			}
+
+		});
+
+		value = idle;
+
+		return value;
+	}
+
+	void Agent::emit(Udjat::Abstract::Alert &alert, Session &session) const noexcept {
+
+		try {
+
+			auto activation = alert.ActivationFactory();
+			activation->rename(session.name());
+			activation->set(session);
+			activation->set(*this);
+			Udjat::start(activation);
+
+		} catch(const std::exception &e) {
+
+			error() << e.what() << endl;
+
+		}
+
+	}
+
+	bool Agent::onEvent(Session &session, const Udjat::User::Event event) noexcept {
+
+		bool activated = false;
+
+		session.trace() << event << endl;
+
+		for(AlertProxy &alert : alerts) {
+
+			if(alert.test(event) && alert.test(session)) {
+
+				// Emit alert.
+
+				activated = true;
+
+				auto activation = alert.ActivationFactory();
+				activation->set(session);
+				activation->set(*this);
+
+				Udjat::start(activation);
+
+			}
+
+		}
+
+		return activated;
+	}
+
+	void Agent::push_back(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> alert) {
+
+		alerts.emplace_back(node,alert);
+
+		AlertProxy &proxy = alerts.back();
+
+		if(proxy.test(User::pulse)) {
+
+			auto timer = this->timer();
+
 			if(!timer) {
-				throw runtime_error("Agent 'update-timer' attribute is required to use 'pulse' alerts");
+				this->warning() << "Agent 'update-timer' attribute is required to use 'pulse' alerts" << endl;
+				this->timer(timer);
 			}
-			if(useralert->emit.timer < timer) {
+
+			if(proxy.timer() < timer) {
 				alert->warning() << "Pulse interval is lower than agent update timer" << endl;
+				this->timer(timer);
 			}
-		}
 
- 	}
-
-	alerts.push_back(alert);
- }
-
- void UserList::Agent::emit(Udjat::Abstract::Alert &alert, Session &session) const noexcept {
-
-	try {
-
-#ifdef DEBUG
-		cout << "** Emitting agent alert" << endl;
-#endif // DEBUG
-
-		auto activation = alert.ActivationFactory();
-		activation->rename(session.name().c_str());
-		activation->set(session);
-		activation->set(*this);
-		Udjat::start(activation);
-
-	} catch(const std::exception &e) {
-
-		error() << e.what() << endl;
-
-	}
-
- }
-
- bool UserList::Agent::onEvent(Session &session, const Udjat::User::Event event) noexcept {
-
-	bool activated = false;
-
-	cout << session << "\t" << event << endl;
-
-	for(auto alert : alerts) {
-
-		UserList::Alert * useralert = dynamic_cast<UserList::Alert *>(alert.get());
-
-		if(useralert && useralert->test(event) && useralert->test(session)) {
-
-			activated = true;
-			emit(*alert,session);
+			Logger::String("Agent timer set to ",this->timer()).write(Logger::Debug,name());
 
 		}
 
 	}
 
- 	return activated;
- }
+	void Agent::get(const Udjat::Request &request, Udjat::Response &response) {
 
- bool UserList::Agent::refresh() {
+		super::get(request,response);
 
-	controller->User::Controller::for_each([this](shared_ptr<Udjat::User::Session> ses){
+		Udjat::Value &users = response["users"];
 
-		Session * session = dynamic_cast<Session *>(ses.get());
-		if(!session) {
-			return;
-		}
+		UserList::Controller::getInstance().User::Controller::for_each([this,&users](shared_ptr<Udjat::User::Session> user) {
 
-		// Get session idle time.
-		time_t idletime = time(0) - session->alerttime();
+			Udjat::Value &row = users.append(Udjat::Value::Object);
 
-		// Check pulse alerts against idle time.
-#ifdef DEBUG
-		cout << *session << "\tidle = " << idletime << endl;
-#endif // DEBUG
+			row["name"] = user->name();
+			row["state"] = std::to_string(user->state());
+			row["locked"] = user->locked();
+			row["remote"] = user->remote();
+			row["system"] = user->system();
 
-		bool reset = false;
-		for(auto alert : alerts) {
+#ifndef _WIN32
+			row["uid"] = user->userid();
+			row["type"] = user->type();
+			row["display"] = user->display();
+			row["type"] = user->type();
+			row["service"] = user->service();
+			row["class"] = user->classname();
+#endif // _WIN32
 
-			UserList::Alert *useralert = dynamic_cast<UserList::Alert *>(alert.get());
-			if(useralert) {
+			Session * usession = dynamic_cast<Session *>(user.get());
+			if(usession) {
+				row["alert"] = TimeStamp(usession->alerttime());
+				row["idle"] =  time(0) - usession->alerttime();
+			} else {
+				row["alert"] = "";
+				row["idle"] =  "";
+			}
 
-				auto timer = useralert->timer();
+		});
+	}
 
-				if(timer && useralert->test(User::pulse) && useralert->test(*session)) {
+	void Agent::get(const Request UDJAT_UNUSED(&request), Report &report) {
+
+		report.start("username","state","locked","remote","system","display","type","service","class","activity","pulsetime",nullptr);
+
+		UserList::Controller::getInstance().User::Controller::for_each([this,&report](shared_ptr<Udjat::User::Session> user) {
+
+			report	<< user->name()
+					<< user->state()
+					<< user->locked()
+					<< user->remote()
+					<< user->system()
+#ifdef _WIN32
+					<< ""
+					<< ""
+					<< ""
+					<< ""
+#else
+					<< user->display()
+					<< user->type()
+					<< user->service()
+					<< user->classname()
+#endif // _WIN32
+					;
+
+			time_t pulse = 0;
+
+			UserList::Session * session = dynamic_cast<UserList::Session *>(user.get());
+
+			if(session) {
+				time_t alerttime = session->alerttime();
+				report << TimeStamp(alerttime);
+
+				if(alerttime) {
+					for(AlertProxy &alert : alerts) {
+						time_t timer = alert.timer();
+						time_t next = alerttime + timer;
+						if(timer && alert.test(User::pulse) && alert.test(*session) && next > time(0)) {
+							if(pulse) {
+								pulse = std::min(pulse,next);
+							} else {
+								pulse = next;
+							}
+						}
+					}
+				}
+
+			} else {
+				report << "";
+			}
+
+			report << TimeStamp(pulse);
+
+		});
+
+	}
+
+	bool Agent::refresh() {
+
+		Logger::String("Checking for updates").write(Logger::Debug,name());
+
+		time_t required_wait = timers.max_pulse_check;
+		UserList::Controller::getInstance().User::Controller::for_each([this,&required_wait](shared_ptr<Udjat::User::Session> ses) {
+
+			Session * session = dynamic_cast<Session *>(ses.get());
+			if(!session) {
+				return;
+			}
+
+			// Get session idle time.
+			time_t idletime = time(0) - session->alerttime();
+
+			// Check pulse alerts against idle time.
+			Logger::String("IDLE time is ",idletime).write(Logger::Debug,session->name());
+
+			bool reset = false;
+			for(AlertProxy &alert : alerts) {
+
+				auto timer = alert.timer();
+
+				if(timer && alert.test(User::pulse) && alert.test(*session)) {
 
 					// Check for pulse.
 					if(timer <= idletime) {
-#ifdef DEBUG
-						useralert->info() << "Emiting 'PULSE' " << (timer - idletime) << endl;
-#endif // DEBUG
-						reset |= true;
-						emit(*alert,*session);
-					}
-#ifdef DEBUG
-					else {
-						useralert->info() << "Wait for " << (timer - idletime) << endl;
-					}
-#endif // DEBUG
 
+						debug("Emiting 'PULSE' for ",session->name()," idletime=",idletime," alert-timer=",alert.timer());
+
+						reset |= true;
+
+						auto activation = alert.ActivationFactory();
+
+						activation->rename(name());
+						activation->set(*this);
+						activation->set(*session);
+
+						Udjat::start(activation);
+
+						required_wait = std::min(required_wait,timer);
+						Logger::String("Will wait for ",timer," seconds").write(Logger::Debug,name());
+
+					} else {
+
+						time_t seconds{timer - idletime};
+						required_wait = std::min(required_wait,seconds);
+						Logger::String("Will wait for ",seconds," seconds").write(Logger::Debug,name());
+
+					}
 
 				}
 
-
 			}
+
+			if(reset) {
+				session->reset();
+			}
+
+		});
+
+		if(required_wait) {
+			this->timer(required_wait);
+			Logger::String("Next refresh set to ",TimeStamp(time(0)+required_wait)," (",required_wait," seconds)").write(Logger::Debug,name());
 		}
 
-		if(reset) {
-			session->reset();
-		}
+		return false;
+	}
 
-	});
-
-	return false;
  }

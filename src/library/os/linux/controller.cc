@@ -38,6 +38,7 @@
  #include <poll.h>
  #include <signal.h>
  #include <udjat/tools/configuration.h>
+ #include <udjat/tools/logger.h>
  #include <pthread.h>
 
 #ifdef HAVE_DBUS
@@ -69,6 +70,16 @@
 
 			// Reset states, just in case of some other one have an instance of this session.
 			if(session->flags.alive) {
+				Logger::String(
+					"Sid=",session->sid,
+					" Uid=",session->userid(),
+					" System=",session->system(),
+					" type=",session->type(),
+					" display=",session->display(),
+					" remote=",session->remote(),
+					" service=",session->service(),
+					" class=",session->classname()
+				).write(Logger::Debug,session->name());
 				session->emit(logoff);
 				session->flags.alive = false;
 			}
@@ -79,9 +90,6 @@
 		for(int id = 0; id < idCount; id++) {
 			auto session = find(ids[id]);
 			if(!session->flags.alive) {
-#ifdef DEBUG
-				cout << "Logon on SID " << ids[id] << endl;
-#endif // DEBUG
 				session->flags.alive = true;
 				session->emit(logon);
 			}
@@ -183,7 +191,7 @@
 
 			pthread_setname_np(pthread_self(),"logind");
 
-			clog << "users\tlogind monitor is activating" << endl;
+			Logger::trace() << "users\tlogind monitor is activating" << endl;
 
 			{
 				char **ids = nullptr;

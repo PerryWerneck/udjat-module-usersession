@@ -30,6 +30,8 @@
  #include <sys/types.h>
  #include <unistd.h>
  #include <mutex>
+ #include <udjat/tools/logger.h>
+ #include <udjat/tools/quark.h>
 
 #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
@@ -46,22 +48,54 @@
 	}
 
 	bool User::Session::remote() const {
-		// https://www.carta.tech/man-pages/man3/sd_session_is_remote.3.html
-		return (sd_session_is_remote(sid.c_str()) > 0);
+
+		if(flags.remote == 0xFF) {
+
+			// https://www.carta.tech/man-pages/man3/sd_session_is_remote.3.html
+			int rc = sd_session_is_remote(sid.c_str());
+
+			if(rc < 0) {
+				error() << "sd_session_is_remote(" << sid << "): " << strerror(rc) << " (rc=" << rc << ")" << endl;
+				return false;
+			}
+
+			User::Session * session = const_cast<User::Session *>(this);
+			if(session) {
+				session->flags.remote = rc > 0 ? 1 : 0;
+			}
+
+			return rc > 0;
+
+		}
+
+		return flags.remote != 0;
 	}
 
-	bool User::Session::active() const {
+	bool User::Session::active() const noexcept {
 
 		int rc = sd_session_is_active(sid.c_str());
 		if(rc < 0) {
-			throw system_error(-rc,system_category(),"sd_session_is_active");
+
+			rc = -rc;
+			if(rc == ENXIO) {
+				info() << "sd_session_is_active(" << sid << "): " << strerror(rc) << " (rc=" << rc << "), assuming inactive" << endl;
+			} else {
+				error() << "sd_session_is_active(" << sid << "): " << strerror(rc) << " (rc=" << rc << ")" << endl;
+			}
+
+			return false;
 		}
 
 		return rc > 0;
 
 	}
 
-	static std::string getSessionPath(sd_bus *bus, const std::string &sid) {
+	std::string User::Session::path() const {
+
+		if(!dbpath.empty()) {
+			return dbpath;
+		}
+
 /*
 	dbus-send \
 			--system \
@@ -72,65 +106,100 @@
 			string:1
 
 */
+		sd_bus* bus = NULL;
+		int rc;
+
+		//sd_bus_default_system(&bus);
+		// rc = sd_bus_open_system_with_description(&bus,"Get session path");
+		rc = sd_bus_open_system(&bus);
+		if(rc < 0) {
+
+			throw system_error(-rc,system_category(),string{"Unable to open system bus (rc="}+std::to_string(rc)+")");
+		}
+
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 		sd_bus_message *reply = NULL;
 
-		int rc = sd_bus_call_method(
-						bus,
-						"org.freedesktop.login1",
-						"/org/freedesktop/login1",
-						"org.freedesktop.login1.Manager",
-						"GetSession",
-						&error,
-						&reply,
-						"s", sid.c_str()
-					);
-
-		if(rc < 0) {
-			string message = error.message;
-			sd_bus_error_free(&error);
-			throw system_error(-rc,system_category(),message);
-		} else if(!reply) {
-			throw runtime_error("No reply from org.freedesktop.login1.Manager.GetSession");
-		}
-
-		const char *path = NULL;
 		std::string response;
-		rc = sd_bus_message_read_basic(reply,SD_BUS_TYPE_OBJECT_PATH,&path);
-		if(rc < 0) {
+
+		try {
+
+			rc = sd_bus_call_method(
+							bus,
+							"org.freedesktop.login1",
+							"/org/freedesktop/login1",
+							"org.freedesktop.login1.Manager",
+							"GetSession",
+							&error,
+							&reply,
+							"s", sid.c_str()
+						);
+
+			if(rc < 0) {
+				string message{error.message};
+				sd_bus_error_free(&error);
+				throw system_error(-rc,system_category(),message);
+			} else if(!reply) {
+				throw runtime_error("No reply from org.freedesktop.login1.Manager.GetSession");
+			}
+
+			const char *path = NULL;
+			rc = sd_bus_message_read_basic(reply,SD_BUS_TYPE_OBJECT_PATH,&path);
+			if(rc < 0) {
+				sd_bus_message_unref(reply);
+				throw system_error(-rc,system_category(),"org.freedesktop.login1.Manager.GetSession");
+
+			}
+			if(!(path && *path)) {
+				sd_bus_message_unref(reply);
+				throw runtime_error("Empty response from org.freedesktop.login1.Manager.GetSession");
+			}
+
+			response = path;
+			trace() << "D-Bus Session path for @" << sid << " is " << response << endl;
+
 			sd_bus_message_unref(reply);
-			throw system_error(-rc,system_category(),"org.freedesktop.login1.Manager.GetSession");
+
+			User::Session *session = const_cast<User::Session *>(this);
+			if(session) {
+				session->dbpath = response;
+			}
+
+		} catch(...) {
+
+			sd_bus_unref(bus);
+			throw;
 
 		}
-		if(!(path && *path)) {
-			sd_bus_message_unref(reply);
-			throw runtime_error("Empty response from org.freedesktop.login1.Manager.GetSession");
-		}
 
-		response = path;
-
-		sd_bus_message_unref(reply);
+		sd_bus_unref(bus);
 
 		return response;
+
 	}
 
 	bool User::Session::locked() const {
 
 		int hint = 0;
+		int rc = 0;
 		sd_bus* bus = NULL;
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 		sd_bus_message *reply = NULL;
 
-		sd_bus_default_system(&bus);
+		//sd_bus_default_system(&bus);
+		// rc = sd_bus_open_system_with_description(&bus,"Locked hint check");
+		rc = sd_bus_open_system(&bus);
+		if(rc < 0) {
+
+			throw system_error(-rc,system_category(),string{"Unable to open system bus (rc="}+std::to_string(rc)+")");
+		}
 
 		try {
 
-			string path = getSessionPath(bus,sid);
-
-			int rc = sd_bus_call_method(
+			rc = sd_bus_call_method(
 							bus,
 							"org.freedesktop.login1",
-							path.c_str(),
+							this->path().c_str(),
 							"org.freedesktop.DBus.Properties",
 							"Get",
 							&error,
@@ -139,14 +208,14 @@
 						);
 
 			if(rc < 0) {
-				throw system_error(-rc,system_category(),error.message);
+				throw system_error(-rc,system_category(),Logger::Message(error.message," (rc=",-rc,")"));
 			} else if(!reply) {
-				throw runtime_error("Empty response from org.freedesktop.DBus.Properties.LockedHint");
+				throw runtime_error("Empty response from org.freedesktop.login1.LockedHint");
 			} else {
 
 				// Get reply.
 				if(sd_bus_message_read(reply,"v","b",&hint) < 0) {
-					throw system_error(-rc,system_category(),"Can't read response from org.freedesktop.DBus.Properties.LockedHint");
+					throw system_error(-rc,system_category(),"Can't read response from org.freedesktop.login1.LockedHint");
 				}
 
 			}
@@ -166,12 +235,104 @@
 		}
 		sd_bus_unref(bus);
 
-		return hint != 0;
+		return (hint != 0);
 
 	}
 
 	bool User::Session::system() const {
 		return userid() < 1000;
+	}
+
+	std::string User::Session::display() const {
+
+		char *display = NULL;
+
+		int rc = sd_session_get_display(sid.c_str(),&display);
+		if(rc < 0 || !display) {
+			return "";
+		}
+
+		std::string str{display};
+		free(display);
+		return str;
+
+	}
+
+	std::string User::Session::type() const {
+
+		char *type = NULL;
+
+		int rc = sd_session_get_type(sid.c_str(),&type);
+		if(rc < 0 || !type) {
+			return "";
+		}
+
+		std::string str{type};
+		free(type);
+		return str;
+
+	}
+
+	const char * User::Session::service() const {
+
+		if(this->sname) {
+			return this->sname;
+		}
+
+		//
+		// Get session class name.
+		//
+		char *servicename = NULL;
+
+		int rc = sd_session_get_service(sid.c_str(),&servicename);
+		if(rc < 0 || !servicename) {
+			rc = -rc;
+			warning() << "sd_session_get_service(" << sid << "): " << strerror(rc) << " (rc=" << rc << "), assuming empty" << endl;
+			return "";
+		}
+
+		const char *name = Quark{servicename}.c_str();
+		free(servicename);
+
+		User::Session * ses = const_cast<User::Session *>(this);
+		if(ses) {
+			ses->sname = name;
+		}
+
+		debug("Got service '",name,"' for session @",sid);
+		return name;
+
+	}
+
+	const char * User::Session::classname() const noexcept {
+
+		if(this->cname) {
+			return this->cname;
+		}
+
+		//
+		// Get session class name.
+		//
+		char *classname = NULL;
+
+		int rc = sd_session_get_class(sid.c_str(),&classname);
+		if(rc < 0 || !classname) {
+			rc = -rc;
+			warning() << "sd_session_get_class(" << sid << "): " << strerror(rc) << " (rc=" << rc << "), assuming empty" << endl;
+			return "";
+		}
+
+		const char *name = Quark{classname}.c_str();
+		free(classname);
+
+		User::Session * ses = const_cast<User::Session *>(this);
+		if(ses) {
+			ses->cname = name;
+		}
+
+		debug("Got classname '",name,"' for session @",sid);
+		return name;
+
 	}
 
 	int User::Session::userid() const {
@@ -218,34 +379,46 @@
 
 	}
 
+	const char * User::Session::name(bool update) const noexcept {
 
-	std::string User::Session::to_string() const {
+		if(update || username.empty()) {
 
-		uid_t uid = (uid_t) -1;
+			User::Session *session = const_cast<User::Session *>(this);
+			if(!session) {
+				cerr << "user\tconst_cast<> error" << endl;
+				return "";
+			}
 
-		if(sd_session_get_uid(sid.c_str(), &uid)) {
-			string rc{"@"};
-			return rc + sid;
+			if(sd_session_get_uid(sid.c_str(), &session->uid)) {
+
+				session->uid = -1;
+				session->username = "@";
+				session->username += sid;
+
+			} else {
+
+				int bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+				if (bufsize < 0)
+					bufsize = 16384;
+
+				string rc;
+				char * buf = new char[bufsize];
+
+				struct passwd     pwd;
+				struct passwd   * result;
+				if(getpwuid_r(uid, &pwd, buf, bufsize, &result)) {
+					session->username = "@";
+					session->username += sid;
+				} else {
+					session->username = buf;
+				}
+				delete[] buf;
+
+			}
+
 		}
 
-		int bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-		if (bufsize < 0)
-			bufsize = 16384;
-
-		string rc;
-		char * buf = new char[bufsize];
-
-		struct passwd     pwd;
-		struct passwd   * result;
-		if(getpwuid_r(uid, &pwd, buf, bufsize, &result)) {
-			rc = "@";
-			rc += sid;
-		} else {
-			rc = buf;
-		}
-		delete[] buf;
-
-		return rc;
+		return username.c_str();
 
 	}
 

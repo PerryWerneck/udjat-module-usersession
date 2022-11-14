@@ -2,8 +2,8 @@
 
 <config>
 
-	<!-- module name='civetweb' required='no' / -->
-	<module name='http' required='no' />
+	<module name='civetweb' required='no' />
+	<!-- module name='http' required='no' / -->
 	<module name='information' required='no' />
 	<!-- module name='dmi' required='no' / -->
 
@@ -13,12 +13,13 @@
 	<users name='users' update-timer='60'>
 	
 		<!-- Activate when user is active on service start -->
-		<alert name='start' event='Already active' max-retries='1' >
+		<alert name='start' event='Already active' max-retries='1' action='post' url='http://localhost'>
+			{"user":"${username}","macaddress":"${macaddress}"}
 		</alert>
 
 		<!-- Activate when user is active on service stop -->
-		<!--alert name='stop' event='Still active'>
-		</alert -->
+		<alert name='stop' event='Still active'>
+		</alert>
 
 		<!-- Activate on user logon -->
 		<alert name='login' max-retries='1'>

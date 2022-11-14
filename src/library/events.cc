@@ -17,7 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
  #include <udjat/tools/usersession.h>
+ #include <udjat/tools/intl.h>
+ #include <udjat/tools/logger.h>
+ #include <udjat/tools/string.h>
  #include <cstring>
  #include <stdexcept>
  #include <iostream>
@@ -25,52 +29,108 @@
  using namespace std;
 
  static const struct {
+ 	Udjat::User::Event event;
 	const char *name;
 	const char *description;
  } events[] = {
-	{ "Already active",	"Session is active on startup"		},
-	{ "Still active",	"Session still active on shutdown"	},
-	{ "Login",			"User has logged in"				},
-	{ "Logout",			"User has logged out"				},
-	{ "Lock",			"Session was locked"				},
-	{ "Unlock",			"Session was unlocked"				},
-	{ "Foreground",		"Session is in foreground"			},
-	{ "Background",		"Session is in background"			},
-	{ "sleep",			"Session is preparing to sleep"		},
-	{ "resume",			"Session is resuming from sleep"	},
-	{ "shutdown",		"Session is shutting down"			},
-
-	// Pulse is always the last one.
-	{ "pulse",			"Pulse"								},
+	{ Udjat::User::Event::already_active,	N_( "Already active" ),	N_( "Session is active on startup" )		},
+	{ Udjat::User::Event::still_active, 	N_( "Still active" ),	N_( "Session still active on shutdown" )	},
+	{ Udjat::User::Event::logon, 			N_( "Login" ),			N_( "User has logged in" )					},
+	{ Udjat::User::Event::logoff, 			N_( "Logout" ),			N_( "User has logged out" )					},
+	{ Udjat::User::Event::lock, 			N_( "Lock" ),			N_( "Session was locked" )					},
+	{ Udjat::User::Event::unlock, 			N_( "Unlock" ),			N_( "Session was unlocked" )				},
+	{ Udjat::User::Event::foreground, 		N_( "Foreground" ),		N_( "Session is in foreground" )			},
+	{ Udjat::User::Event::background,		N_( "Background" ),		N_( "Session is in background" )			},
+	{ Udjat::User::Event::sleep,			N_( "sleep" ),			N_( "Session is preparing to sleep" )		},
+	{ Udjat::User::Event::resume,			N_( "resume" ),			N_( "Session is resuming from sleep" )		},
+	{ Udjat::User::Event::shutdown,			N_( "shutdown" ),		N_( "Session is shutting down" )			},
+	{ Udjat::User::Event::pulse,			N_( "pulse" ),			N_( "Pulse" )								},
  };
 
  namespace Udjat {
 
 	UDJAT_API User::Event User::EventFactory(const char *name) {
-		for(size_t ix = 0; ix < (sizeof(events)/sizeof(events[0])); ix++) {
-			if(!strcasecmp(name,events[ix].name)) {
-				return (User::Event) ix;
+
+		unsigned int rc = 0;
+		std::vector<String> names{Udjat::String{name}.split(",")};
+
+		for(auto name : names) {
+
+			name.strip();
+
+			for(size_t ix = 0; ix < (sizeof(events)/sizeof(events[0])); ix++) {
+				if(!strcasecmp(name.c_str(),events[ix].name)) {
+					rc |= events[ix].event;
+				} else if(!strcasecmp(name.c_str(),events[ix].description)) {
+					rc |= events[ix].event;
+				}
+#if defined(GETTEXT_PACKAGE)
+				else if(!strcasecmp(name.c_str(),dgettext(GETTEXT_PACKAGE,events[ix].name))) {
+					rc |= events[ix].event;
+				} else if(!strcasecmp(name.c_str(),dgettext(GETTEXT_PACKAGE,events[ix].description))) {
+					rc |= events[ix].event;
+				}
+#endif // GETTEXT_PACKAGE
 			}
+
 		}
-		for(size_t ix = 0; ix < (sizeof(events)/sizeof(events[0])); ix++) {
-			if(!strcasecmp(name,events[ix].description)) {
-				return (User::Event) ix;
-			}
+
+		if(rc) {
+			return (User::Event) rc;
 		}
-		throw system_error(EINVAL,system_category(),string{"Cant identify event '"} + name + "'");
+
+		throw system_error(EINVAL,system_category(),Logger::Message("Can't parse events '{}'",name));
+	}
+
+
+	Udjat::User::Event User::EventFactory(const pugi::xml_node &node) {
+
+		const char * names = node.attribute("events").as_string();
+
+		if(!*names) {
+			names = node.attribute("event").as_string();
+		}
+
+		if(!*names) {
+			// Last resource, use the alert name.
+			names = node.attribute("name").as_string();
+		}
+
+		if(!*names) {
+			throw runtime_error("Required attribute 'events' is missing");
+		}
+
+		return Udjat::User::EventFactory(names);
+
 	}
 
  }
 
  namespace std {
 
- 	const char * to_string(const Udjat::User::Event event, bool description) noexcept {
+ 	const std::string to_string(const Udjat::User::Event event, bool description) noexcept {
 
- 		if(event > (sizeof(events)/sizeof(events[0]))) {
-			return description ? "Invalid event id" : "invalid";
- 		}
+		std::string rc;
 
- 		return (description ? events[event].description : events[event].name);
+		for(size_t ix = 0; ix < (sizeof(events)/sizeof(events[0])); ix++) {
+
+			if(event & events[ix].event) {
+
+				if(!rc.empty()) {
+					rc += ", ";
+				}
+
+#if defined(GETTEXT_PACKAGE)
+				rc += dgettext(GETTEXT_PACKAGE, description ? events[ix].description : events[ix].name);
+#else
+				rc += description ? events[ix].description : events[ix].name;
+#endif
+
+			}
+
+		}
+
+ 		return rc;
 
  	}
 

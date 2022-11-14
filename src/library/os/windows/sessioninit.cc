@@ -31,7 +31,7 @@
 
  namespace Udjat {
 
-	void User::Controller::init(std::shared_ptr<Session> session) {
+	void User::Controller::init(std::shared_ptr<Session> UDJAT_UNUSED(session)) {
 
 	}
  }

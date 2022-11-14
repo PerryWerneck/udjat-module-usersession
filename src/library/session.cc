@@ -17,6 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
+ #include <udjat/tools/intl.h>
  #include <udjat/tools/usersession.h>
  #include <iostream>
  #include <cstring>
@@ -24,11 +26,12 @@
  using namespace std;
 
  static const char *statenames[] = {
-	"background",
-	"foreground",
-	"closing",
+	N_( "background" ),
+	N_( "foreground" ),
+	N_( "opening" ),
+	N_( "closing" ),
 
-	"unknown",
+	N_( "unknown" ),
  };
 
  namespace Udjat {
@@ -70,10 +73,16 @@
 		onEvent(event);
 	}
 
+	std::string User::Session::to_string() const noexcept {
+		if(username.empty()) {
+			name(true);
+		}
+		return username;
+	}
 
 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 #ifdef DEBUG
-		cout << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
+		trace() << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
 				<< " Alive=" << (alive() ? "Yes" : "No")
 				<< " Remote=" << (remote() ? "Yes" : "No")
 				<< " User=" << to_string()
@@ -86,7 +95,16 @@
 
 		if(state != this->flags.state) {
 
-			cout << to_string() << "\tState changes from '" << this->flags.state << "' to '" << state << "'" << endl;
+			cout	<< to_string()
+					<< "\tState changes from '"
+					<< this->flags.state
+					<< "' to '"
+					<< state << "' ("
+					<< ((int) this->flags.state)
+					<< "->"
+					<< ((int) state)
+					<< ")"
+					<< endl;
 			this->flags.state = state;
 
 			try {
@@ -134,7 +152,46 @@
 			return true;
 		};
 
+		if(!strcasecmp(key,"display")) {
+#ifndef _WIN32
+			value = display();
+#endif // !_WIN32
+			return true;
+		}
+
+		if(!strcasecmp(key,"type")) {
+#ifndef _WIN32
+			value = type();
+#endif // !_WIN32
+			return true;
+		}
+
+		if(!strcasecmp(key,"service")) {
+#ifndef _WIN32
+			value = service();
+#endif // !_WIN32
+			return true;
+		}
+
+		if(!strcasecmp(key,"classname")) {
+#ifndef _WIN32
+			value = classname();
+#endif // !_WIN32
+			return true;
+		}
+
+		if(!strcasecmp(key,"path")) {
+#ifndef _WIN32
+			value = path();
+#endif // !_WIN32
+			return true;
+		}
+
 		return false;
+	}
+
+	const char * User::Session::name() const noexcept {
+		return name(false);
 	}
 
  }
@@ -143,10 +200,17 @@
  namespace std {
 
 	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept {
-		if((size_t) state > (sizeof(statenames)/sizeof(statenames[0]))) {
-			return "unkown";
+
+		if( ((size_t) state) >= (sizeof(statenames)/sizeof(statenames[0]))) {
+			return _( "unknown" );
 		}
+
+#if defined(GETTEXT_PACKAGE)
+		return dgettext(GETTEXT_PACKAGE,statenames[state]);
+#else
 		return statenames[state];
+#endif
+
 	}
 
  }

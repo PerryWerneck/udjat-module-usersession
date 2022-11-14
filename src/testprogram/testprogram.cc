@@ -26,6 +26,7 @@
  #include <udjat/module.h>
  #include <iostream>
  #include <memory>
+ #include <udjat/tools/logger.h>
 
  using namespace std;
  using namespace Udjat;
@@ -43,23 +44,29 @@ int main(int argc, char **argv) {
 
 			SystemService::init();
 
-			if(Module::find("information")) {
-				cout << "http://localhost:8989/api/1.0/info/modules.xml" << endl;
-				cout << "http://localhost:8989/api/1.0/info/workers.xml" << endl;
-				cout << "http://localhost:8989/api/1.0/info/factories.xml" << endl;
-				cout << "http://localhost:8989/api/1.0/info/services.xml" << endl;
-			}
 			if(Module::find("httpd")) {
-				cout << "http://localhost:8989/api/1.0/users.xml" << endl;
-				cout << "http://localhost:8989/api/1.0/agent.xml" << endl;
-				cout << "http://localhost:8989/api/1.0/alerts.xml" << endl;
-			}
 
-			auto root = Abstract::Agent::root();
-			if(root) {
-				for(auto agent : *root) {
-					cout << "http://localhost:8989/api/1.0/agent/" << agent->name() << ".xml" << endl;
+				debug("http://localhost:8989");
+
+				if(Module::find("information")) {
+					debug("http://localhost:8989/api/1.0/info/modules.xml");
+					debug("http://localhost:8989/api/1.0/info/workers.xml");
+					debug("http://localhost:8989/api/1.0/info/factories.xml");
+					debug("http://localhost:8989/api/1.0/info/services.xml");
 				}
+
+				debug("http://localhost:8989/api/1.0/users.xml");
+				debug("http://localhost:8989/api/1.0/agent.xml");
+				debug("http://localhost:8989/api/1.0/alerts.xml");
+
+				auto root = Abstract::Agent::root();
+				if(root) {
+					for(auto agent : *root) {
+						debug("http://localhost:8989/api/1.0/agent/",agent->name(),".html");
+						debug("http://localhost:8989/api/1.0/report/agent/",agent->name(),".html");
+					}
+				}
+
 			}
 
 		}

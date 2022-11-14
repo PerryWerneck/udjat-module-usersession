@@ -23,7 +23,7 @@
  #include <udjat/defs.h>
  #include <udjat/tools/usersession.h>
  #include <udjat/tools/mainloop.h>
- #include <udjat/alert.h>
+ #include <udjat/tools/logger.h>
  #include <system_error>
  #include <udjat/agent.h>
  #include <udjat/factory.h>
@@ -38,10 +38,10 @@
  namespace UserList {
 
 	class Agent;
-	class Alert;
+	class AlertProxy;
 
 	/// @brief User Session Agent
-	class Session : public Udjat::User::Session {
+	class UDJAT_PRIVATE Session : public Udjat::User::Session {
 	private:
 
 		/// @brief Timestamp of the last alert emission.
@@ -69,7 +69,7 @@
 	extern const Udjat::ModuleInfo info;
 
 	/// @brief Singleton with the real userlist.
-	class Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
+	class UDJAT_PRIVATE Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
 	private:
 		static std::mutex guard;
 
@@ -80,9 +80,9 @@
 
 		std::shared_ptr<Udjat::User::Session> SessionFactory() noexcept override;
 
-		public:
+	public:
 		Controller();
-		static std::shared_ptr<Controller> getInstance();
+		static Controller & getInstance();
 
 		void start() override;
 		void stop() override;
@@ -95,12 +95,14 @@
 	};
 
 	/// @brief Userlist agent.
-	class Agent : public Udjat::Abstract::Agent {
+	class UDJAT_PRIVATE Agent : public Udjat::Abstract::Agent {
 	private:
-		std::shared_ptr<UserList::Controller> controller;
-		std::list<shared_ptr<Abstract::Alert>> alerts;
+		std::list<AlertProxy> alerts;
+		void emit(Abstract::Alert &alert, Session &session) const noexcept;
 
-		 void emit(Abstract::Alert &alert, Session &session) const noexcept;
+		struct {
+			unsigned int max_pulse_check = 600;	///< @brief Max value for pulse checks.
+		} timers;
 
 	public:
 		Agent(const pugi::xml_node &node);
@@ -108,48 +110,69 @@
 
 		bool refresh() override;
 
-		void push_back(std::shared_ptr<Udjat::Abstract::Alert> alert) override;
-
 		/// @brief Process event.
 		/// @return true if an alert was activated.
 		bool onEvent(Session &session, const Udjat::User::Event event) noexcept;
 
+		void push_back(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> alert) override;
+
+		Value & get(Value &value) const override;
+
+		// Value & getProperties(Value &value) const noexcept override;
+		void get(const Request &request, Report &report) override;
+
+		void get(const Request &request, Response &response) override;
+
 	};
 
-	/// @brief Userlist alert.
-	class Alert : public Udjat::Alert {
+	/// @brief Proxy for user's alerts.
+	class UDJAT_PRIVATE AlertProxy  {
 	private:
-		friend class Agent;
 
-		Udjat::User::Event event = (Udjat::User::Event) -1;
+		Udjat::User::Event event = (Udjat::User::Event) 0;
 
 		struct {
-			time_t timer = 0;			///< @brief Emission timer (for pulse alerts).
-			bool system = false;		///< @brief Emit alert for system sessions?
-			bool remote = false;		///< @brief Emit alert for remote sessions?
-			bool locked = false;		///< @brief Emit alert on locked session?
-			bool unlocked = true;		///< @brief Emit alert on unlocked session?
-			bool background = false;	///< @brief Emit alert for background session?
-			bool foreground = true;		///< @brief Emit alert for foreground session?
+			time_t timer = 0;				///< @brief Emission timer (for pulse alerts).
+			bool system = false;			///< @brief Emit alert for system sessions?
+			bool remote = false;			///< @brief Emit alert for remote sessions?
+			bool locked = false;			///< @brief Emit alert on locked session?
+			bool unlocked = true;			///< @brief Emit alert on unlocked session?
+			bool background = false;		///< @brief Emit alert for background session?
+			bool foreground = true;			///< @brief Emit alert for foreground session?
+			bool active = true;				///< @brief Emit alert on active session?
+			bool inactive = true;			///< @brief Emit alert on inactive session.
+
+#ifndef _WIN32
+			const char *classname = "";		///< @brief Filter by session classname.
+			const char *service = "";		///< @brief Filter by session service.
+#endif // !_WIN32
+
 		} emit;
 
-		std::shared_ptr<Abstract::Alert::Activation> ActivationFactory() const override;
+	protected:
+		std::shared_ptr<Abstract::Alert> alert;
 
 	public:
 
-		Alert(const pugi::xml_node &node);
-		virtual ~Alert();
-
-		bool getProperty(const char *key, std::string &value) const noexcept override;
+		AlertProxy(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> a);
 
 		time_t timer() const noexcept {
 			return emit.timer;
 		}
 
+		inline std::shared_ptr<Udjat::Alert::Activation> ActivationFactory() const {
+			return alert->ActivationFactory();
+		}
+
 		bool test(const Udjat::User::Session &session) const noexcept;
 
 		inline bool test(Udjat::User::Event event) const noexcept {
-			return this->event == event;
+
+#ifdef DEBUG
+		Logger::trace() << " ***** alert-event=" << hex << ((unsigned int) this->event) << " event=" << ((unsigned int) event) << " rc=" << ((unsigned int) (this->event & event)) << dec << endl;
+#endif // DEBUG
+
+			return (this->event & event) != 0;
 		}
 
 	};

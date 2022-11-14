@@ -25,14 +25,11 @@
 
  #include <udjat/tools/usersession.h>
  #include <udjat/win32/exception.h>
+ #include <udjat/tools/logger.h>
  #include <cstring>
  #include <iostream>
 
  using namespace std;
-
- #ifndef PACKAGE_NAME
-	#define PACKAGE_NAME "UDJAT-USER-MONITOR"
- #endif // PACKAGE_NAME
 
  #define WM_START		WM_USER+100
  #define WM_REFRESH		WM_USER+101
@@ -44,7 +41,7 @@
 	}
 
 	/// @brief Find session (Requires an active guard!!!)
-	std::shared_ptr<User::Session> User::Controller::find(const DWORD sid) {
+	std::shared_ptr<User::Session> User::Controller::find(const DWORD sid, bool create) {
 
 		for(auto session : sessions) {
 			if(session->sid == sid) {
@@ -52,12 +49,19 @@
 			}
 		}
 
-		// Not found, create a new one.
-		std::shared_ptr<Session> session = SessionFactory();
-		session->sid = sid;
-		sessions.push_back(session);
+		// Not found.
 
-		return session;
+		if(create) {
+			// Create a new session.
+			std::shared_ptr<Session> session = SessionFactory();
+			session->sid = sid;
+			sessions.push_back(session);
+			return session;
+		}
+
+		// Return an empty session.
+		return std::shared_ptr<User::Session>();
+
 	}
 
 	User::Controller::Controller() {
@@ -167,23 +171,24 @@
 				// https://msdn.microsoft.com/en-us/library/aa383860(v=vs.85).aspx
 				switch(sessions[ix].State) {
 				case WTSActive:
-					cout << "@" << session->sid << "\tA user is logged on to the WinStation." << endl;
+					session->name(true);
+					session->trace() << "WTSActive(" << session->sid << "): A user is logged on to the WinStation." << endl;
 					break;
 
 				case WTSConnected:
-					cout << "@" << session->sid << "\tThe WinStation is connected to the client." << endl;
+					session->trace() << "WTSConnected(" << session->sid << "): The WinStation is connected to the client." << endl;
 					break;
 
 				case WTSConnectQuery:
-					cout << "@" << session->sid << "\tThe WinStation is in the process of connecting to the client." << endl;
+					session->trace() << "WTSConnectQuery(" << session->sid << "): The WinStation is in the process of connecting to the client." << endl;
 					break;
 
 				case WTSShadow:
-					cout << "@" << session->sid << "\tThe WinStation is shadowing another WinStation." << endl;
+					session->trace() << "WTSShadow(" << session->sid << "): The WinStation is shadowing another WinStation." << endl;
 					break;
 
 				case WTSDisconnected:
-					cout << "@" << session->sid << "\tThe WinStation is active but the client is disconnected." << endl;
+					session->trace() << "WTSDisconnected(" << session->sid << "): The WinStation is active but the client is disconnected." << endl;
 					session->flags.locked = true;
 					if(!starting) {
 						session->emit(lock);
@@ -191,27 +196,27 @@
 					break;
 
 				case WTSIdle:
-					cout << "@" << session->sid << "\tThe WinStation is waiting for a client to connect." << endl;
+					session->trace() << "WTSIdle(" << session->sid << "): The WinStation is waiting for a client to connect." << endl;
 					break;
 
 				case WTSListen:
-					cout << "@" << session->sid << "\tThe WinStation is listening for a connection." << endl;
+					session->trace() << "WTSListen(" << session->sid << "): The WinStation is listening for a connection." << endl;
 					break;
 
 				case WTSReset:
-					cout << "@" << session->sid << "\tThe WinStation is being reset." << endl;
+					session->trace() << "WTSReset(" << session->sid << "): The WinStation is being reset." << endl;
 					break;
 
 				case WTSDown:
-					cout << "@" << session->sid << "\tThe WinStation is down due to an error." << endl;
+					session->trace() << "WTSDown(" << session->sid << "): The WinStation is down due to an error." << endl;
 					break;
 
 				case WTSInit:
-					cout << "@" << sessions[ix].SessionId << "\tThe WinStation is initializing." << endl;
+					session->trace() << "WTSInit(" << session->sid << "): The WinStation is initializing." << endl;
 					break;
 
 				default:
-					cout << "@" << sessions[ix].SessionId << "\tUnexpected session state" << endl;
+					session->trace() << sessions[ix].State << "(" << session->sid << "): Unexpected session state" << endl;
 					break;
 				}
 
@@ -235,9 +240,7 @@
 
 		User::Controller & controller = *((User::Controller *) GetWindowLongPtr(hWnd,0));
 
-#ifdef DEBUG
-		cout << PACKAGE_NAME << "\t---> " << __FUNCTION__ << " " << __FILE__ << " " << __LINE__ << "\tMSG=" << uMsg << endl;
-#endif // DEBUG
+		debug("uMsg=",uMsg);
 
 		// https://wiki.winehq.org/List_Of_Windows_Messages
 		switch(uMsg) {
@@ -288,79 +291,126 @@
 
 			try {
 
-				auto session = controller.find((DWORD) lParam);
-
 				switch((int) wParam) {
 				case WTS_SESSION_LOCK:				// The session has been locked.
-					cout << "@" << session->sid << "\tWTS_SESSION_LOCK " << endl;
-					if(!session->flags.locked) {
-						session->flags.locked = true;
-						session->emit(lock);
+					{
+						auto session = controller.find((DWORD) lParam);
+						session->trace() << "WTS_SESSION_LOCK  (" << session->sid << ")" << endl;
+						if(!session->flags.locked) {
+							session->flags.locked = true;
+							session->emit(lock);
+						}
 					}
 					break;
 
 				case WTS_SESSION_UNLOCK:			// The session identified has been unlocked.
-					cout << "@" << session->sid << "\tWTS_SESSION_UNLOCK " << endl;
-					if(session->flags.locked) {
-						session->flags.locked = false;
-						session->emit(unlock);
+					{
+						auto session = controller.find((DWORD) lParam);
+						session->trace() << "WTS_SESSION_UNLOCK  (" << session->sid << ")" << endl;
+						if(session->flags.locked) {
+							session->flags.locked = false;
+							session->emit(unlock);
+						}
 					}
 					break;
 
 				case WTS_CONSOLE_CONNECT:			// The session was connected to the console terminal or RemoteFX session.
-					cout << "@" << session->sid << "\tWTS_CONSOLE_CONNECT " << endl;
-					session->set(User::SessionInForeground);
-					break;
-
-				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
-					cout << "@" << session->sid << "\tWTS_CONSOLE_DISCONNECT " << endl;
-					session->set(User::SessionInBackground);
+					{
+						auto session = controller.find((DWORD) lParam);
+						session->name(true);
+						session->trace() << "WTS_CONSOLE_CONNECT  (" << session->sid << ")" << endl;
+						session->set(User::SessionInForeground);
+					}
 					break;
 
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
-					cout << "@" << session->sid << "\tWTS_REMOTE_CONNECT " << endl;
-					session->flags.remote = true;
+					{
+						auto session = controller.find((DWORD) lParam);
+						session->name(true);
+						session->trace() << "WTS_REMOTE_CONNECT  (" << session->sid << ")" << endl;
+						session->flags.remote = true;
+					}
 					break;
 
 				case WTS_REMOTE_DISCONNECT:			// The session was disconnected from the remote terminal.
-					cout << "@" << session->sid << "\tWTS_REMOTE_DISCONNECT " << endl;
-					session->flags.remote = true;
-					session->set(User::SessionIsClosing);
+					{
+						auto session = controller.find((DWORD) lParam,false);
+						if(session) {
+							session->trace() << "WTS_REMOTE_DISCONNECT  (" << session->sid << ")" << endl;
+							session->flags.remote = true;
+							session->set(User::SessionIsClosing);
+							{
+								lock_guard<mutex> lock(controller.guard);
+								controller.sessions.remove(session);
+							}
+						} else {
+							Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_REMOTE_DISCONNECT" << endl;
+						}
+					}
+					break;
+
+				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
+					{
+						auto session = controller.find((DWORD) lParam,false);
+						if(session) {
+							session->trace() << "WTS_CONSOLE_DISCONNECT  (" << session->sid << ")" << endl;
+							session->flags.remote = false;
+							session->set(User::SessionIsClosing);
+							{
+								lock_guard<mutex> lock(controller.guard);
+								controller.sessions.remove(session);
+							}
+						} else {
+							Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_CONSOLE_DISCONNECT" << endl;
+						}
+					}
 					break;
 
 				case WTS_SESSION_LOGON:				// A user has logged on to the session.
-					cout << "@" << session->sid << "\tWTS_SESSION_LOGON " << endl;
+					{
+						auto session = controller.find((DWORD) lParam);
 
-					// Set to foreground on logon.
-					session->flags.state = SessionInForeground;
-					session->emit(logon);
+						// Force username update.
+						session->name(true);
+						session->trace() << "WTS_SESSION_LOGON  (" << session->sid << ")" << endl;
 
+						// Set to foreground on logon.
+						session->set(User::SessionInForeground);
+						session->emit(logon);
+					}
 					break;
 
 				case WTS_SESSION_LOGOFF:			// A user has logged off the session.
-					cout << "@" << session->sid << "\tWTS_SESSION_LOGOFF " << endl;
-					session->emit(logoff);
-					session->set(User::SessionIsClosing);
 					{
-						lock_guard<mutex> lock(controller.guard);
-						controller.sessions.remove(session);
+						auto session = controller.find((DWORD) lParam,false);
+						if(session) {
+							session->trace() << "WTS_SESSION_LOGOFF  (" << session->sid << ")" << endl;
+							session->emit(logoff);
+							session->set(User::SessionIsClosing);
+							{
+								lock_guard<mutex> lock(controller.guard);
+								controller.sessions.remove(session);
+							}
+						} else {
+							Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_SESSION_LOGOFF" << endl;
+						}
 					}
 					break;
 
 				case WTS_SESSION_REMOTE_CONTROL:	// The session has changed its remote controlled status.
-					cout << "@" << session->sid << "\tWTS_SESSION_REMOTE_CONTROL " << endl;
+					Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_SESSION_REMOTE_CONTROL" << endl;
 					break;
 
 				case WTS_SESSION_CREATE:			// Reserved for future use.
-					cout << "@" << session->sid << "\tWTS_SESSION_CREATE " << endl;
+					Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_SESSION_CREATE" << endl;
 					break;
 
 				case WTS_SESSION_TERMINATE:			// Reserved for future use.
-					cout << "@" << session->sid << "\tWTS_SESSION_TERMINATE " << endl;
+					Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_SESSION_TERMINATE" << endl;
 					break;
 
 				default:
-					cerr	<< "@" << session->sid << "\tWM_WTSSESSION_CHANGE sent an unexpected state '"
+					cerr	<< "@" << ((DWORD) lParam) << "\tWM_WTSSESSION_CHANGE sent an unexpected state '"
 							<< ((int) wParam) << "'" << endl;
 				}
 
