@@ -27,6 +27,7 @@
  #include <system_error>
  #include <udjat/agent.h>
  #include <udjat/factory.h>
+ #include <udjat/alert/abstract.h>
  #include <list>
  #include <memory>
 
