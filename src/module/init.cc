@@ -40,15 +40,6 @@
 			return make_shared<UserList::Agent>(node);
 		}
 
-		/*
-		std::shared_ptr<Abstract::Alert> AlertFactory(const Abstract::Object UDJAT_UNUSED(&parent), const pugi::xml_node &node) const override {
-#ifdef DEBUG
-			Factory::info() << "Creating USER alert" << endl;
-#endif // DEBUG
-			return make_shared<UserList::Proxy>(node);
-		}
-		*/
-
 	public:
 
 		Module() : Udjat::Module("users",UserList::info), Udjat::Worker("users",UserList::info), Udjat::Factory("users",UserList::info) {

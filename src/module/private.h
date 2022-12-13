@@ -119,7 +119,6 @@
 
 		Value & get(Value &value) const override;
 
-		// Value & getProperties(Value &value) const noexcept override;
 		void get(const Request &request, Report &report) override;
 
 		void get(const Request &request, Response &response) override;

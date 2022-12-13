@@ -96,21 +96,9 @@
 			return dbpath;
 		}
 
-/*
-	dbus-send \
-			--system \
-			--dest=org.freedesktop.login1 \
-			--print-reply \
-			/org/freedesktop/login1 \
-			org.freedesktop.login1.Manager.GetSession \
-			string:1
-
-*/
 		sd_bus* bus = NULL;
 		int rc;
 
-		//sd_bus_default_system(&bus);
-		// rc = sd_bus_open_system_with_description(&bus,"Get session path");
 		rc = sd_bus_open_system(&bus);
 		if(rc < 0) {
 
@@ -186,8 +174,6 @@
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 		sd_bus_message *reply = NULL;
 
-		//sd_bus_default_system(&bus);
-		// rc = sd_bus_open_system_with_description(&bus,"Locked hint check");
 		rc = sd_bus_open_system(&bus);
 		if(rc < 0) {
 
