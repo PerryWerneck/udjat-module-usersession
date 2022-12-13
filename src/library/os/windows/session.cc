@@ -23,6 +23,8 @@
  #include <wtsapi32.h>
  #include <udjat/win32/exception.h>
  #include <udjat/tools/quark.h>
+ #include <udjat/tools/cleanup.h>
+ #include <udjat/win32/cleanup.h>
 
  using namespace std;
 
@@ -44,6 +46,22 @@
 
 	bool User::Session::locked() const {
 		return flags.locked;
+	}
+
+	std::string User::Session::domain() const {
+		char	* name	= nullptr;
+		DWORD	  szName;
+
+		if(!WTSQuerySessionInformation(WTS_CURRENT_SERVER_HANDLE,(DWORD) sid, WTSDomainName,&name,&szName)) {
+			warning() << "Can't get domain name: " << Win32::Exception::format() << endl;
+			return "";
+		}
+
+		string dname{name};
+		WTSFreeMemory(name);
+
+		return dname;
+
 	}
 
 	bool User::Session::system() const {

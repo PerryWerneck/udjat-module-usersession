@@ -28,9 +28,6 @@
  using namespace std;
  using namespace Udjat;
 
- // using Session = User::Session;
- // using Controller = UserList::Controller;
-
  namespace UserList {
 
 	Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node) {

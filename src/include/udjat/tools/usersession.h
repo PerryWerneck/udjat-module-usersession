@@ -239,7 +239,12 @@
 				return flags.alive;
 			}
 
-#ifndef _WIN32
+#ifdef _WIN32
+
+			/// @brief Get user's domain
+			std::string domain() const;
+
+#else
 			/// @brief Get session's user id
 			int userid() const;
 

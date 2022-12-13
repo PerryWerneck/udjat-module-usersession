@@ -187,6 +187,13 @@
 			return true;
 		}
 
+#ifdef _WIN32
+		if(!strcasecmp(key,"domain")) {
+			value = domain();
+			return true;
+		}
+#endif // _WIN32
+
 		return false;
 	}
 

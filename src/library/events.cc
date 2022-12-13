@@ -49,10 +49,10 @@
 
  namespace Udjat {
 
-	UDJAT_API User::Event User::EventFactory(const char *name) {
+	UDJAT_API User::Event User::EventFactory(const char *eventlist) {
 
 		unsigned int rc = 0;
-		std::vector<String> names{Udjat::String{name}.split(",")};
+		std::vector<String> names{Udjat::String{eventlist}.split(",")};
 
 		for(auto name : names) {
 
@@ -79,7 +79,7 @@
 			return (User::Event) rc;
 		}
 
-		throw system_error(EINVAL,system_category(),Logger::Message("Can't parse events '{}'",name));
+		throw system_error(EINVAL,system_category(),Logger::Message("Can't parse events '{}'",eventlist));
 	}
 
 

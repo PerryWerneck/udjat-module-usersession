@@ -16,7 +16,10 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-Summary:		User/Session module for udjat
+%define product_name %(pkg-config --variable=product_name libudjat)
+%define module_path %(pkg-config --variable=module_path libudjat)
+
+Summary:		User/Session module for %{product_name}
 Name:			udjat-module-users
 Version:		1.0
 Release:		0
@@ -44,7 +47,7 @@ BuildRequires:	pkgconfig(udjat-dbus)
 BuildRequires:	pkgconfig(libsystemd)
 
 %description
-User/Session monitor for udjat
+User/Session monitor for %{product_name}
 
 #---[ Library ]-------------------------------------------------------------------------------------------------------
 
@@ -54,7 +57,7 @@ Summary:	UDJat user session library
 %description -n libudjatusers%{_libvrs}
 User session library for udjat
 
-Simple user session abstraction library for udjat
+Simple user session abstraction library for %{product_name}
 
 #---[ Development ]---------------------------------------------------------------------------------------------------
 
@@ -66,7 +69,7 @@ Requires:	libudjatusers%{_libvrs} = %{version}
 
 %description -n udjat-users-devel
 
-Development files for Udjat's simple abstraction D-Bus library.
+Development files for %{product_name}'s simple use session abstraction library.
 
 #---[ Build & Install ]-----------------------------------------------------------------------------------------------
 
@@ -86,7 +89,7 @@ make all
 
 %files
 %defattr(-,root,root)
-%{_libdir}/udjat-modules/*/*.so
+%{module_path}/*.so
 
 %files -n libudjatusers%{_libvrs}
 %defattr(-,root,root)
