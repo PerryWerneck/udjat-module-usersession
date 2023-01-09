@@ -52,7 +52,7 @@
 	UDJAT_API User::Event User::EventFactory(const char *eventlist) {
 
 		unsigned int rc = 0;
-		std::vector<String> names{Udjat::String{eventlist}.split(",")};
+		auto names = Udjat::String{eventlist}.split(",");
 
 		for(auto name : names) {
 
