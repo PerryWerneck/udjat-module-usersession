@@ -24,7 +24,7 @@
  using namespace Udjat;
 
  UserList::AlertProxy::AlertProxy(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> a)
-		 : event(User::EventFactory(node)), alert(a) {
+		 : event{User::EventFactory(node)}, alert{a} {
 
 	const char *group = node.attribute("settings-from").as_string("alert-defaults");
 
