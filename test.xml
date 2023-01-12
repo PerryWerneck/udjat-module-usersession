@@ -26,7 +26,7 @@
 		</alert>
 
 		<!-- Activate on user logoff -->
-		<alert name='logout' max-retries='1'>
+		<alert name='logout' type='script' cmdline='touch /tmp/logout'>
 		</alert>
 
 		<!-- Timer -->
@@ -34,7 +34,7 @@
 		</alert>
 
 		<!-- Activate on user lock -->
-		<alert name='lock' event='lock' type='script' cmdline='touch /tmp/${username}.locked'>
+		<alert name='lock' type='script' cmdline='touch /tmp/${username}.lock'>
 		</alert>
 		
 		<!-- Activate on user unlock -->
