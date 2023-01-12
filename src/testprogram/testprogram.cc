@@ -84,6 +84,9 @@ int main(int argc, char **argv) {
 
 	};
 
+	Logger::enable(Logger::Trace);
+	Logger::enable(Logger::Debug);
+
 	Service().run(argc,argv);
 
 	cout << "*** Test program finished" << endl;

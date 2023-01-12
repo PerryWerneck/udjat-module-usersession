@@ -54,7 +54,7 @@
 	emit.background = Object::getAttribute(node,group,"background-session",emit.background);
 	emit.foreground = Object::getAttribute(node,group,"foreground-session",emit.foreground);
 
-	emit.locked = Object::getAttribute(node,group,"locked-session",emit.locked);
+	emit.locked = Object::getAttribute(node,group,"locked-session",event == User::Event::lock);
 	emit.unlocked = Object::getAttribute(node,group,"unlocked-session",emit.unlocked);
 
 	emit.active = Object::getAttribute(node,group,"active-session",emit.active);
@@ -69,7 +69,7 @@
 	emit.background = Object::getAttribute(node,group,"allow-on-background-session",emit.background);
 	emit.foreground = Object::getAttribute(node,group,"allow-on-foreground-session",emit.foreground);
 
-	emit.locked = Object::getAttribute(node,group,"allow-on-locked-session",emit.locked);
+	emit.locked = Object::getAttribute(node,group,"allow-on-locked-session",event == User::Event::lock);
 	emit.unlocked = Object::getAttribute(node,group,"allow-on-unlocked-session",emit.unlocked);
 
 #ifndef _WIN32

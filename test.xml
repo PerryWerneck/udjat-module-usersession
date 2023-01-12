@@ -34,8 +34,8 @@
 		</alert>
 
 		<!-- Activate on user lock -->
-		<!-- alert name='lock'>
-		</alert -->
+		<alert name='lock' event='lock' type='script' cmdline='touch /tmp/${username}.locked'>
+		</alert>
 		
 		<!-- Activate on user unlock -->
 		<!-- alert name='unlock'>
