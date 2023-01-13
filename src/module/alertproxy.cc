@@ -20,10 +20,11 @@
  #include "private.h"
  #include <udjat/tools/object.h>
  #include <udjat/tools/logger.h>
+ #include <udjat/tools/activatable.h>
 
  using namespace Udjat;
 
- UserList::AlertProxy::AlertProxy(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> a)
+ UserList::AlertProxy::AlertProxy(const pugi::xml_node &node, std::shared_ptr<Activatable> a)
 		 : event{User::EventFactory(node)}, alert{a} {
 
 	const char *group = node.attribute("settings-from").as_string("alert-defaults");
@@ -76,6 +77,23 @@
 	emit.classname = Object::getAttribute(node,group,"session-class",emit.classname);
 	emit.service = Object::getAttribute(node,group,"session-service",emit.service);
 #endif // !_WIN32
+
+ }
+
+ void UserList::AlertProxy::activate(const Agent &agent, const Session &session) {
+
+	alert->activate([agent,session](const char *key, std::string &value){
+
+		if(session.getProperty(key,value)) {
+			return true;
+		}
+
+		if(agent.getProperty(key,value)) {
+			return true;
+		}
+
+		return false;
+	});
 
  }
 
