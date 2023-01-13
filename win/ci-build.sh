@@ -16,7 +16,8 @@ die ( ) {
 	exit -1
 }
 
-cd $(dirname $(dirname $(readlink -f ${0})))
+myDIR=$(dirname $(dirname $(readlink -f ${0})))
+cd ${myDIR}
 
 #
 # Build LIBUDJAT
