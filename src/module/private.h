@@ -98,7 +98,7 @@
 	/// @brief Userlist agent.
 	class UDJAT_PRIVATE Agent : public Udjat::Abstract::Agent {
 	private:
-		std::list<AlertProxy> alerts;
+		std::list<AlertProxy> proxies;
 		void emit(Abstract::Alert &alert, Session &session) const noexcept;
 
 		struct {
@@ -115,7 +115,7 @@
 		/// @return true if an alert was activated.
 		bool onEvent(Session &session, const Udjat::User::Event event) noexcept;
 
-		void push_back(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> alert) override;
+		bool push_back(const pugi::xml_node &node, std::shared_ptr<Activatable> activatable) override;
 
 		Value & get(Value &value) const override;
 
@@ -150,19 +150,24 @@
 		} emit;
 
 	protected:
-		std::shared_ptr<Abstract::Alert> alert;
+		std::shared_ptr<Activatable> alert;
 
 	public:
 
-		AlertProxy(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> a);
+		AlertProxy(const pugi::xml_node &node, std::shared_ptr<Activatable> activatable);
 
 		time_t timer() const noexcept {
 			return emit.timer;
 		}
 
+		// Emit alert.
+		void activate(const Agent &agent, const Session &session);
+
+		/*
 		inline std::shared_ptr<Udjat::Alert::Activation> ActivationFactory() const {
 			return alert->ActivationFactory();
 		}
+		*/
 
 		bool test(const Udjat::User::Session &session) const noexcept;
 

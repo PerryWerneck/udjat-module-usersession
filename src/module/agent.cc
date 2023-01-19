@@ -94,7 +94,7 @@
 
 		session.trace() << event << endl;
 
-		for(AlertProxy &alert : alerts) {
+		for(AlertProxy &alert : proxies) {
 
 			if(alert.test(event) && alert.test(session)) {
 
@@ -102,11 +102,15 @@
 
 				activated = true;
 
+				alert.activate(*this,session);
+
+				/*
 				auto activation = alert.ActivationFactory();
 				activation->set(session);
 				activation->set(*this);
 
 				Udjat::start(activation);
+				*/
 
 			}
 
@@ -115,11 +119,18 @@
 		return activated;
 	}
 
-	void Agent::push_back(const pugi::xml_node &node, std::shared_ptr<Abstract::Alert> alert) {
+	bool Agent::push_back(const pugi::xml_node &node, std::shared_ptr<Activatable> activatable){
 
-		alerts.emplace_back(node,alert);
+		// First check if parent object can handle this activatable, if yes, just return.
+		if(Abstract::Agent::push_back(node,activatable)) {
+			return true;
+		}
 
-		AlertProxy &proxy = alerts.back();
+		// Parent was not able to handle this activatable, create a proxy for it.
+
+		proxies.emplace_back(node,activatable);
+
+		AlertProxy &proxy = proxies.back();
 
 		if(proxy.test(User::pulse)) {
 
@@ -131,13 +142,15 @@
 			}
 
 			if(proxy.timer() < timer) {
-				alert->warning() << "Pulse interval is lower than agent update timer" << endl;
+				activatable->warning() << "Pulse interval is lower than agent update timer" << endl;
 				this->timer(timer);
 			}
 
 			Logger::String("Agent timer set to ",this->timer()).write(Logger::Debug,name());
 
 		}
+
+		return true;
 
 	}
 
@@ -211,7 +224,7 @@
 				report << TimeStamp(alerttime);
 
 				if(alerttime) {
-					for(AlertProxy &alert : alerts) {
+					for(AlertProxy &alert : proxies) {
 						time_t timer = alert.timer();
 						time_t next = alerttime + timer;
 						if(timer && alert.test(User::pulse) && alert.test(*session) && next > time(0)) {
@@ -253,7 +266,7 @@
 			Logger::String("IDLE time is ",idletime).write(Logger::Debug,session->name());
 
 			bool reset = false;
-			for(AlertProxy &alert : alerts) {
+			for(AlertProxy &alert : proxies) {
 
 				auto timer = alert.timer();
 
@@ -266,6 +279,9 @@
 
 						reset |= true;
 
+						alert.activate(*this,*session);
+
+						/*
 						auto activation = alert.ActivationFactory();
 
 						activation->rename(name());
@@ -273,6 +289,7 @@
 						activation->set(*session);
 
 						Udjat::start(activation);
+						*/
 
 						required_wait = std::min(required_wait,timer);
 						Logger::String("Will wait for ",timer," seconds").write(Logger::Debug,name());
