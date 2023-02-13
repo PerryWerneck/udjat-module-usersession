@@ -22,6 +22,7 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/usersession.h>
+ #include <udjat/tools/singleton.h>
  #include <udjat/tools/mainloop.h>
  #include <udjat/tools/logger.h>
  #include <system_error>
@@ -70,28 +71,23 @@
 	extern const Udjat::ModuleInfo info;
 
 	/// @brief Singleton with the real userlist.
-	class UDJAT_PRIVATE Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
-	private:
-		static std::mutex guard;
-
-		/// @brief List of active userlist agents.
-		std::list<Agent *> agents;
-
+	class UDJAT_PRIVATE Controller : public Udjat::User::Controller, public Singleton::Container<UserList::Agent>, private Udjat::Service {
 	protected:
 
 		std::shared_ptr<Udjat::User::Session> SessionFactory() noexcept override;
 
 	public:
 		Controller();
-		static Controller & getInstance();
+
+		static Controller & getInstance() {
+			static Controller instance;
+			return instance;
+		}
+
+		void for_each(std::function<void(UserList::Agent &agent)> callback);
 
 		void start() override;
 		void stop() override;
-
-		void insert(UserList::Agent *agent);
-		void remove(UserList::Agent *agent);
-
-		void for_each(std::function<void(UserList::Agent &agent)> callback);
 
 	};
 

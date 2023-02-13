@@ -31,7 +31,7 @@
  namespace UserList {
 
 	Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node) {
-		UserList::Controller::getInstance().insert(this);
+		UserList::Controller::getInstance().push_back(this);
 
 		if(!(properties.icon && *properties.icon)) {
 			properties.icon = "user-info-symbolic";

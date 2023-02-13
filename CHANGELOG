@@ -1,0 +1,19 @@
+-------------------------------------------------------------------
+Thu Nov 10 19:42:25 UTC 2022 - perry.werneck@gmail.com
+
+- Update to version 1.0+git20221110:
+  * Fixing remote session flag.
+  * Storing session class to allow filter for it in 'logoff' alert.
+  * Adjusting debug message.
+  * Showing rejected alerts in debug log.
+  * Fixing 'logoff' alert exception.
+  * Fixing url alert variable expansion
+  * Fixing SLE package.
+  * Fixing syste bus connection error.
+  * Better message when sd_session_is_active fails.
+  * Testing locked/unlocked alerts only on active sessions. Adding active/inactive alert options.
+
+-------------------------------------------------------------------
+Thu Jan  6 10:55:41 UTC 2022 - Perry Werneck <perry.werneck@gmail.com>
+
+- First build on OBS. 

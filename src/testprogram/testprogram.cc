@@ -84,8 +84,7 @@ int main(int argc, char **argv) {
 
 	};
 
-	Logger::enable(Logger::Trace);
-	Logger::enable(Logger::Debug);
+	Logger::verbosity(9);
 
 	Service().run(argc,argv);
 
