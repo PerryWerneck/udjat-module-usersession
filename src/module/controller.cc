@@ -41,9 +41,10 @@
  	Udjat::User::Controller::deactivate();
  }
 
+ /*
  void UserList::Controller::for_each(std::function<void(UserList::Agent &agent)> callback) {
-	lock_guard<mutex> lock(Udjat::Singleton::Container<UserList::Agent>::guard);
-	for(auto agent : objects) {
+	for(auto agent : agents) {
 		callback(*agent);
 	}
  }
+ */

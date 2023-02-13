@@ -82,7 +82,7 @@
 
  void UserList::AlertProxy::activate(const Agent &agent, const Session &session) {
 
-	alert->activate([agent,session](const char *key, std::string &value){
+	alert->activate([&agent,&session](const char *key, std::string &value){
 
 		if(session.getProperty(key,value)) {
 			return true;
