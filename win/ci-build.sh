@@ -23,23 +23,25 @@ cd ${myDIR}
 # Build LIBUDJAT
 #
 echo "Building libudjat"
-mkdir -p  ./.build/libubjdat
+mkdir -p  ${myDIR}/.build/libudjdat
 git clone https://github.com/PerryWerneck/libudjat.git ${myDIR}/.build/libudjat > $LOGFILE 2>&1 || die "clone libudjat failure"
-pushd ${myDIR}/.build/libubjdat
-./autogen.sh > $LOGFILE 2>&1 || die "Autogen failure"
-./configure > $LOGFILE 2>&1 || die "Configure failure"
-make clean > $LOGFILE 2>&1 || die "Make clean failure"
-make all  > $LOGFILE 2>&1 || die "Make failure"
-make install  > $LOGFILE 2>&1 || die "Install failure"
+pushd ${myDIR}/.build/libudjat
+echo "Buindi module"
+./autogen.sh || die "Autogen failure"
+./configure || die "Configure failure"
+make clean || die "Make clean failure"
+make all || die "Make failure"
+make install || die "Install failure"
 popd
 
 #
 # Build
 #
-./autogen.sh > $LOGFILE 2>&1 || die "Autogen failure"
-./configure > $LOGFILE 2>&1 || die "Configure failure"
-make clean > $LOGFILE 2>&1 || die "Make clean failure"
-make all  > $LOGFILE 2>&1 || die "Make failure"
+echo "Buindi module"
+./autogen.sh || die "Autogen failure"
+./configure || die "Configure failure"
+make clean || die "Make clean failure"
+make all || die "Make failure"
 
 echo "Build complete"
 
