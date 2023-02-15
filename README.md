@@ -10,18 +10,18 @@ Watch active users sessions emitting UDJAT alerts (http call, script, etc) based
 
 ### Event names
 
- * Already active	Session is active on startup
- * Still active		Session still active on shutdown
- * Login			User has logged in
- * Logout			User has logged out
- * Lock				Session was locked
- * Unlock			Session was unlocked
- * Foreground		Session is in foreground
- * Background		Session is in background
- * sleep			Session is preparing to sleep
- * resume			Session is resuming from sleep
- * shutdown			Session is shutting down
- * pulse			Session is alive
+ * *Already active*: Session is active on startup
+ * *Still active*: Session still active on shutdown
+ * *Login*: User has logged in
+ * *Logout*: User has logged out
+ * *Lock*: Session was locked
+ * *Unlock*: Session was unlocked
+ * *Foreground*: Session is in foreground
+ * *Background*: Session is in background
+ * *sleep*: Session is preparing to sleep
+ * *resume*: Session is resuming from sleep
+ * *shutdown*: Session is shutting down
+ * *pulse*: Session is alive
 
 ### Examples
 
