@@ -267,13 +267,18 @@
 
 	void User::Controller::deactivate() {
 
+		debug(__FUNCTION__);
+
 		{
 			lock_guard<mutex> lock(guard);
 			if(!enabled) {
+				debug("User controller is not enabled");
 				return;
 			}
 			enabled = false;
 		}
+
+		debug("Deactivating user controller");
 
 #ifdef HAVE_DBUS
 		DBus::Connection::getSystemInstance().unsubscribe(this);

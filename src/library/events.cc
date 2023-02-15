@@ -44,7 +44,7 @@
 	{ Udjat::User::Event::sleep,			N_( "sleep" ),			N_( "Session is preparing to sleep" )		},
 	{ Udjat::User::Event::resume,			N_( "resume" ),			N_( "Session is resuming from sleep" )		},
 	{ Udjat::User::Event::shutdown,			N_( "shutdown" ),		N_( "Session is shutting down" )			},
-	{ Udjat::User::Event::pulse,			N_( "pulse" ),			N_( "Pulse" )								},
+	{ Udjat::User::Event::pulse,			N_( "pulse" ),			N_( "Session is alive" )					},
  };
 
  namespace Udjat {

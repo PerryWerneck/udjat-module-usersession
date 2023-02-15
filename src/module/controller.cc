@@ -24,17 +24,9 @@
 
  using namespace std;
 
- mutex UserList::Controller::guard;
-
  static const Udjat::ModuleInfo moduleinfo { "Users monitor" };
 
- UserList::Controller::Controller() : Udjat::MainLoop::Service("userlist",moduleinfo) {
- }
-
- UserList::Controller & UserList::Controller::getInstance() {
-	lock_guard<mutex> lock(guard);
-	static Controller instance;
-	return instance;
+ UserList::Controller::Controller() : Udjat::Service("userlist",moduleinfo) {
  }
 
  std::shared_ptr<Udjat::User::Session> UserList::Controller::SessionFactory() noexcept {
@@ -49,23 +41,10 @@
  	Udjat::User::Controller::deactivate();
  }
 
- void UserList::Controller::insert(UserList::Agent *agent) {
-	lock_guard<mutex> lock(guard);
-	agents.push_back(agent);
- }
-
- void UserList::Controller::remove(UserList::Agent *agent) {
-
-	lock_guard<mutex> lock(guard);
-	agents.remove_if([agent](const UserList::Agent *ag) {
-		return ag == agent;
-	});
-
- }
-
+ /*
  void UserList::Controller::for_each(std::function<void(UserList::Agent &agent)> callback) {
-	lock_guard<mutex> lock(guard);
 	for(auto agent : agents) {
 		callback(*agent);
 	}
  }
+ */

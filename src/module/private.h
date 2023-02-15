@@ -23,6 +23,7 @@
  #include <udjat/defs.h>
  #include <udjat/tools/usersession.h>
  #include <udjat/tools/mainloop.h>
+ #include <udjat/tools/container.h>
  #include <udjat/tools/logger.h>
  #include <system_error>
  #include <udjat/agent.h>
@@ -70,12 +71,11 @@
 	extern const Udjat::ModuleInfo info;
 
 	/// @brief Singleton with the real userlist.
-	class UDJAT_PRIVATE Controller : public Udjat::User::Controller, private Udjat::MainLoop::Service {
+	class UDJAT_PRIVATE Controller : public Udjat::User::Controller, private Udjat::Service {
 	private:
-		static std::mutex guard;
 
 		/// @brief List of active userlist agents.
-		std::list<Agent *> agents;
+		Container<UserList::Agent> agents;
 
 	protected:
 
@@ -83,15 +83,26 @@
 
 	public:
 		Controller();
-		static Controller & getInstance();
+
+		static Controller & getInstance() {
+			static Controller instance;
+			return instance;
+		}
 
 		void start() override;
 		void stop() override;
 
-		void insert(UserList::Agent *agent);
-		void remove(UserList::Agent *agent);
+		inline void insert(UserList::Agent *agent) {
+			agents.push_back(agent);
+		}
 
-		void for_each(std::function<void(UserList::Agent &agent)> callback);
+		inline void remove(UserList::Agent *agent) {
+			agents.remove(agent);
+		}
+
+		bool for_each(std::function<bool(const UserList::Agent &agent)> callback) {
+			return agents.for_each(callback);
+		}
 
 	};
 
@@ -106,6 +117,11 @@
 		} timers;
 
 	public:
+		Agent(const Agent&) = delete;
+		Agent& operator=(const Agent &) = delete;
+		Agent(Agent &&) = delete;
+		Agent & operator=(Agent &&) = delete;
+
 		Agent(const pugi::xml_node &node);
 		virtual ~Agent();
 

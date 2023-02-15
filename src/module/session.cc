@@ -23,10 +23,11 @@
 
  	Udjat::User::Session & Session::onEvent(const Udjat::User::Event &event) noexcept {
 
-		UserList::Controller::getInstance().for_each([this,event](UserList::Agent &agent){
-			if(agent.onEvent(*this,event)) {
+		UserList::Controller::getInstance().for_each([this,event](const UserList::Agent &agent){
+			if(const_cast<UserList::Agent *>(&agent)->onEvent(*this,event)) {
 				reset();
 			}
+			return false;
 		});
 
 		return *this;
