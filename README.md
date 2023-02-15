@@ -25,12 +25,18 @@ Watch active users sessions emitting UDJAT alerts (http call, script, etc) based
 
 ### Examples
 
-Emiting alert on user logoff:
+[Udjat](../../../udjat) service configuration to emit an alert on user logoff:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <config log-debug='yes' log-trace='yes'>
 
+	<!-- The HTTP module implements the http client backend -->
+	<module name='http' required='yes' />
+	
+	<!-- Implements user's monitor -->
+	<module name='users' required='yes' />
+	
 	<!-- Declare an user monitor agent -->
 	<users name='users' update-timer='60'>
 
