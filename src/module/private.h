@@ -29,6 +29,7 @@
  #include <udjat/agent.h>
  #include <udjat/factory.h>
  #include <udjat/alert/abstract.h>
+ #include <udjat/agent/abstract.h>
  #include <list>
  #include <memory>
 
@@ -92,7 +93,7 @@
 		void start() override;
 		void stop() override;
 
-		inline void insert(UserList::Agent *agent) {
+		inline void push_back(UserList::Agent *agent) {
 			agents.push_back(agent);
 		}
 
@@ -135,9 +136,13 @@
 
 		Value & get(Value &value) const override;
 
-		void get(const Request &request, Report &report) override;
+		Value & getProperties(Value &value) const noexcept override;
+		bool getProperties(const char *path, Value &value) const override;
+		bool getProperties(const char *path, Report &report) const override;
 
-		void get(const Request &request, Response &response) override;
+		// void get(const Request &request, Report &report) override;
+		// void get(const Request &request, Response &response) override;
+
 
 	};
 

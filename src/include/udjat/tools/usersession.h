@@ -147,11 +147,11 @@
 				return sessions.size();
 			}
 
-			inline std::list<std::shared_ptr<Session>>::iterator begin() {
+			inline auto begin() {
 				return sessions.begin();
 			}
 
-			inline std::list<std::shared_ptr<Session>>::iterator end() {
+			inline auto end() {
 				return sessions.end();
 			}
 
@@ -209,6 +209,7 @@
 			const char * name(bool update) const noexcept;
 
 			bool getProperty(const char *key, std::string &value) const noexcept override;
+			Value & getProperties(Value &value) const noexcept override;
 
 			/// @brief Is this session a remote one?
 			bool remote() const;

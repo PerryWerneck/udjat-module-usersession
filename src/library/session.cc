@@ -130,6 +130,30 @@
 		return *this;
 	}
 
+	Udjat::Value & User::Session::getProperties(Udjat::Value &value) const noexcept {
+
+		value["username"] = to_string();
+		value["remote"] = remote();
+		value["locked"] = locked();
+		value["active"] = active();
+#ifdef _WIN32
+		value["display"] = "win32";
+		value["type"] = "win32";
+		value["service"] = "";
+		value["classname"] = "";
+		value["path"] = "";
+		value["domain"] = domain();
+#else
+		value["display"] = display();
+		value["type"] = type();
+		value["service"] = service();
+		value["classname"] = classname();
+		value["path"] = path();
+		value["domain"] = "";
+#endif // !_WIN32
+
+	}
+
 	bool User::Session::getProperty(const char *key, std::string &value) const noexcept {
 
 		if(!strcasecmp(key,"username")) {
