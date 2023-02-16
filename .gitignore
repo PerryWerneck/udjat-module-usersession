@@ -56,3 +56,4 @@ config.h
 *.[0-9]
 resources.rc
 app-manifest.xml
+libtool

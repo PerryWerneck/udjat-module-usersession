@@ -20,6 +20,9 @@ AC_CONFIG_HEADER([src/include/config.h])
 dnl Initialise automake stuff.
 AM_INIT_AUTOMAKE
 
+LT_INIT
+AC_CONFIG_MACRO_DIRS([m4])
+
 dnl Check for iconv
 AM_ICONV
 

@@ -31,10 +31,11 @@
  namespace UserList {
 
 	Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node) {
-		UserList::Controller::getInstance().insert(this);
+
+		UserList::Controller::getInstance().push_back(this);
 
 		if(!(properties.icon && *properties.icon)) {
-			properties.icon = "user-info-symbolic";
+			properties.icon = "user-info";
 		}
 
 		timers.max_pulse_check = getAttribute(node, "user-session", "max-update-timer", timers.max_pulse_check);
@@ -154,44 +155,15 @@
 
 	}
 
-	void Agent::get(const Udjat::Request &request, Udjat::Response &response) {
+	bool Agent::getProperties(const char *path, Report &report) const {
 
-		super::get(request,response);
+		if(super::getProperties(path,report)) {
+			return true;
+		}
 
-		Udjat::Value &users = response["users"];
-
-		UserList::Controller::getInstance().User::Controller::for_each([this,&users](shared_ptr<Udjat::User::Session> user) {
-
-			Udjat::Value &row = users.append(Udjat::Value::Object);
-
-			row["name"] = user->name();
-			row["state"] = std::to_string(user->state());
-			row["locked"] = user->locked();
-			row["remote"] = user->remote();
-			row["system"] = user->system();
-
-#ifndef _WIN32
-			row["uid"] = user->userid();
-			row["type"] = user->type();
-			row["display"] = user->display();
-			row["type"] = user->type();
-			row["service"] = user->service();
-			row["class"] = user->classname();
-#endif // _WIN32
-
-			Session * usession = dynamic_cast<Session *>(user.get());
-			if(usession) {
-				row["alert"] = TimeStamp(usession->alerttime());
-				row["idle"] =  time(0) - usession->alerttime();
-			} else {
-				row["alert"] = "";
-				row["idle"] =  "";
-			}
-
-		});
-	}
-
-	void Agent::get(const Request UDJAT_UNUSED(&request), Report &report) {
+		if(*path) {
+			return false;
+		}
 
 		report.start("username","state","locked","remote","system","display","type","service","class","activity","pulsetime",nullptr);
 
@@ -224,7 +196,7 @@
 				report << TimeStamp(alerttime);
 
 				if(alerttime) {
-					for(AlertProxy &alert : proxies) {
+					for(const AlertProxy &alert : proxies) {
 						time_t timer = alert.timer();
 						time_t next = alerttime + timer;
 						if(timer && alert.test(User::pulse) && alert.test(*session) && next > time(0)) {
@@ -245,6 +217,7 @@
 
 		});
 
+		return true;
 	}
 
 	bool Agent::refresh() {
@@ -315,6 +288,37 @@
 		if(required_wait) {
 			this->timer(required_wait);
 			Logger::String("Next refresh set to ",TimeStamp(time(0)+required_wait)," (",required_wait," seconds)").write(Logger::Debug,name());
+		}
+
+		return false;
+	}
+
+	Value & Agent::getProperties(Value &value) const noexcept {
+		super::getProperties(value);
+
+		Udjat::Value &users = value["users"];
+
+		UserList::Controller::getInstance().User::Controller::for_each([this,&users](shared_ptr<Udjat::User::Session> user) {
+			user->getProperties(users.append(Udjat::Value::Object));
+		});
+
+		return value;
+	}
+
+	bool Agent::getProperties(const char *path, Value &value) const {
+
+		if(super::getProperties(path,value)) {
+			return true;
+		}
+
+		debug("Searching for user '",path,"'");
+		for(auto user : UserList::Controller::getInstance()) {
+
+			if(!strcasecmp(user->name(),path)) {
+				user->getProperties(value);
+				return true;
+			}
+
 		}
 
 		return false;

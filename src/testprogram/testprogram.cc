@@ -35,6 +35,7 @@
 
 int main(int argc, char **argv) {
 
+	/*
 	class Service : public SystemService {
 	protected:
 		/// @brief Initialize service.
@@ -89,6 +90,14 @@ int main(int argc, char **argv) {
 	Service().run(argc,argv);
 
 	cout << "*** Test program finished" << endl;
+	*/
+
+	Logger::verbosity(9);
+	Logger::redirect();
+
+	udjat_module_init();
+
+	Application{}.run(argc,argv,"./test.xml");
 
 	return 0;
 
