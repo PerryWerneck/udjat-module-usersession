@@ -152,6 +152,8 @@
 		value["domain"] = "";
 #endif // !_WIN32
 
+		return value;
+
 	}
 
 	bool User::Session::getProperty(const char *key, std::string &value) const noexcept {

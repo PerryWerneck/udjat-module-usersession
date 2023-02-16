@@ -140,10 +140,6 @@
 		bool getProperties(const char *path, Value &value) const override;
 		bool getProperties(const char *path, Report &report) const override;
 
-		// void get(const Request &request, Report &report) override;
-		// void get(const Request &request, Response &response) override;
-
-
 	};
 
 	/// @brief Proxy for user's alerts.
