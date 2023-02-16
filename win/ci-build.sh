@@ -23,7 +23,7 @@ cd ${myDIR}
 # Build LIBUDJAT
 #
 echo "Building libudjat"
-mkdir -p  ${myDIR}/.build/libudjdat
+mkdir -p  ${myDIR}/.build/libudjat
 git clone https://github.com/PerryWerneck/libudjat.git ${myDIR}/.build/libudjat > $LOGFILE 2>&1 || die "clone libudjat failure"
 pushd ${myDIR}/.build/libudjat
 echo "Buindi module"
