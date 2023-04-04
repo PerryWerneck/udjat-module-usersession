@@ -139,7 +139,7 @@
 
 			if(!timer) {
 				this->warning() << "Agent 'update-timer' attribute is required to use 'pulse' alerts" << endl;
-				this->timer(timer);
+				this->timer(14400);
 			}
 
 			if(proxy.timer() < timer) {
