@@ -293,7 +293,7 @@
 		return false;
 	}
 
-	Value & Agent::getProperties(Value &value) const noexcept {
+	Value & Agent::getProperties(Value &value) const {
 		super::getProperties(value);
 
 		Udjat::Value &users = value["users"];

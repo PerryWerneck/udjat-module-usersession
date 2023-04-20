@@ -136,7 +136,7 @@
 
 		Value & get(Value &value) const override;
 
-		Value & getProperties(Value &value) const noexcept override;
+		Value & getProperties(Value &value) const override;
 		bool getProperties(const char *path, Value &value) const override;
 		bool getProperties(const char *path, Report &report) const override;
 

@@ -208,8 +208,8 @@
 
 			const char * name(bool update) const noexcept;
 
-			bool getProperty(const char *key, std::string &value) const noexcept override;
-			Value & getProperties(Value &value) const noexcept override;
+			bool getProperty(const char *key, std::string &value) const override;
+			Value & getProperties(Value &value) const override;
 
 			/// @brief Is this session a remote one?
 			bool remote() const;

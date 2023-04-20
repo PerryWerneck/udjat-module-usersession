@@ -130,7 +130,7 @@
 		return *this;
 	}
 
-	Udjat::Value & User::Session::getProperties(Udjat::Value &value) const noexcept {
+	Udjat::Value & User::Session::getProperties(Udjat::Value &value) const {
 
 		value["username"] = to_string();
 		value["remote"] = remote();
@@ -156,7 +156,7 @@
 
 	}
 
-	bool User::Session::getProperty(const char *key, std::string &value) const noexcept {
+	bool User::Session::getProperty(const char *key, std::string &value) const {
 
 		if(!strcasecmp(key,"username")) {
 			value = to_string();
