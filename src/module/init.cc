@@ -48,7 +48,7 @@
 		virtual ~Module() {
 		}
 
-		bool get(Request UDJAT_UNUSED(&request), Response &response) const override {
+		bool get(Request UDJAT_UNUSED(&request), Response::Value &response) const override {
 
 			response.reset(Value::Array);
 
