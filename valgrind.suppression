@@ -5,4 +5,11 @@
    fun:start_thread
    fun:clone
 }
+{
+   SystemBUS
+   Memcheck:Leak
+   ...
+   fun:sd_bus_new
+}
+
 

@@ -30,17 +30,19 @@
 
  namespace Udjat {
 
+#ifdef HAVE_DBUS
 	void User::Controller::deinit(std::shared_ptr<Session> session) {
 
-#ifdef HAVE_DBUS
 		if(session->bus) {
 			session->info() << "Disconnecting from user's bus" << endl;
 			((DBus::Connection *) session->bus)->unsubscribe(this);
 			delete ((DBus::Connection *) session->bus);
 			session->bus = nullptr;
 		}
-#endif // HAVE_DBUS
-
 	}
+#else
+	void User::Controller::deinit(std::shared_ptr<Session>) {
+	}
+#endif // HAVE_DBUS
 
  }

@@ -108,7 +108,14 @@
 #else
 			std::shared_ptr<Session> find(const char * sid);
 			std::thread *monitor = nullptr;
+
 			bool enabled = false;
+
+			/// @brief Event fd
+			int efd = -1;
+
+			void wakeup();
+
 #endif // _WIN32
 
 			/// @brief System is going to sleep.
