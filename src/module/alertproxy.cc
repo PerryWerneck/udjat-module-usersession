@@ -114,7 +114,7 @@
 		if(session.active()) {
 
 			if(!emit.active) {
-			Logger::String{"Denying alert '",alert->name(),"' by 'active' flag"}.write(Logger::Debug,session.name());
+				Logger::String{"Denying alert '",alert->name(),"' by 'active' flag"}.write(Logger::Debug,session.name());
 				return false;
 			}
 
