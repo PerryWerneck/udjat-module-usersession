@@ -37,11 +37,11 @@
 		</alert>
 
 		<!-- Activate when user is active on service stop -->
-		<alert name='stop' event='Still active'>
-		</alert>
+		<!-- alert name='stop' event='Still active'>
+		</alert -->
 
 		<!-- Activate on user logon -->
-		<alert name='login' max-retries='1'>
+		<alert name='login' max-retries='1' max-retries='1' action='post' url='http://localhost'>
 		</alert>
 
 		<!-- Activate on user logoff -->
@@ -49,7 +49,7 @@
 		</alert>
 
 		<!-- Timer -->
-		<alert name='pulse' interval='60' on-locked-session='no' max-retries='1'>
+		<alert name='pulse' interval='60' on-locked-session='no' max-retries='1' max-retries='1' action='post' url='http://localhost'>
 		</alert>
 
 		<!-- Activate on user lock -->
