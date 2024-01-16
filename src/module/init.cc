@@ -48,13 +48,13 @@
 		virtual ~Module() {
 		}
 
-		bool get(Request UDJAT_UNUSED(&request), Response::Value &response) const override {
+		bool get(Request &, Response::Value &response) const override {
 
 			response.reset(Value::Array);
 
 			for(auto session : UserList::Controller::getInstance()) {
 
-				Value &row = response.append(Value::Object);
+				Udjat::Value &row = response.append(Value::Object);
 
 				row["name"] = session->to_string();
 				row["remote"] = session->remote();
