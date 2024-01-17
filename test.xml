@@ -37,8 +37,8 @@
 		</alert>
 
 		<!-- Activate when user is active on service stop -->
-		<!-- alert name='stop' event='Still active'>
-		</alert -->
+		<alert name='stop' event='Still active'>
+		</alert>
 
 		<!-- Activate on user logon -->
 		<alert name='login' max-retries='1' max-retries='1' action='post' url='http://localhost'>
