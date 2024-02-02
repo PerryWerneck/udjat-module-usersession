@@ -34,6 +34,7 @@
 	namespace User {
 
 		class Session;
+		class UserBus;
 
 		/// @brief User events.
 		enum Event : uint16_t {
@@ -116,6 +117,9 @@
 
 			void wakeup();
 
+			class Bus;
+			std::shared_ptr<Bus> systembus;		///< @brief Connection with the system bus
+
 #endif // _WIN32
 
 			/// @brief System is going to sleep.
@@ -185,15 +189,17 @@
 
 #ifdef _WIN32
 
-			DWORD sid = 0;					///< @brief Windows Session ID.
+			DWORD sid = 0;						///< @brief Windows Session ID.
 #else
 
-			std::string sid;				///< @brief LoginD session ID.
-			std::string dbpath;				///< @brief D-Bus session path.
-			uid_t uid = -1;					///< @brief Session user id.
-			void *bus = nullptr;			///< @brief Connection with the user's bus
-			const char * cname = nullptr;	///< @brief Session class.
-			const char * sname = nullptr;	///< @brief Session service.
+			std::string sid;					///< @brief LoginD session ID.
+			std::string dbpath;					///< @brief D-Bus session path.
+			uid_t uid = -1;						///< @brief Session user id.
+			const char * cname = nullptr;		///< @brief Session class.
+			const char * sname = nullptr;		///< @brief Session service.
+
+			class Bus;
+			std::shared_ptr<Bus> userbus;		///< @brief Connection with the user's bus
 
 #endif // _WIN32
 

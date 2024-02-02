@@ -22,27 +22,15 @@
  #include <udjat/tools/configuration.h>
  #include <iostream>
 
-#ifdef HAVE_DBUS
+ #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
-#endif // HAVE_DBUS
+ #endif // HAVE_DBUS
 
  using namespace std;
 
  namespace Udjat {
 
-#ifdef HAVE_DBUS
-	void User::Controller::deinit(std::shared_ptr<Session> session) {
-
-		if(session->bus) {
-			session->info() << "Disconnecting from user's bus" << endl;
-			((DBus::Connection *) session->bus)->unsubscribe(this);
-			delete ((DBus::Connection *) session->bus);
-			session->bus = nullptr;
-		}
-	}
-#else
 	void User::Controller::deinit(std::shared_ptr<Session>) {
 	}
-#endif // HAVE_DBUS
 
  }

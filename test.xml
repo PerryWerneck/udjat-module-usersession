@@ -10,7 +10,7 @@
 	<!-- attribute name='url' value='sqlite+http://localhost' / -->
 	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${name}' />
 
-	<users name='users' update-timer='60'>
+	<agent type='users' name='users' update-timer='60'>
 	
 		<!--
 		
@@ -60,7 +60,7 @@
 		<!-- alert name='unlock'>
 		</alert -->
 		
-	</users>
+	</agent>
 	
 </config>
 

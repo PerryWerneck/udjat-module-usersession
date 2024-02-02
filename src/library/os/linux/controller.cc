@@ -42,8 +42,10 @@
  #include <pthread.h>
  #include <sys/eventfd.h>
 
+ #include "private.h"
+
  #ifdef HAVE_DBUS
-	#include <udjat/tools/dbus.h>
+	#include <udjat/tools/dbus/connection.h>
  #endif // HAVE_DBUS
 
  #ifdef HAVE_UNISTD_H
@@ -155,10 +157,28 @@
 		}
 
 #ifdef HAVE_DBUS
-		if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",true)) {
+
+		try {
+
+			if(!systembus) {
+				systembus = make_shared<User::Controller::Bus>();
+				cout << "Got system bus connection" << endl;
+			}
+
+		} catch(const std::exception &e) {
+
+			cerr << "users\tError '" << e.what() << "' connecting to system bus" << endl;
+
+		} catch(...) {
+
+			cerr << "users\tUnexpected error connecting to system bus" << endl;
+
+		}
+
+		if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",true) && systembus) {
+
 			try {
-				DBus::Connection::getSystemInstance().subscribe(
-					(void *) this,
+				systembus->subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForSleep",
 					[this](DBus::Message &message) {
@@ -176,10 +196,9 @@
 			}
 		}
 
-		if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",true)) {
+		if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",true) && systembus) {
 			try {
-				DBus::Connection::getSystemInstance().subscribe(
-					(void *) this,
+				systembus->subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForShutdown",
 					[this](DBus::Message &message) {
@@ -311,10 +330,6 @@
 		}
 
 		debug("Deactivating user controller");
-
-#ifdef HAVE_DBUS
-		DBus::Connection::getSystemInstance().unsubscribe(this);
-#endif // HAVE_DBUS
 
 		if(monitor) {
 

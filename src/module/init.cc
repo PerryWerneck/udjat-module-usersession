@@ -23,6 +23,7 @@
  #include <udjat/worker.h>
  #include <udjat/request.h>
  #include <udjat/moduleinfo.h>
+ #include <udjat/version.h>
 
  using namespace std;
 
@@ -48,6 +49,7 @@
 		virtual ~Module() {
 		}
 
+#if UDJAT_CHECK_VERSION(1,2,0)
 		bool get(Request &, Response::Value &response) const override {
 
 			response.reset(Value::Array);
@@ -66,6 +68,7 @@
 
 			return true;
 		}
+#endif // UDJAT_CHECK_VERSION
 
 	};
 
