@@ -23,6 +23,7 @@
  #include <udjat/worker.h>
  #include <udjat/request.h>
  #include <udjat/moduleinfo.h>
+ #include <udjat/version.h>
 
  using namespace std;
 
@@ -48,13 +49,14 @@
 		virtual ~Module() {
 		}
 
-		bool get(Request UDJAT_UNUSED(&request), Response &response) const override {
+#if UDJAT_CHECK_VERSION(1,2,0)
+		bool get(Request &, Response::Value &response) const override {
 
 			response.reset(Value::Array);
 
 			for(auto session : UserList::Controller::getInstance()) {
 
-				Value &row = response.append(Value::Object);
+				Udjat::Value &row = response.append(Value::Object);
 
 				row["name"] = session->to_string();
 				row["remote"] = session->remote();
@@ -66,6 +68,7 @@
 
 			return true;
 		}
+#endif // UDJAT_CHECK_VERSION
 
 	};
 

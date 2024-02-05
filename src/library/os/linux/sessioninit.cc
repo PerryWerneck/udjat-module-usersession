@@ -19,6 +19,7 @@
 
  #include <config.h>
  #include "private.h"
+ #include <udjat/tools/usersession.h>
  #include <udjat/tools/configuration.h>
  #include <systemd/sd-login.h>
  #include <iostream>
@@ -26,7 +27,7 @@
  #include <udjat/tools/logger.h>
 
  #ifdef HAVE_DBUS
-	#include <udjat/tools/dbus.h>
+	#include <udjat/tools/dbus/connection.h>
  #endif // HAVE_DBUS
 
  using namespace std;
@@ -65,17 +66,22 @@
 
 				string busname = session->getenv("DBUS_SESSION_BUS_ADDRESS");
 
-				if(!busname.empty()) {
+				if(busname.empty()) {
+
+					Logger::String{"Unable to get user bus address"}.trace(session->to_string().c_str());
+
+				} else {
 
 					// Connect to user's session bus.
 					// Using session->call because you've to change the euid to
 					// get access to the bus.
 					session->call([session, &busname](){
-						session->bus = (void *) new DBus::Connection(busname.c_str(),session->to_string().c_str());
+						Logger::String{"Connecting to ",busname.c_str()}.trace(session->to_string().c_str());
+						session->userbus = make_shared<User::Session::Bus>(session->to_string().c_str(),busname.c_str());
 					});
 
 					// Is the session locked?
-					((DBus::Connection *) session->bus)->call(
+					session->userbus->call(
 						"org.gnome.ScreenSaver",
 						"/org/gnome/ScreenSaver",
 						"org.gnome.ScreenSaver",
@@ -114,8 +120,7 @@
 					// This would be far more easier with the fix of the issue
 					// https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741#
 
-					((DBus::Connection *) session->bus)->subscribe(
-						(void *) session.get(),
+					session->userbus->subscribe(
 						"org.gnome.ScreenSaver",
 						"ActiveChanged",
 						[session](DBus::Message &message) {

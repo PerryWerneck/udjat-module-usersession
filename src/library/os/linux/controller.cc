@@ -40,10 +40,17 @@
  #include <udjat/tools/configuration.h>
  #include <udjat/tools/logger.h>
  #include <pthread.h>
+ #include <sys/eventfd.h>
 
-#ifdef HAVE_DBUS
-	#include <udjat/tools/dbus.h>
-#endif // HAVE_DBUS
+ #include "private.h"
+
+ #ifdef HAVE_DBUS
+	#include <udjat/tools/dbus/connection.h>
+ #endif // HAVE_DBUS
+
+ #ifdef HAVE_UNISTD_H
+	#include <unistd.h>
+ #endif // HAVE_UNISTD_H
 
  using namespace std;
 
@@ -54,9 +61,9 @@
 		char **ids = nullptr;
 		int idCount = sd_get_sessions(&ids);
 
-#ifdef DEBUG
+ #ifdef DEBUG
 		cout << "users\tRefreshing " << idCount << " sessions" << endl;
-#endif // DEBUG
+ #endif // DEBUG
 
 		lock_guard<mutex> lock(guard);
 
@@ -126,9 +133,16 @@
 	}
 
 	User::Controller::Controller() {
+		efd = eventfd(0,0);
+		if(efd < 0) {
+			Logger::String{"Error getting eventfd: ",strerror(errno)}.error("users");
+		}
 	}
 
 	User::Controller::~Controller() {
+		if(efd >= 0) {
+			::close(efd);
+		}
 		deactivate();
 	}
 
@@ -143,10 +157,28 @@
 		}
 
 #ifdef HAVE_DBUS
-		if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",true)) {
+
+		try {
+
+			if(!systembus) {
+				systembus = make_shared<User::Controller::Bus>();
+				cout << "Got system bus connection" << endl;
+			}
+
+		} catch(const std::exception &e) {
+
+			cerr << "users\tError '" << e.what() << "' connecting to system bus" << endl;
+
+		} catch(...) {
+
+			cerr << "users\tUnexpected error connecting to system bus" << endl;
+
+		}
+
+		if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",true) && systembus) {
+
 			try {
-				DBus::Connection::getSystemInstance().subscribe(
-					(void *) this,
+				systembus->subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForSleep",
 					[this](DBus::Message &message) {
@@ -164,10 +196,9 @@
 			}
 		}
 
-		if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",true)) {
+		if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",true) && systembus) {
 			try {
-				DBus::Connection::getSystemInstance().subscribe(
-					(void *) this,
+				systembus->subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForShutdown",
 					[this](DBus::Message &message) {
@@ -223,21 +254,30 @@
 			sd_login_monitor_new(NULL,&monitor);
 
 			while(enabled) {
-				struct pollfd pfd;
+
+				struct pollfd pfd[2];
 				memset(&pfd,0,sizeof(pfd));
 
-				pfd.fd = sd_login_monitor_get_fd(monitor);
-				pfd.events = sd_login_monitor_get_events(monitor) | SA_RESTART;
-				pfd.revents = 0;
+				pfd[0].fd = sd_login_monitor_get_fd(monitor);
+				pfd[0].events = sd_login_monitor_get_events(monitor) | SA_RESTART;
+				pfd[0].revents = 0;
+				pfd[1].fd = efd;
+				pfd[1].events = POLLIN;
+				pfd[1].revents = 0;
 
 				uint64_t timeout_usec = 10;
 				sd_login_monitor_get_timeout(monitor,&timeout_usec);
-				if(timeout_usec > 1000)
-					timeout_usec = 1000;
 
-				int rcPoll = poll(&pfd,1,timeout_usec);
+				if(efd < 0 && timeout_usec > 1000) {
+					timeout_usec = 1000;
+				}
+
+				int rcPoll = poll(pfd, 2, timeout_usec);
+				debug("rcPoll=",rcPoll);
+
 				switch(rcPoll) {
 				case 0:	// Timeout.
+					debug("Timeout waiting for event");
 					break;
 
 				case -1: // Error!!
@@ -248,7 +288,7 @@
 					break;
 
 				default:	// Has event.
-					if(pfd.revents) {
+					if(pfd[0].revents) {
 						sd_login_monitor_flush(monitor);
 						refresh();
 					}
@@ -263,6 +303,17 @@
 
 		cout << "users\tLogind monitor is now active" << endl;
 
+	}
+
+	void User::Controller::wakeup() {
+		if(efd >= 0) {
+			static uint64_t evNum = 1;
+			debug("wake-up event ",evNum);
+			if(write(efd, &evNum, sizeof(evNum)) != sizeof(evNum)) {
+				Logger::String{"Error '",strerror(errno),"' writing to event loop using fd ",efd}.error("users");
+			}
+			evNum++;
+		}
 	}
 
 	void User::Controller::deactivate() {
@@ -280,13 +331,13 @@
 
 		debug("Deactivating user controller");
 
-#ifdef HAVE_DBUS
-		DBus::Connection::getSystemInstance().unsubscribe(this);
-#endif // HAVE_DBUS
-
 		if(monitor) {
 
+			debug("enabled: ",enabled);
 			cout << "users\tWaiting for termination of logind monitor" << endl;
+
+			wakeup();
+
 			monitor->join();
 			deinit();
 			delete monitor;

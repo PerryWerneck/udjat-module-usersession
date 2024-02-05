@@ -22,14 +22,29 @@
  #include <config.h>
  #include <udjat/tools/usersession.h>
 
- /*
- class SignalListener {
- private:
-	User::Session * session = nullptr;
+ #ifdef HAVE_DBUS
+	#include <udjat/tools/dbus/connection.h>
+ #endif // HAVE_DBUS
 
- public:
- 	SignalListener(User::Session *s) : session(s);
- 	~SignalListener();
+ namespace Udjat {
 
- };
- */
+ #ifdef HAVE_DBUS
+	class User::Session::Bus : public Udjat::DBus::NamedBus {
+	public:
+		Bus(const char *busname, const char *name) : Udjat::DBus::NamedBus{busname,name} {
+		}
+
+	};
+
+	class User::Controller::Bus : public Udjat::DBus::SystemBus {
+	public:
+		Bus() : Udjat::DBus::SystemBus{} {
+		}
+
+	};
+
+ #endif // HAVE_DBUS
+
+ }
+
+
