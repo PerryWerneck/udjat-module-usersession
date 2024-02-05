@@ -66,13 +66,17 @@
 
 				string busname = session->getenv("DBUS_SESSION_BUS_ADDRESS");
 
-				if(!busname.empty()) {
+				if(busname.empty()) {
+
+					Logger::String{"Unable to get user bus address"}.trace(session->to_string().c_str());
+
+				} else {
 
 					// Connect to user's session bus.
 					// Using session->call because you've to change the euid to
 					// get access to the bus.
 					session->call([session, &busname](){
-						debug("-----------------------------------> Getting user bus");
+						Logger::String{"Connecting to ",busname.c_str()}.trace(session->to_string().c_str());
 						session->userbus = make_shared<User::Session::Bus>(session->to_string().c_str(),busname.c_str());
 					});
 
