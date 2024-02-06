@@ -21,7 +21,7 @@
 
 Summary:		User/Session module for %{product_name}
 Name:			udjat-module-users
-Version:		1.0
+Version:		1.1+git20240202
 Release:		0
 License:		LGPL-3.0
 Source:			%{name}-%{version}.tar.xz
@@ -99,7 +99,7 @@ make all
 %defattr(-,root,root)
 %{_includedir}/udjat/tools/*.h
 %{_libdir}/*.so
-%{_libdir}/*.a
+%exclude %{_libdir}/*.a
 %{_libdir}/pkgconfig/*.pc
 
 %pre -n libudjatusers%{_libvrs} -p /sbin/ldconfig

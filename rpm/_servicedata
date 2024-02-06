@@ -1,4 +1,4 @@
 <servicedata>
 <service name="tar_scm">
                 <param name="url">https://github.com/PerryWerneck/udjat-module-users</param>
-              <param name="changesrevision">0477c66003f6fa617a886e0fc365a99779319663</param></service></servicedata>
+              <param name="changesrevision">c8c358cfa5b632811f30f7c1dca1b4f7fe1d2777</param></service></servicedata>
