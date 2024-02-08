@@ -19,7 +19,7 @@
 
  #include <config.h>
  #include "private.h"
- #include <udjat/tools/usersession.h>
+ #include <udjat/tools/user/session.h>
  #include <udjat/tools/configuration.h>
  #include <systemd/sd-login.h>
  #include <iostream>
