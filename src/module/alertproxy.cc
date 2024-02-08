@@ -21,10 +21,12 @@
  #include <udjat/tools/object.h>
  #include <udjat/tools/logger.h>
  #include <udjat/tools/activatable.h>
+ #include <udjat/alert/user.h>
+ #include <udjat/agent/user.h>
 
  using namespace Udjat;
 
- UserList::AlertProxy::AlertProxy(const pugi::xml_node &node, std::shared_ptr<Activatable> a)
+ Udjat::User::Alert::Alert(const XML::Node &node, std::shared_ptr<Activatable> a)
 		 : event{User::EventFactory(node)}, alert{a} {
 
 	const char *group = node.attribute("settings-from").as_string("alert-defaults");
@@ -80,7 +82,7 @@
 
  }
 
- void UserList::AlertProxy::activate(const Agent &agent, const Session &session) {
+ void Udjat::User::Alert::activate(const Agent &agent, const Session &session) {
 
 	alert->activate([&agent,&session](const char *key, std::string &value){
 
@@ -97,7 +99,7 @@
 
  }
 
- bool UserList::AlertProxy::test(const Udjat::User::Session &session) const noexcept {
+ bool Udjat::User::Alert::test(const Udjat::User::Session &session) const noexcept {
 
 	try {
 

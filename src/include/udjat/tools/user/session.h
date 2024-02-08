@@ -39,6 +39,7 @@
 
 		/// @brief User events.
 		enum Event : uint16_t {
+			no_event		= 0x0000,		///< @brief Event is undefined
 			already_active	= 0x0001,		///< @brief Session is active on controller startup.
 			still_active	= 0x0002,		///< @brief Session is active on controller shutdown.
 			logon			= 0x0004,		///< @brief User logon detected.

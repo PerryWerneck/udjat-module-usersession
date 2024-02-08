@@ -45,6 +45,7 @@
 	class Agent;
 	class AlertProxy;
 
+	/*
 	/// @brief User Session Agent
 	class UDJAT_PRIVATE Session : public Udjat::User::Session {
 	private:
@@ -69,10 +70,12 @@
 		}
 
 	};
+	*/
 
 	/// @brief Module info
 	extern const Udjat::ModuleInfo info;
 
+	/*
 	/// @brief Singleton with the real userlist.
 	class UDJAT_PRIVATE Controller : public Udjat::User::Controller, private Udjat::Service {
 	private:
@@ -108,8 +111,10 @@
 		}
 
 	};
+	*/
 
 	/// @brief Userlist agent.
+	/*
 	class UDJAT_PRIVATE Agent : public Udjat::Abstract::Agent {
 	private:
 		std::list<AlertProxy> proxies;
@@ -143,8 +148,10 @@
 		bool getProperties(const char *path, Report &report) const override;
 
 	};
+	*/
 
 	/// @brief Proxy for user's alerts.
+	/*
 	class UDJAT_PRIVATE AlertProxy  {
 	private:
 
@@ -182,12 +189,6 @@
 		// Emit alert.
 		void activate(const Agent &agent, const Session &session);
 
-		/*
-		inline std::shared_ptr<Udjat::Alert::Activation> ActivationFactory() const {
-			return alert->ActivationFactory();
-		}
-		*/
-
 		bool test(const Udjat::User::Session &session) const noexcept;
 
 		inline bool test(Udjat::User::Event event) const noexcept {
@@ -200,6 +201,7 @@
 		}
 
 	};
+	*/
 
  }
 

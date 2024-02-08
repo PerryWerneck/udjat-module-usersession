@@ -29,6 +29,8 @@
 
 	namespace User {
 
+		class Agent;
+
 		/// @brief User session controller/watcher.
 		class UDJAT_API Controller {
 		private:
@@ -90,19 +92,21 @@
 			/// @brief System is shutting down.
 			void shutdown();
 
-		protected:
-
 			/// @brief Session factory called every time the controller detects a new user session.
 			virtual std::shared_ptr<Session> SessionFactory() noexcept;
 
 			/// @brief Update session list from system.
 			void refresh() noexcept;
 
+			Controller();
+
 		public:
+
 			Controller(Controller &) = delete;
 			Controller(Controller *) = delete;
 
-			Controller();
+			static Controller & getInstance();
+
 			virtual ~Controller();
 
 			/// @brief Start monitor, load sessions.
@@ -112,6 +116,8 @@
 			void deactivate();
 
 			void for_each(std::function<void(std::shared_ptr<Session>)> callback);
+
+			bool for_each(const std::function<bool(User::Agent &agent)> &callback);
 
 			inline size_t size() const {
 				return sessions.size();
@@ -124,6 +130,10 @@
 			inline auto end() {
 				return sessions.end();
 			}
+
+			void push_back(User::Agent *agent);
+
+			void remove(User::Agent *agent);
 
 		};
 

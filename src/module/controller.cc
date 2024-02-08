@@ -17,6 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ /*
  #include <config.h>
  #include "private.h"
  #include <udjat/tools/threadpool.h>
@@ -41,10 +42,4 @@
  	Udjat::User::Controller::deactivate();
  }
 
- /*
- void UserList::Controller::for_each(std::function<void(UserList::Agent &agent)> callback) {
-	for(auto agent : agents) {
-		callback(*agent);
-	}
- }
  */

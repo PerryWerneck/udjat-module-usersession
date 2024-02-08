@@ -24,6 +24,7 @@
  #include <udjat/request.h>
  #include <udjat/moduleinfo.h>
  #include <udjat/version.h>
+ #include <udjat/agent/user.h>
 
  using namespace std;
 
@@ -38,7 +39,7 @@
 	protected:
 
 		std::shared_ptr<Abstract::Agent> AgentFactory(const Abstract::Object UDJAT_UNUSED(&parent), const pugi::xml_node &node) const override {
-			return make_shared<UserList::Agent>(node);
+			return make_shared<User::Agent>(node);
 		}
 
 	public:

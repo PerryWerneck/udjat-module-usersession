@@ -20,6 +20,7 @@
  #pragma once
 
  #include <config.h>
+ #include <udjat/defs.h>
  #include <udjat/tools/user/session.h>
  #include <private/controller.h>
 
