@@ -37,7 +37,8 @@
 			<Add directory="src/include" />
 		</Compiler>
 		<Unit filename="src/include/config.h" />
-		<Unit filename="src/include/udjat/tools/usersession.h" />
+		<Unit filename="src/include/private/controller.h" />
+		<Unit filename="src/include/udjat/tools/user/session.h" />
 		<Unit filename="src/library/controller.cc" />
 		<Unit filename="src/library/events.cc" />
 		<Unit filename="src/library/os/linux/controller.cc" />

@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #include <udjat/tools/usersession.h>
+ #include <udjat/tools/user/session.h>
  #include <iostream>
  #include <windows.h>
  #include <wtsapi32.h>

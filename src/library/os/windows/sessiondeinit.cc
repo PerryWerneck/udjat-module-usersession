@@ -20,7 +20,7 @@
  #include <config.h>
  #include <udjat/tools/configuration.h>
  #include <iostream>
- #include <udjat/tools/usersession.h>
+ #include <udjat/tools/user/session.h>
 
 #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>

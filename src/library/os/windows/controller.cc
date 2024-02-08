@@ -23,7 +23,7 @@
  #include <wtsapi32.h>
  #include <udjat/win32/exception.h>
 
- #include <udjat/tools/usersession.h>
+ #include <udjat/tools/user/session.h>
  #include <udjat/win32/exception.h>
  #include <udjat/tools/logger.h>
  #include <cstring>
