@@ -37,12 +37,15 @@
 			<Add directory="src/include" />
 		</Compiler>
 		<Unit filename="src/include/config.h" />
-		<Unit filename="src/include/private/controller.h" />
 		<Unit filename="src/include/udjat/agent/user.h" />
 		<Unit filename="src/include/udjat/alert/user.h" />
+		<Unit filename="src/include/udjat/tools/user/list.h" />
 		<Unit filename="src/include/udjat/tools/user/session.h" />
+		<Unit filename="src/library/agent.cc" />
+		<Unit filename="src/library/alert.cc" />
 		<Unit filename="src/library/controller.cc" />
 		<Unit filename="src/library/events.cc" />
+		<Unit filename="src/library/list.cc" />
 		<Unit filename="src/library/os/linux/controller.cc" />
 		<Unit filename="src/library/os/linux/environment.cc" />
 		<Unit filename="src/library/os/linux/private.h" />
@@ -55,8 +58,6 @@
 		<Unit filename="src/library/os/windows/sessiondeinit.cc" />
 		<Unit filename="src/library/os/windows/sessioninit.cc" />
 		<Unit filename="src/library/session.cc" />
-		<Unit filename="src/module/agent.cc" />
-		<Unit filename="src/module/alertproxy.cc" />
 		<Unit filename="src/module/controller.cc" />
 		<Unit filename="src/module/init.cc" />
 		<Unit filename="src/module/private.h" />

@@ -22,6 +22,8 @@
  #include <udjat/tools/user/session.h>
  #include <iostream>
  #include <cstring>
+ #include <udjat/tools/user/list.h>
+ #include <udjat/agent/user.h>
 
  using namespace std;
 
@@ -78,17 +80,6 @@
 			name(true);
 		}
 		return username;
-	}
-
-	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
-#ifdef DEBUG
-		trace() << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
-				<< " Alive=" << (alive() ? "Yes" : "No")
-				<< " Remote=" << (remote() ? "Yes" : "No")
-				<< " User=" << to_string()
-				<< endl;
-#endif // DEBUG
-		return *this;
 	}
 
 	User::Session & User::Session::set(User::State state) {
@@ -226,6 +217,24 @@
 	const char * User::Session::name() const noexcept {
 		return name(false);
 	}
+
+ 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
+
+#ifdef DEBUG
+		trace() << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
+				<< " Alive=" << (alive() ? "Yes" : "No")
+				<< " Remote=" << (remote() ? "Yes" : "No")
+				<< " User=" << to_string()
+				<< endl;
+#endif // DEBUG
+
+		List::getInstance().for_each([this,event](User::Agent &ag){
+			ag.onEvent(*this,event);
+			return false;
+		});
+
+		return *this;
+ 	}
 
  }
 

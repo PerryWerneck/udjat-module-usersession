@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #include "private.h"
  #include <udjat/tools/object.h>
  #include <udjat/agent/abstract.h>
  #include <udjat/alert/activation.h>
@@ -25,7 +24,7 @@
  #include <udjat/tools/threadpool.h>
  #include <udjat/tools/logger.h>
  #include <udjat/agent/user.h>
- #include <private/controller.h>
+ #include <udjat/tools/user/list.h>
  #include <udjat/alert/user.h>
 
  using namespace std;
@@ -34,7 +33,7 @@
 
 	User::Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node) {
 
-		User::Controller::getInstance().push_back(this);
+		User::List::getInstance().push_back(this);
 
 		if(!(properties.icon && *properties.icon)) {
 			properties.icon = "user-info";
@@ -45,7 +44,7 @@
 	}
 
 	User::Agent::~Agent() {
-		User::Controller::getInstance().remove(this);
+		User::List::getInstance().remove(this);
 	}
 
 	time_t User::Agent::get() const noexcept {
@@ -149,7 +148,7 @@
 
 		report.start("username","state","locked","remote","system","domain","display","type","service","class","activity","pulsetime",nullptr);
 
-		User::Controller::getInstance().for_each([this,&report](shared_ptr<Udjat::User::Session> user) {
+		User::List::getInstance().for_each([this,&report](shared_ptr<Udjat::User::Session> user) {
 
 			report.push_back(user->name());
 
@@ -198,6 +197,7 @@
 			}
 			*/
 			report.push_back("");
+			return false;
 
 		});
 
@@ -211,7 +211,7 @@
 #endif // DEBUG
 
 		time_t required_wait = timers.max_pulse_check;
-		User::Controller::getInstance().for_each([this,&required_wait](shared_ptr<Udjat::User::Session> session) {
+		User::List::getInstance().for_each([this,&required_wait](shared_ptr<Udjat::User::Session> session) {
 
 			time_t idletime = time(0) - alert_timestamp;	// Get time since last alert.
 
@@ -243,6 +243,7 @@
 
 			}
 
+			return false;
 		});
 
 		if(required_wait) {
@@ -258,8 +259,9 @@
 
 		Udjat::Value &users = value["users"];
 
-		User::Controller::getInstance().for_each([this,&users](shared_ptr<Udjat::User::Session> user) {
+		User::List::getInstance().for_each([this,&users](shared_ptr<Udjat::User::Session> user) {
 			user->getProperties(users.append(Udjat::Value::Object));
+			return false;
 		});
 
 		return value;
@@ -272,7 +274,7 @@
 		}
 
 		debug("Searching for user '",path,"'");
-		for(auto user : User::Controller::getInstance()) {
+		for(auto user : User::List::getInstance()) {
 
 			if(!strcasecmp(user->name(),path)) {
 				user->getProperties(value);

@@ -30,7 +30,7 @@
 
  namespace Udjat {
 
-	void User::Controller::deinit(std::shared_ptr<Session> UDJAT_UNUSED(session)) {
+	void User::List::deinit(std::shared_ptr<Session> UDJAT_UNUSED(session)) {
 
 	}
 

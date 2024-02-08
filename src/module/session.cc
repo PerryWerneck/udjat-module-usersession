@@ -17,23 +17,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ /*
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/agent/user.h>
  #include <udjat/tools/user/session.h>
- #include <private/controller.h>
+ #include <udjat/tools/user/list.h>
 
  namespace Udjat {
 
- 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
-
-		Controller::getInstance().for_each([this,event](User::Agent &ag){
-			ag.onEvent(*this,event);
-			return false;
-		});
-
-		return *this;
- 	}
 
  }
+ */
 

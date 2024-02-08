@@ -36,12 +36,12 @@
 
  namespace Udjat {
 
-	void User::Controller::refresh() noexcept {
+	void User::List::refresh() noexcept {
 		PostMessage(hwnd,WM_REFRESH,0,0);
 	}
 
 	/// @brief Find session (Requires an active guard!!!)
-	std::shared_ptr<User::Session> User::Controller::find(const DWORD sid, bool create) {
+	std::shared_ptr<User::Session> User::List::find(const DWORD sid, bool create) {
 
 		for(auto session : sessions) {
 			if(session->sid == sid) {
@@ -64,7 +64,7 @@
 
 	}
 
-	User::Controller::Controller() {
+	User::List::Controller() {
 
 		//
 		// Register a new object window class
@@ -93,13 +93,13 @@
 
 	}
 
-	User::Controller::~Controller() {
+	User::List::~Controller() {
 		if(hwnd) {
 			DestroyWindow(hwnd);
 		}
 	}
 
-	void User::Controller::activate() {
+	void User::List::activate() {
 
 		lock_guard<mutex> lock(guard);
 
@@ -136,7 +136,7 @@
 
 	}
 
-	void User::Controller::deactivate() {
+	void User::List::deactivate() {
 
 		if(hwnd) {
 			cout << "users\tStopping user session monitor" << endl;
@@ -145,7 +145,7 @@
 
 	}
 
-	void User::Controller::load(bool starting) noexcept {
+	void User::List::load(bool starting) noexcept {
 
 		WTS_SESSION_INFO	* sessions;
 		DWORD 				  count = 0;
@@ -236,7 +236,7 @@
 
 	}
 
-	LRESULT WINAPI User::Controller::hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	LRESULT WINAPI User::List::hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 		User::Controller & controller = *((User::Controller *) GetWindowLongPtr(hWnd,0));
 

@@ -17,14 +17,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #include "private.h"
  #include <udjat/tools/object.h>
  #include <udjat/tools/logger.h>
  #include <udjat/tools/activatable.h>
  #include <udjat/alert/user.h>
  #include <udjat/agent/user.h>
+ #include <iostream>
 
  using namespace Udjat;
+ using namespace std;
 
  Udjat::User::Alert::Alert(const XML::Node &node, std::shared_ptr<Activatable> a)
 		 : event{User::EventFactory(node)}, alert{a} {

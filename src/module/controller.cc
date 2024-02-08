@@ -35,11 +35,11 @@
  }
 
  void UserList::Controller::start() {
- 	Udjat::User::Controller::activate();
+ 	Udjat::User::List::activate();
  }
 
  void UserList::Controller::stop() {
- 	Udjat::User::Controller::deactivate();
+ 	Udjat::User::List::deactivate();
  }
 
  */

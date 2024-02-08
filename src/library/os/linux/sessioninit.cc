@@ -34,7 +34,7 @@
 
  namespace Udjat {
 
-	void User::Controller::init(std::shared_ptr<Session> session) {
+	void User::List::init(std::shared_ptr<Session> session) {
 
 		// Get UID (if available).
 		if(sd_session_get_uid(session->sid.c_str(), &session->uid) < 0) {

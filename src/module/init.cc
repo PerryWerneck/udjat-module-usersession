@@ -25,29 +25,38 @@
  #include <udjat/moduleinfo.h>
  #include <udjat/version.h>
  #include <udjat/agent/user.h>
+ #include <udjat/tools/user/list.h>
 
  using namespace std;
-
- const Udjat::ModuleInfo UserList::info{"Users monitor"};
 
  /// @brief Register udjat module.
  Udjat::Module * udjat_module_init() {
 
-	class Module : public Udjat::Module, private Udjat::Worker, private Udjat::Factory {
+	static const Udjat::ModuleInfo modinfo{"Users management module"};
+
+	class Module : public Udjat::Module, private Udjat::Worker, private Udjat::Factory, private Udjat::Service {
 	private:
 
 	protected:
 
-		std::shared_ptr<Abstract::Agent> AgentFactory(const Abstract::Object UDJAT_UNUSED(&parent), const pugi::xml_node &node) const override {
+		std::shared_ptr<Abstract::Agent> AgentFactory(const Abstract::Object &, const XML::Node &node) const override {
 			return make_shared<User::Agent>(node);
 		}
 
 	public:
 
-		Module() : Udjat::Module("users",UserList::info), Udjat::Worker("users",UserList::info), Udjat::Factory("users",UserList::info) {
+		Module() : Udjat::Module("users",modinfo), Udjat::Worker("userlist",modinfo), Udjat::Factory("users",modinfo), Udjat::Service("userlist",modinfo) {
 		};
 
 		virtual ~Module() {
+		}
+
+		void start() override {
+			User::List::getInstance().activate();
+		}
+
+		void stop() override {
+			User::List::getInstance().deactivate();
 		}
 
 #if UDJAT_CHECK_VERSION(1,2,0)

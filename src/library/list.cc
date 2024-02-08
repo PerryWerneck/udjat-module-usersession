@@ -19,7 +19,7 @@
 
  #include <config.h>
  #include <udjat/tools/user/session.h>
- #include <private/controller.h>
+ #include <udjat/tools/user/list.h>
 
  #include <cstring>
  #include <iostream>
@@ -28,7 +28,7 @@
 
  namespace Udjat {
 
-	void User::Controller::init() noexcept {
+	void User::List::init() noexcept {
 
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
@@ -39,7 +39,7 @@
 
 	}
 
-	void User::Controller::deinit() noexcept {
+	void User::List::deinit() noexcept {
 
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
@@ -59,19 +59,32 @@
 
 	}
 
-	std::shared_ptr<User::Session> User::Controller::SessionFactory() noexcept {
+	std::shared_ptr<User::Session> User::List::SessionFactory() noexcept {
 		// Default method, just create an empty session.
 		return make_shared<User::Session>();
 	}
 
-	void User::Controller::for_each(std::function<void(std::shared_ptr<Session>)> callback) {
+	bool User::List::for_each(const std::function<bool(std::shared_ptr<Session>)> &callback) {
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
-			callback(session);
+			if(callback(session)) {
+				return true;
+			}
 		}
+		return false;
 	}
 
-	void User::Controller::sleep() {
+	bool User::List::for_each(const std::function<bool(User::Agent &agent)> &callback) {
+		lock_guard<mutex> lock(guard);
+		for(User::Agent *agent : agents) {
+			if(callback(*agent)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void User::List::sleep() {
 		cout << "users\tSystem is preparing to sleep" << endl;
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
@@ -79,7 +92,7 @@
 		}
 	}
 
-	void User::Controller::resume() {
+	void User::List::resume() {
 		cout << "users\tSystem is resuming from sleep" << endl;
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {
@@ -87,7 +100,7 @@
 		}
 	}
 
-	void User::Controller::shutdown() {
+	void User::List::shutdown() {
 		cout << "users\tSystem is preparing to shutdown" << endl;
 		lock_guard<mutex> lock(guard);
 		for(auto session : sessions) {

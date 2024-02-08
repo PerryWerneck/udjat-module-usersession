@@ -56,7 +56,7 @@
 
  namespace Udjat {
 
- 	void User::Controller::refresh() noexcept {
+ 	void User::List::refresh() noexcept {
 
 		char **ids = nullptr;
 		int idCount = sd_get_sessions(&ids);
@@ -115,7 +115,7 @@
 	}
 
 	/// @brief Find session (Requires an active guard!!!)
-	std::shared_ptr<User::Session> User::Controller::find(const char * sid) {
+	std::shared_ptr<User::Session> User::List::find(const char * sid) {
 
 		for(auto session : sessions) {
 			if(!strcmp(session->sid.c_str(),sid)) {
@@ -132,21 +132,21 @@
 		return session;
 	}
 
-	User::Controller::Controller() {
+	User::List::List() {
 		efd = eventfd(0,0);
 		if(efd < 0) {
 			Logger::String{"Error getting eventfd: ",strerror(errno)}.error("users");
 		}
 	}
 
-	User::Controller::~Controller() {
+	User::List::~List() {
 		if(efd >= 0) {
 			::close(efd);
 		}
 		deactivate();
 	}
 
-	void User::Controller::activate() {
+	void User::List::activate() {
 
 		{
 			lock_guard<mutex> lock(guard);
@@ -161,7 +161,7 @@
 		try {
 
 			if(!systembus) {
-				systembus = make_shared<User::Controller::Bus>();
+				systembus = make_shared<User::List::Bus>();
 				cout << "Got system bus connection" << endl;
 			}
 
@@ -305,7 +305,7 @@
 
 	}
 
-	void User::Controller::wakeup() {
+	void User::List::wakeup() {
 		if(efd >= 0) {
 			static uint64_t evNum = 1;
 			debug("wake-up event ",evNum);
@@ -316,7 +316,7 @@
 		}
 	}
 
-	void User::Controller::deactivate() {
+	void User::List::deactivate() {
 
 		debug(__FUNCTION__);
 

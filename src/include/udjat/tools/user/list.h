@@ -18,7 +18,7 @@
  */
 
  /**
-  * @brief Declares user list controler/handler.
+  * @brief Declares the user list.
   */
 
  #pragma once
@@ -31,8 +31,8 @@
 
 		class Agent;
 
-		/// @brief User session controller/watcher.
-		class UDJAT_API Controller {
+		/// @brief Singleton with the user's list.
+		class UDJAT_API List {
 		private:
 
 			std::mutex guard;
@@ -98,16 +98,16 @@
 			/// @brief Update session list from system.
 			void refresh() noexcept;
 
-			Controller();
+			List();
 
 		public:
 
-			Controller(Controller &) = delete;
-			Controller(Controller *) = delete;
+			List(Controller &) = delete;
+			List(Controller *) = delete;
 
-			static Controller & getInstance();
+			static List & getInstance();
 
-			virtual ~Controller();
+			virtual ~List();
 
 			/// @brief Start monitor, load sessions.
 			void activate();
@@ -115,7 +115,7 @@
 			/// @brief Stop monitor, unload sessions.
 			void deactivate();
 
-			void for_each(std::function<void(std::shared_ptr<Session>)> callback);
+			bool for_each(const std::function<bool(std::shared_ptr<Session>)> &callback);
 
 			bool for_each(const std::function<bool(User::Agent &agent)> &callback);
 

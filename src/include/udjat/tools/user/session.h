@@ -81,7 +81,7 @@
 		/// @brief User session.
 		class UDJAT_API Session : public Udjat::Abstract::Object {
 		private:
-			friend class Controller;
+			friend class List;
 
 			struct {
 				State state = User::SessionInUnknownState;	///< @brief Current user state.
