@@ -19,7 +19,7 @@
 
  #include <config.h>
  #include <udjat/tools/intl.h>
- #include <udjat/tools/user/session.h>
+ #include <udjat/tools/usersession.h>
  #include <iostream>
  #include <cstring>
 

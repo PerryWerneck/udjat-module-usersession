@@ -18,8 +18,7 @@
  */
 
  #include <config.h>
- #include <udjat/tools/user/session.h>
- #include <private/controller.h>
+ #include <udjat/tools/usersession.h>
 
  #include <cstring>
  #include <iostream>

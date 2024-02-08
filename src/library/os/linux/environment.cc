@@ -18,7 +18,7 @@
  */
 
  #include <config.h>
- #include <udjat/tools/user/session.h>
+ #include <udjat/tools/usersession.h>
  #include <dirent.h>
  #include <systemd/sd-login.h>
  #include <cstdlib>

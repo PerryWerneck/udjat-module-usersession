@@ -21,7 +21,7 @@
  #include <udjat/tools/configuration.h>
  #include <iostream>
  #include <udjat/tools/threadpool.h>
- #include <udjat/tools/user/session.h>
+ #include <udjat/tools/usersession.h>
 
  #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>

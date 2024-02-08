@@ -21,7 +21,7 @@
 
  #include <config.h>
  #include <udjat/defs.h>
- #include <udjat/tools/user/session.h>
+ #include <udjat/tools/usersession.h>
  #include <udjat/tools/mainloop.h>
  #include <udjat/tools/container.h>
  #include <udjat/tools/logger.h>
@@ -33,7 +33,6 @@
  #include <udjat/request.h>
  #include <list>
  #include <memory>
- #include <private/controller.h>
 
  class Controller;
 
