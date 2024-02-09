@@ -220,13 +220,24 @@
 
  	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 
+		if(Logger::enabled(Logger::Trace)) {
+			Logger::String{
+				"--------> ",std::to_string(event)," sid=",this->sid,
+				" alive=",alive(),
+				" remote=",remote()
+			}.trace(name());
+		}
+
+		/*
 #ifdef DEBUG
+
 		trace() << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
 				<< " Alive=" << (alive() ? "Yes" : "No")
 				<< " Remote=" << (remote() ? "Yes" : "No")
 				<< " User=" << to_string()
 				<< endl;
 #endif // DEBUG
+		*/
 
 		List::getInstance().for_each([this,event](User::Agent &ag){
 			ag.onEvent(*this,event);

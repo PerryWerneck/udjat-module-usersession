@@ -119,7 +119,6 @@
 
 					// This would be far more easier with the fix of the issue
 					// https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741#
-
 					userbus->subscribe(
 						"org.gnome.ScreenSaver",
 						"ActiveChanged",
@@ -138,6 +137,21 @@
 
 						}
 					);
+
+					// Another gnome signal from https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/wip/jimmac/typography/data/dbus-interfaces/org.gnome.ScreenSaver.xml
+					// Why is it not sending 'ActiveChanged' anymore?
+					/*
+					userbus->subscribe(
+						"org.gnome.ScreenSaver",
+						"WakeUpScreen",
+						[this](DBus::Message &) {
+
+							debug("Gnome screen saver WakeUpScreen signal");
+
+
+						}
+					);
+					*/
 
 				}
 
