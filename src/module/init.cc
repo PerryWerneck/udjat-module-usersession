@@ -64,7 +64,7 @@
 
 			response.reset(Value::Array);
 
-			for(auto session : UserList::Controller::getInstance()) {
+			for(auto session : User::List::getInstance()) {
 
 				Udjat::Value &row = response.append(Value::Object);
 

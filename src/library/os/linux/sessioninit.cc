@@ -125,7 +125,6 @@
 						[this](DBus::Message &message) {
 
 							// Active state of gnome screensaver has changed, deal with it.
-
 							bool locked = DBus::Value(message).as_bool();
 							if(locked != flags.locked) {
 								info() << "Gnome screensaver is now " << (locked ? "active" : "inactive") << endl;
@@ -139,19 +138,15 @@
 					);
 
 					// Another gnome signal from https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/wip/jimmac/typography/data/dbus-interfaces/org.gnome.ScreenSaver.xml
-					// Why is it not sending 'ActiveChanged' anymore?
-					/*
 					userbus->subscribe(
 						"org.gnome.ScreenSaver",
 						"WakeUpScreen",
 						[this](DBus::Message &) {
 
-							debug("Gnome screen saver WakeUpScreen signal");
-
+							Logger::String{"Gnome screen saver WakeUpScreen signal"}.trace(name());
 
 						}
 					);
-					*/
 
 				}
 
