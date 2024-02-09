@@ -148,28 +148,27 @@
 
 		report.start("username","state","locked","remote","system","domain","display","type","service","class","activity","pulsetime",nullptr);
 
-		User::List::getInstance().for_each([this,&report](shared_ptr<Udjat::User::Session> user) {
+		User::List::getInstance().for_each([this,&report](Udjat::User::Session &user) {
 
-			report.push_back(user->name());
+			report.push_back(user.name());
 
-			report.push_back(user->state());
-			report.push_back(user->locked());
-			report.push_back(user->remote());
-			report.push_back(user->system());
+			report.push_back(user.state());
+			report.push_back(user.locked());
+			report.push_back(user.remote());
+			report.push_back(user.system());
 #ifdef _WIN32
-			report.push_back(user->domain());
+			report.push_back(user.domain());
 			report.push_back(""); // display
 			report.push_back(""); // type
 			report.push_back(""); // service
 			report.push_back(""); // classname
 #else
 			report.push_back(""); // domain
-			report.push_back(user->display());
-			report.push_back(user->type());
-			report.push_back(user->service());
-			report.push_back(user->classname());
+			report.push_back(user.display());
+			report.push_back(user.type());
+			report.push_back(user.service());
+			report.push_back(user.classname());
 #endif // _WIN32
-					;
 
 			/*
 			FIXME: Get pulse time
@@ -211,7 +210,7 @@
 #endif // DEBUG
 
 		time_t required_wait = timers.max_pulse_check;
-		User::List::getInstance().for_each([this,&required_wait](shared_ptr<Udjat::User::Session> session) {
+		User::List::getInstance().for_each([this,&required_wait](Udjat::User::Session &session) {
 
 			time_t idletime = time(0) - alert_timestamp;	// Get time since last alert.
 
@@ -219,14 +218,14 @@
 
 				auto timer = alert.timer();	// Get alert timer.
 
-				if(timer && alert.test(User::pulse) && alert.test(*session)) {
+				if(timer && alert.test(User::pulse) && alert.test(session)) {
 
 					// Check for pulse.
 					if(timer <= idletime) {
 
 						Logger::String{"Emitting PULSE (idletime=",idletime," alert-timer=",alert.timer(),")"}.write(Logger::Debug,name());
 
-						alert.activate(*this,*session);
+						alert.activate(*this,session);
 
 						required_wait = std::min(required_wait,timer);
 						Logger::String{"Will wait for ",timer," seconds"}.write(Logger::Debug,name());
@@ -259,8 +258,8 @@
 
 		Udjat::Value &users = value["users"];
 
-		User::List::getInstance().for_each([this,&users](shared_ptr<Udjat::User::Session> user) {
-			user->getProperties(users.append(Udjat::Value::Object));
+		User::List::getInstance().for_each([this,&users](Udjat::User::Session &user) {
+			user.getProperties(users.append(Udjat::Value::Object));
 			return false;
 		});
 

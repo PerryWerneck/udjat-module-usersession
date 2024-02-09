@@ -35,10 +35,10 @@
 		class UDJAT_API List {
 		private:
 
-			std::mutex guard;
+			std::recursive_mutex guard;
 
 			/// @brief Session list.
-			std::list<std::shared_ptr<Session>> sessions;
+			std::list<Session *> sessions;
 
 			/// @brief Agent list.
 			std::list<Agent *> agents;
@@ -50,10 +50,10 @@
 			void deinit() noexcept;
 
 			/// @brief Initialize session.
-			void init(std::shared_ptr<Session> session);
+			void init(Session &session);
 
 			/// @brief Deinitialize session.
-			void deinit(std::shared_ptr<Session> session);
+			void deinit(Session &session);
 
 #ifdef _WIN32
 
@@ -68,7 +68,7 @@
 
 #else
 
-			std::shared_ptr<Session> find(const char * sid);
+			Session & find(const char * sid);
 			std::thread *monitor = nullptr;
 
 			bool enabled = false;
@@ -92,9 +92,6 @@
 			/// @brief System is shutting down.
 			void shutdown();
 
-			/// @brief Session factory called every time the controller detects a new user session.
-			virtual std::shared_ptr<Session> SessionFactory() noexcept;
-
 			/// @brief Update session list from system.
 			void refresh() noexcept;
 
@@ -115,7 +112,7 @@
 			/// @brief Stop monitor, unload sessions.
 			void deactivate();
 
-			bool for_each(const std::function<bool(std::shared_ptr<Session>)> &callback);
+			bool for_each(const std::function<bool(User::Session &session)> &callback);
 
 			bool for_each(const std::function<bool(User::Agent &agent)> &callback);
 
@@ -132,9 +129,10 @@
 			}
 
 			void push_back(User::Agent *agent);
-
 			void remove(User::Agent *agent);
 
+			void push_back(User::Session *session);
+			void remove(User::Session *session);
 		};
 
 	}

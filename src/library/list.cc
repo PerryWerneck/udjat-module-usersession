@@ -28,9 +28,14 @@
 
  namespace Udjat {
 
+	User::List & User::List::getInstance() {
+		static User::List instance;
+		return instance;
+	}
+
 	void User::List::init() noexcept {
 
-		lock_guard<mutex> lock(guard);
+		lock_guard<recursive_mutex> lock(guard);
 		for(auto session : sessions) {
 			cout << "users\tInitializing session @" << session->sid << endl;
 			session->flags.alive = true;
@@ -41,10 +46,24 @@
 
 	void User::List::deinit() noexcept {
 
-		lock_guard<mutex> lock(guard);
+		lock_guard<recursive_mutex> lock(guard);
+
+		while(!sessions.empty()) {
+
+			Session *session = *sessions.begin();
+			Logger::String{"Deinitializing session @",session->sid}.trace("userlist");
+			if(session->flags.alive) {
+				session->emit(still_active);
+				session->flags.alive = false;
+			}
+			session->deinit();
+			delete session;
+		}
+
+		/*
 		for(auto session : sessions) {
 
-			cout << *session << "\tDeinitializing session @" << session->sid << " with " << session.use_count() << " active instance(s)" << endl;
+			cout << *session << "\tDeinitializing session @" << session->sid << endl;
 
 			if(session->flags.alive) {
 				session->emit(still_active);
@@ -56,18 +75,34 @@
 		}
 
 		sessions.clear();
+		*/
 
 	}
 
-	std::shared_ptr<User::Session> User::List::SessionFactory() noexcept {
-		// Default method, just create an empty session.
-		return make_shared<User::Session>();
+	void User::List::push_back(User::Agent *agent) {
+		lock_guard<recursive_mutex> lock(guard);
+		agents.push_back(agent);
 	}
 
-	bool User::List::for_each(const std::function<bool(std::shared_ptr<Session>)> &callback) {
-		lock_guard<mutex> lock(guard);
+	void User::List::remove(User::Agent *agent) {
+		lock_guard<recursive_mutex> lock(guard);
+		agents.remove(agent);
+	}
+
+	void User::List::push_back(User::Session *session) {
+		lock_guard<recursive_mutex> lock(guard);
+		sessions.push_back(session);
+	}
+
+	void User::List::remove(User::Session *session) {
+		lock_guard<recursive_mutex> lock(guard);
+		sessions.remove(session);
+	}
+
+	bool User::List::for_each(const std::function<bool(Session &session)> &callback) {
+		lock_guard<recursive_mutex> lock(guard);
 		for(auto session : sessions) {
-			if(callback(session)) {
+			if(callback(*session)) {
 				return true;
 			}
 		}
@@ -75,7 +110,7 @@
 	}
 
 	bool User::List::for_each(const std::function<bool(User::Agent &agent)> &callback) {
-		lock_guard<mutex> lock(guard);
+		lock_guard<recursive_mutex> lock(guard);
 		for(User::Agent *agent : agents) {
 			if(callback(*agent)) {
 				return true;
@@ -86,7 +121,7 @@
 
 	void User::List::sleep() {
 		cout << "users\tSystem is preparing to sleep" << endl;
-		lock_guard<mutex> lock(guard);
+		lock_guard<recursive_mutex> lock(guard);
 		for(auto session : sessions) {
 			session->emit(User::sleep);
 		}
@@ -94,7 +129,7 @@
 
 	void User::List::resume() {
 		cout << "users\tSystem is resuming from sleep" << endl;
-		lock_guard<mutex> lock(guard);
+		lock_guard<recursive_mutex> lock(guard);
 		for(auto session : sessions) {
 			session->emit(User::resume);
 		}
@@ -102,7 +137,7 @@
 
 	void User::List::shutdown() {
 		cout << "users\tSystem is preparing to shutdown" << endl;
-		lock_guard<mutex> lock(guard);
+		lock_guard<recursive_mutex> lock(guard);
 		for(auto session : sessions) {
 			session->emit(User::shutdown);
 		}

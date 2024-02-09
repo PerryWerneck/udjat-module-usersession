@@ -34,59 +34,59 @@
 
  namespace Udjat {
 
-	void User::List::init(std::shared_ptr<Session> session) {
+	void User::Session::init() {
 
 		// Get UID (if available).
-		if(sd_session_get_uid(session->sid.c_str(), &session->uid) < 0) {
-			session->uid = -1;
+		if(sd_session_get_uid(sid.c_str(), &uid) < 0) {
+			uid = -1;
 		}
 
 		// Store session class name.
-		session->classname();
+		classname();
 
 		// Store session remote state
-		session->remote();
+		remote();
 
 		// Log session info.
-		Logger::String(
-			"Sid=",session->sid,
-			" Uid=",session->userid(),
-			" System=",session->system(),
-			" type=",session->type(),
-			" display=",session->display(),
-			" remote=",session->remote(),
-			" service=",session->service(),
-			" class=",session->classname()
-		).write(Logger::Debug,session->name());
+		Logger::String{
+			"Sid=",sid,
+			" Uid=",userid(),
+			" System=",system(),
+			" type=",type(),
+			" display=",display(),
+			" remote=",remote(),
+			" service=",service(),
+			" class=",classname()
+		}.write(Logger::Debug,name());
 
-		if(!session->remote() && Config::Value<bool>("user-session","open-session-bus",true)) {
+		if(!remote() && Config::Value<bool>("user-session","open-session-bus",true)) {
 
 #ifdef HAVE_DBUS
 			try {
 
-				string busname = session->getenv("DBUS_SESSION_BUS_ADDRESS");
+				string busname = getenv("DBUS_SESSION_BUS_ADDRESS");
 
 				if(busname.empty()) {
 
-					Logger::String{"Unable to get user bus address"}.trace(session->to_string().c_str());
+					Logger::String{"Unable to get user bus address"}.trace(to_string().c_str());
 
 				} else {
 
 					// Connect to user's session bus.
 					// Using session->call because you've to change the euid to
 					// get access to the bus.
-					session->call([session, &busname](){
-						Logger::String{"Connecting to ",busname.c_str()}.trace(session->to_string().c_str());
-						session->userbus = make_shared<User::Session::Bus>(session->to_string().c_str(),busname.c_str());
+					call([this, &busname](){
+						Logger::String{"Connecting to ",busname.c_str()}.trace(to_string().c_str());
+						userbus = make_shared<Bus>(to_string().c_str(),busname.c_str());
 					});
 
 					// Is the session locked?
-					session->userbus->call(
+					userbus->call(
 						"org.gnome.ScreenSaver",
 						"/org/gnome/ScreenSaver",
 						"org.gnome.ScreenSaver",
 						"GetActiveTime",
-						[session](DBus::Message & message) {
+						[this](DBus::Message & message) {
 
 							// Got an async d-bus response, check it.
 
@@ -97,18 +97,18 @@
 
 								if(active) {
 
-									session->flags.locked = true;
-									session->info() << "gnome-screensaver is active" << endl;
+									flags.locked = true;
+									info() << "gnome-screensaver is active" << endl;
 
 								} else {
 
-									session->info() << "gnome-screensaver is not active" << endl;
+									info() << "gnome-screensaver is not active" << endl;
 
 								}
 
 							} else {
 
-								session->error() << "Error calling org.gnome.ScreenSaver.GetActiveTime: "  << message.error_message() << endl;
+								error() << "Error calling org.gnome.ScreenSaver.GetActiveTime: "  << message.error_message() << endl;
 
 							}
 						}
@@ -120,19 +120,19 @@
 					// This would be far more easier with the fix of the issue
 					// https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741#
 
-					session->userbus->subscribe(
+					userbus->subscribe(
 						"org.gnome.ScreenSaver",
 						"ActiveChanged",
-						[session](DBus::Message &message) {
+						[this](DBus::Message &message) {
 
 							// Active state of gnome screensaver has changed, deal with it.
 
 							bool locked = DBus::Value(message).as_bool();
-							if(locked != session->flags.locked) {
-								session->info() << "Gnome screensaver is now " << (locked ? "active" : "inactive") << endl;
-								session->flags.locked = locked;
-								ThreadPool::getInstance().push("user-lock-emission",[session,locked](){
-									session->emit( (locked ? User::lock : User::unlock) );
+							if(locked != flags.locked) {
+								info() << "Gnome screensaver is now " << (locked ? "active" : "inactive") << endl;
+								flags.locked = locked;
+								ThreadPool::getInstance().push("user-lock-emission",[this,locked](){
+									emit( (locked ? User::lock : User::unlock) );
 								});
 							}
 
@@ -143,13 +143,13 @@
 
 			} catch(const exception &e) {
 
-				session->error() << e.what() << endl;
+				error() << e.what() << endl;
 
 			}
 
 #else
 
-			session->warning() << "Built without Udjat::DBus, unable to watch gnome screensaver" << endl;
+			warning() << "Built without Udjat::DBus, unable to watch gnome screensaver" << endl;
 
 #endif // HAVE_DBUS
 

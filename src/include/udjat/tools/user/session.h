@@ -120,6 +120,9 @@
 			/// @brief Notify event emission (dont call it directly).
 			virtual Session & onEvent(const Event &event) noexcept;
 
+			void init();
+			void deinit();
+
 		public:
 			Session();
 			virtual ~Session();
