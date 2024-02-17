@@ -78,7 +78,7 @@
 
 		bool activated = false;
 
-		session.trace() << event << endl;
+		session.info() << "Event: " << event << endl;
 
 		for(User::Alert &alert : proxies) {
 

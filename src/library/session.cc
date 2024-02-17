@@ -24,6 +24,7 @@
  #include <cstring>
  #include <udjat/tools/user/list.h>
  #include <udjat/agent/user.h>
+ #include <udjat/tools/logger.h>
 
  using namespace std;
 
@@ -40,9 +41,7 @@
 
 	User::State User::StateFactory(const char *statename) {
 
-#ifdef DEBUG
-		cout << "user\tSearching for state '" << statename << "'" << endl;
-#endif // DEBUG
+		debug("Searching for state '",statename,"'");
 
 		// logind status for 'not in foreground' is 'online'.
 		if(!strcasecmp(statename,"online")) {
