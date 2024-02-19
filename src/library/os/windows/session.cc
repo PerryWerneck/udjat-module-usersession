@@ -25,15 +25,18 @@
  #include <udjat/tools/quark.h>
  #include <udjat/tools/cleanup.h>
  #include <udjat/win32/cleanup.h>
+ #include <udjat/tools/user/list.h>
 
  using namespace std;
 
  namespace Udjat {
 
 	User::Session::Session() {
+		User::List::getInstance().push_back(this);
 	}
 
 	User::Session::~Session() {
+		User::List::getInstance().remove(this);
 	}
 
 	bool User::Session::remote() const {
