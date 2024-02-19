@@ -31,7 +31,7 @@
 
  namespace Udjat {
 
-	void User::List::init(std::shared_ptr<Session> UDJAT_UNUSED(session)) {
+	void User::Session::init() {
 
 	}
  }

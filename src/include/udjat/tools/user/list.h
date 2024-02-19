@@ -64,7 +64,7 @@
 			// @brief			Find session by SID.
 			// @param sid 		SID of the requested session.
 			// @param create	If true will create a new session when not found.
-			std::shared_ptr<Session> find(DWORD sid, bool create = true);
+			Session & find(DWORD sid);
 
 #else
 

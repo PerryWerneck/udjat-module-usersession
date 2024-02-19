@@ -24,6 +24,7 @@
  #include <udjat/win32/exception.h>
 
  #include <udjat/tools/user/session.h>
+ #include <udjat/tools/user/list.h>
  #include <udjat/win32/exception.h>
  #include <udjat/tools/logger.h>
  #include <cstring>
@@ -41,16 +42,28 @@
 	}
 
 	/// @brief Find session (Requires an active guard!!!)
-	std::shared_ptr<User::Session> User::List::find(const DWORD sid, bool create) {
+	User::Session & User::List::find(const DWORD sid) {
 
 		for(auto session : sessions) {
 			if(session->sid == sid) {
-				return session;
+				return *session;
 			}
 		}
 
 		// Not found.
+		Session * session = new Session();
 
+		try {
+			session->sid = sid;
+			session->init();
+		} catch(...) {
+			delete session;
+			throw;
+		}
+
+		return *session;
+
+		/*
 		if(create) {
 			// Create a new session.
 			std::shared_ptr<Session> session = SessionFactory();
@@ -61,10 +74,11 @@
 
 		// Return an empty session.
 		return std::shared_ptr<User::Session>();
+		*/
 
 	}
 
-	User::List::Controller() {
+	User::List::List() {
 
 		//
 		// Register a new object window class
@@ -78,7 +92,7 @@
 
 			wc.cbSize 			= sizeof(wc);
 			wc.style  			= CS_HREDRAW | CS_VREDRAW;
-			wc.lpfnWndProc  	= Controller::hwndProc;
+			wc.lpfnWndProc  	= User::List::hwndProc;
 			wc.hInstance  		= GetModuleHandle(NULL);
 			wc.lpszClassName  	= PACKAGE_NAME;
 			wc.cbWndExtra		= sizeof(LONG_PTR);
@@ -93,7 +107,7 @@
 
 	}
 
-	User::List::~Controller() {
+	User::List::~List() {
 		if(hwnd) {
 			DestroyWindow(hwnd);
 		}
@@ -101,7 +115,7 @@
 
 	void User::List::activate() {
 
-		lock_guard<mutex> lock(guard);
+		lock_guard<recursive_mutex> lock(guard);
 
 		if(hwnd) {
 			return;
@@ -157,14 +171,14 @@
 
 		try {
 			for(DWORD ix = 0; ix < count; ix++) {
-				std::shared_ptr<Session> session;
+
+				Session * session;
 
 				if(starting) {
-					session = SessionFactory();
+					session = new Session();
 					session->sid = sessions[ix].SessionId;
-					this->sessions.push_back(session);
 				} else {
-					session = find(sessions[ix].SessionId);
+					session = &find(sessions[ix].SessionId);
 				}
 				session->flags.alive = true;
 
@@ -238,7 +252,7 @@
 
 	LRESULT WINAPI User::List::hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
-		User::Controller & controller = *((User::Controller *) GetWindowLongPtr(hWnd,0));
+		User::List & controller = *((User::List *) GetWindowLongPtr(hWnd,0));
 
 		debug("uMsg=",uMsg);
 
@@ -295,10 +309,10 @@
 				case WTS_SESSION_LOCK:				// The session has been locked.
 					{
 						auto session = controller.find((DWORD) lParam);
-						session->trace() << "WTS_SESSION_LOCK  (" << session->sid << ")" << endl;
-						if(!session->flags.locked) {
-							session->flags.locked = true;
-							session->emit(lock);
+						session.trace() << "WTS_SESSION_LOCK  (" << session.sid << ")" << endl;
+						if(!session.flags.locked) {
+							session.flags.locked = true;
+							session.emit(lock);
 						}
 					}
 					break;
@@ -306,10 +320,10 @@
 				case WTS_SESSION_UNLOCK:			// The session identified has been unlocked.
 					{
 						auto session = controller.find((DWORD) lParam);
-						session->trace() << "WTS_SESSION_UNLOCK  (" << session->sid << ")" << endl;
-						if(session->flags.locked) {
-							session->flags.locked = false;
-							session->emit(unlock);
+						session.trace() << "WTS_SESSION_UNLOCK  (" << session.sid << ")" << endl;
+						if(session.flags.locked) {
+							session.flags.locked = false;
+							session.emit(unlock);
 						}
 					}
 					break;
@@ -317,52 +331,38 @@
 				case WTS_CONSOLE_CONNECT:			// The session was connected to the console terminal or RemoteFX session.
 					{
 						auto session = controller.find((DWORD) lParam);
-						session->name(true);
-						session->trace() << "WTS_CONSOLE_CONNECT  (" << session->sid << ")" << endl;
-						session->set(User::SessionInForeground);
+						session.name(true);
+						session.trace() << "WTS_CONSOLE_CONNECT  (" << session.sid << ")" << endl;
+						session.set(User::SessionInForeground);
 					}
 					break;
 
 				case WTS_REMOTE_CONNECT:			// The session was connected to the remote terminal.
 					{
 						auto session = controller.find((DWORD) lParam);
-						session->name(true);
-						session->trace() << "WTS_REMOTE_CONNECT  (" << session->sid << ")" << endl;
-						session->flags.remote = true;
+						session.name(true);
+						session.trace() << "WTS_REMOTE_CONNECT  (" << session.sid << ")" << endl;
+						session.flags.remote = true;
 					}
 					break;
 
 				case WTS_REMOTE_DISCONNECT:			// The session was disconnected from the remote terminal.
 					{
-						auto session = controller.find((DWORD) lParam,false);
-						if(session) {
-							session->trace() << "WTS_REMOTE_DISCONNECT  (" << session->sid << ")" << endl;
-							session->flags.remote = true;
-							session->set(User::SessionIsClosing);
-							{
-								lock_guard<mutex> lock(controller.guard);
-								controller.sessions.remove(session);
-							}
-						} else {
-							Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_REMOTE_DISCONNECT" << endl;
-						}
+						auto session = controller.find((DWORD) lParam);
+						session.trace() << "WTS_REMOTE_DISCONNECT  (" << session.sid << ")" << endl;
+						session.flags.remote = true;
+						session.set(User::SessionIsClosing);
+						delete &session;
 					}
 					break;
 
 				case WTS_CONSOLE_DISCONNECT:		// The session was disconnected from the console terminal or RemoteFX session.
 					{
-						auto session = controller.find((DWORD) lParam,false);
-						if(session) {
-							session->trace() << "WTS_CONSOLE_DISCONNECT  (" << session->sid << ")" << endl;
-							session->flags.remote = false;
-							session->set(User::SessionIsClosing);
-							{
-								lock_guard<mutex> lock(controller.guard);
-								controller.sessions.remove(session);
-							}
-						} else {
-							Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_CONSOLE_DISCONNECT" << endl;
-						}
+						auto session = controller.find((DWORD) lParam);
+						session.trace() << "WTS_CONSOLE_DISCONNECT  (" << session.sid << ")" << endl;
+						session.flags.remote = false;
+						session.set(User::SessionIsClosing);
+						delete &session;
 					}
 					break;
 
@@ -371,29 +371,22 @@
 						auto session = controller.find((DWORD) lParam);
 
 						// Force username update.
-						session->name(true);
-						session->trace() << "WTS_SESSION_LOGON  (" << session->sid << ")" << endl;
+						session.name(true);
+						session.trace() << "WTS_SESSION_LOGON  (" << session.sid << ")" << endl;
 
 						// Set to foreground on logon.
-						session->set(User::SessionInForeground);
-						session->emit(logon);
+						session.set(User::SessionInForeground);
+						session.emit(logon);
 					}
 					break;
 
 				case WTS_SESSION_LOGOFF:			// A user has logged off the session.
 					{
-						auto session = controller.find((DWORD) lParam,false);
-						if(session) {
-							session->trace() << "WTS_SESSION_LOGOFF  (" << session->sid << ")" << endl;
-							session->emit(logoff);
-							session->set(User::SessionIsClosing);
-							{
-								lock_guard<mutex> lock(controller.guard);
-								controller.sessions.remove(session);
-							}
-						} else {
-							Logger::trace() << "@" << ((DWORD) lParam) << "\tWTS_SESSION_LOGOFF" << endl;
-						}
+						auto session = controller.find((DWORD) lParam);
+						session.trace() << "WTS_SESSION_LOGOFF  (" << session.sid << ")" << endl;
+						session.emit(logoff);
+						session.set(User::SessionIsClosing);
+						delete &session;
 					}
 					break;
 
