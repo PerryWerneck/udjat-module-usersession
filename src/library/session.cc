@@ -19,9 +19,12 @@
 
  #include <config.h>
  #include <udjat/tools/intl.h>
- #include <udjat/tools/usersession.h>
+ #include <udjat/tools/user/session.h>
  #include <iostream>
  #include <cstring>
+ #include <udjat/tools/user/list.h>
+ #include <udjat/agent/user.h>
+ #include <udjat/tools/logger.h>
 
  using namespace std;
 
@@ -38,9 +41,7 @@
 
 	User::State User::StateFactory(const char *statename) {
 
-#ifdef DEBUG
-		cout << "user\tSearching for state '" << statename << "'" << endl;
-#endif // DEBUG
+		debug("Searching for state '",statename,"'");
 
 		// logind status for 'not in foreground' is 'online'.
 		if(!strcasecmp(statename,"online")) {
@@ -78,17 +79,6 @@
 			name(true);
 		}
 		return username;
-	}
-
-	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
-#ifdef DEBUG
-		trace() << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
-				<< " Alive=" << (alive() ? "Yes" : "No")
-				<< " Remote=" << (remote() ? "Yes" : "No")
-				<< " User=" << to_string()
-				<< endl;
-#endif // DEBUG
-		return *this;
 	}
 
 	User::Session & User::Session::set(User::State state) {
@@ -226,6 +216,35 @@
 	const char * User::Session::name() const noexcept {
 		return name(false);
 	}
+
+ 	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
+
+		if(Logger::enabled(Logger::Trace)) {
+			Logger::String{
+				"--------> ",std::to_string(event)," sid=",this->sid,
+				" alive=",alive(),
+				" remote=",remote()
+			}.trace(name());
+		}
+
+		/*
+#ifdef DEBUG
+
+		trace() << "session\t**EVENT** sid=" << this->sid << " Event=" << (int) event
+				<< " Alive=" << (alive() ? "Yes" : "No")
+				<< " Remote=" << (remote() ? "Yes" : "No")
+				<< " User=" << to_string()
+				<< endl;
+#endif // DEBUG
+		*/
+
+		List::getInstance().for_each([this,event](User::Agent &ag){
+			ag.onEvent(*this,event);
+			return false;
+		});
+
+		return *this;
+ 	}
 
  }
 

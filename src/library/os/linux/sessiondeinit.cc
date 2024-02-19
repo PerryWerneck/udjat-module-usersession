@@ -20,6 +20,7 @@
  #include <config.h>
  #include "private.h"
  #include <udjat/tools/configuration.h>
+ #include <udjat/tools/user/session.h>
  #include <iostream>
 
  #ifdef HAVE_DBUS
@@ -30,7 +31,7 @@
 
  namespace Udjat {
 
-	void User::Controller::deinit(std::shared_ptr<Session>) {
+	void User::Session::deinit() {
 	}
 
  }

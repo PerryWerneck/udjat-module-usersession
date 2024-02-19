@@ -42,9 +42,11 @@
  namespace Udjat {
 
 	User::Session::Session() {
+		User::List::getInstance().push_back(this);
 	}
 
 	User::Session::~Session() {
+		User::List::getInstance().remove(this);
 	}
 
 	bool User::Session::remote() const {

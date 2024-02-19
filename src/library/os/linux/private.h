@@ -20,7 +20,9 @@
  #pragma once
 
  #include <config.h>
- #include <udjat/tools/usersession.h>
+ #include <udjat/defs.h>
+ #include <udjat/tools/user/session.h>
+ #include <udjat/tools/user/list.h>
 
  #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus/connection.h>
@@ -36,7 +38,7 @@
 
 	};
 
-	class User::Controller::Bus : public Udjat::DBus::SystemBus {
+	class User::List::Bus : public Udjat::DBus::SystemBus {
 	public:
 		Bus() : Udjat::DBus::SystemBus{} {
 		}

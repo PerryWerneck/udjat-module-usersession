@@ -20,7 +20,7 @@
  #include <config.h>
  #include <udjat/tools/configuration.h>
  #include <iostream>
- #include <udjat/tools/usersession.h>
+ #include <udjat/tools/user/session.h>
 
 #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
@@ -30,8 +30,7 @@
 
  namespace Udjat {
 
-	void User::Controller::deinit(std::shared_ptr<Session> UDJAT_UNUSED(session)) {
-
+	void User::Session::deinit() {
 	}
 
  }

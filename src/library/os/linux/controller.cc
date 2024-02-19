@@ -31,7 +31,7 @@
 // https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741
 
  #include <config.h>
- #include <udjat/tools/usersession.h>
+ #include <udjat/tools/user/session.h>
  #include <systemd/sd-login.h>
  #include <cstring>
  #include <iostream>
@@ -56,7 +56,7 @@
 
  namespace Udjat {
 
- 	void User::Controller::refresh() noexcept {
+ 	void User::List::refresh() noexcept {
 
 		char **ids = nullptr;
 		int idCount = sd_get_sessions(&ids);
@@ -65,9 +65,56 @@
 		cout << "users\tRefreshing " << idCount << " sessions" << endl;
  #endif // DEBUG
 
-		lock_guard<mutex> lock(guard);
+		lock_guard<recursive_mutex> lock(guard);
 
 		// Remove unused sessions.
+		vector<Session *> deleted;
+
+		for_each([&deleted,ids,idCount](Session &session){
+
+			// Is the session in the list of active ones?
+			for(int id = 0; id < idCount; id++) {
+				if(!strcmp(session.sid.c_str(),ids[id])) {
+					return false;
+				}
+			}
+
+			// Cant find it in the list, mark for removal.
+			deleted.push_back(&session);
+
+			return false;
+		});
+
+		if(!deleted.empty()) {
+			Logger::String{"Cleaning ",deleted.size()," unused session(s)"}.trace("Userlist");
+			for(auto session : deleted) {
+
+				// Reset states, just in case of some other one have an instance of this session.
+				if(session->flags.alive) {
+
+					if(Logger::enabled(Logger::Debug)) {
+						Logger::String{
+							"Sid=",session->sid,
+							" Uid=",session->userid(),
+							" System=",session->system(),
+							" type=",session->type(),
+							" display=",session->display(),
+							" remote=",session->remote(),
+							" service=",session->service(),
+							" class=",session->classname()
+						}.write(Logger::Debug,session->name());
+					}
+					session->emit(logoff);
+					session->flags.alive = false;
+				}
+
+				session->deinit();
+				delete session;
+			}
+		}
+
+		/*
+
 		sessions.remove_if([ids,idCount](const shared_ptr<Session> &session) {
 
 			for(int id = 0; id < idCount; id++) {
@@ -90,21 +137,33 @@
 				session->emit(logoff);
 				session->flags.alive = false;
 			}
+
+			deleted.push_back(session)delete session;
 			return true;
 		});
+		*/
 
 		// Create and update sessions.
 		for(int id = 0; id < idCount; id++) {
-			auto session = find(ids[id]);
-			if(!session->flags.alive) {
-				session->flags.alive = true;
-				session->emit(logon);
-			}
 
-			char *state = nullptr;
-			if(sd_session_get_state(ids[id], &state) >= 0) {
-				session->set(User::StateFactory(state));
-				free(state);
+			try {
+
+				auto session = find(ids[id]);
+				if(!session.flags.alive) {
+					session.flags.alive = true;
+					session.emit(logon);
+				}
+
+				char *state = nullptr;
+				if(sd_session_get_state(ids[id], &state) >= 0) {
+					session.set(User::StateFactory(state));
+					free(state);
+				}
+
+			} catch(const std::exception &e) {
+
+				Logger::String{e.what()}.error("userlist");
+
 			}
 
 			free(ids[id]);
@@ -115,41 +174,47 @@
 	}
 
 	/// @brief Find session (Requires an active guard!!!)
-	std::shared_ptr<User::Session> User::Controller::find(const char * sid) {
+	User::Session & User::List::find(const char * sid) {
 
+		lock_guard<recursive_mutex> lock(guard);
 		for(auto session : sessions) {
 			if(!strcmp(session->sid.c_str(),sid)) {
-				return session;
+				return *session;
 			}
 		}
 
 		// Not found, create a new one.
-		std::shared_ptr<Session> session = SessionFactory();
-		session->sid = sid;
-		sessions.push_back(session);
-		init(session);
+		Session * session = new Session();
 
-		return session;
+		try {
+			session->sid = sid;
+			session->init();
+		} catch(...) {
+			delete session;
+			throw;
+		}
+
+		return *session;
 	}
 
-	User::Controller::Controller() {
+	User::List::List() {
 		efd = eventfd(0,0);
 		if(efd < 0) {
 			Logger::String{"Error getting eventfd: ",strerror(errno)}.error("users");
 		}
 	}
 
-	User::Controller::~Controller() {
+	User::List::~List() {
 		if(efd >= 0) {
 			::close(efd);
 		}
 		deactivate();
 	}
 
-	void User::Controller::activate() {
+	void User::List::activate() {
 
 		{
-			lock_guard<mutex> lock(guard);
+			lock_guard<recursive_mutex> lock(guard);
 			if(enabled) {
 				throw runtime_error("Logind monitor is already active");
 			}
@@ -161,7 +226,7 @@
 		try {
 
 			if(!systembus) {
-				systembus = make_shared<User::Controller::Bus>();
+				systembus = make_shared<User::List::Bus>();
 				cout << "Got system bus connection" << endl;
 			}
 
@@ -228,17 +293,26 @@
 				char **ids = nullptr;
 				int idCount = sd_get_sessions(&ids);
 
-				lock_guard<mutex> lock(guard);
+				lock_guard<recursive_mutex> lock(guard);
 				for(int id = 0; id < idCount; id++) {
-					std::shared_ptr<Session> session = SessionFactory();
-					session->sid = ids[id];
-					sessions.push_back(session);
-					init(session);
 
-					char *state = nullptr;
-					if(sd_session_get_state(ids[id], &state) >= 0) {
-						session->set(User::StateFactory(state));
-						free(state);
+					try {
+
+						Session *session = new Session();
+
+						session->sid = ids[id];
+						session->init();
+
+						char *state = nullptr;
+						if(sd_session_get_state(ids[id], &state) >= 0) {
+							session->set(User::StateFactory(state));
+							free(state);
+						}
+
+					} catch(const std::exception &e) {
+
+						Logger::String{e.what()}.error("userlist");
+
 					}
 
 					free(ids[id]);
@@ -305,7 +379,7 @@
 
 	}
 
-	void User::Controller::wakeup() {
+	void User::List::wakeup() {
 		if(efd >= 0) {
 			static uint64_t evNum = 1;
 			debug("wake-up event ",evNum);
@@ -316,12 +390,12 @@
 		}
 	}
 
-	void User::Controller::deactivate() {
+	void User::List::deactivate() {
 
 		debug(__FUNCTION__);
 
 		{
-			lock_guard<mutex> lock(guard);
+			lock_guard<recursive_mutex> lock(guard);
 			if(!enabled) {
 				debug("User controller is not enabled");
 				return;

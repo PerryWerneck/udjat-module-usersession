@@ -21,7 +21,7 @@
  #include <udjat/tools/configuration.h>
  #include <iostream>
  #include <udjat/tools/threadpool.h>
- #include <udjat/tools/usersession.h>
+ #include <udjat/tools/user/session.h>
 
  #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
@@ -31,7 +31,7 @@
 
  namespace Udjat {
 
-	void User::Controller::init(std::shared_ptr<Session> UDJAT_UNUSED(session)) {
+	void User::Session::init() {
 
 	}
  }

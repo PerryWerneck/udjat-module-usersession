@@ -34,10 +34,12 @@
 	namespace User {
 
 		class Session;
-		class UserBus;
+		class Agent;
+		class Controller;
 
 		/// @brief User events.
 		enum Event : uint16_t {
+			no_event		= 0x0000,		///< @brief Event is undefined
 			already_active	= 0x0001,		///< @brief Session is active on controller startup.
 			still_active	= 0x0002,		///< @brief Session is active on controller shutdown.
 			logon			= 0x0004,		///< @brief User logon detected.
@@ -76,102 +78,10 @@
 
 		UDJAT_API State StateFactory(const char *statename);
 
-		/// @brief User session controller.
-		class UDJAT_API Controller {
-		private:
-
-			std::mutex guard;
-
-			/// @brief Session list.
-			std::list<std::shared_ptr<Session>> sessions;
-
-			/// @brief Initialize controller.
-			void init() noexcept;
-
-			/// @brief Deinitialize controller.
-			void deinit() noexcept;
-
-			/// @brief Initialize session.
-			void init(std::shared_ptr<Session> session);
-
-			/// @brief Deinitialize session.
-			void deinit(std::shared_ptr<Session> session);
-
-#ifdef _WIN32
-			HWND hwnd = 0;
-			static LRESULT WINAPI hwndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-			void load(bool starting) noexcept;
-
-			// @brief			Find session by SID.
-			// @param sid 		SID of the requested session.
-			// @param create	If true will create a new session when not found.
-			std::shared_ptr<Session> find(DWORD sid, bool create = true);
-#else
-			std::shared_ptr<Session> find(const char * sid);
-			std::thread *monitor = nullptr;
-
-			bool enabled = false;
-
-			/// @brief Event fd
-			int efd = -1;
-
-			void wakeup();
-
-			class Bus;
-			std::shared_ptr<Bus> systembus;		///< @brief Connection with the system bus
-
-#endif // _WIN32
-
-			/// @brief System is going to sleep.
-			void sleep();
-
-			/// @brief System is resuming from sleep.
-			void resume();
-
-			/// @brief System is shutting down.
-			void shutdown();
-
-		protected:
-
-			/// @brief Session factory called every time the controller detects a new user session.
-			virtual std::shared_ptr<Session> SessionFactory() noexcept;
-
-			/// @brief Update session list from system.
-			void refresh() noexcept;
-
-		public:
-			Controller(Controller &) = delete;
-			Controller(Controller *) = delete;
-
-			Controller();
-			virtual ~Controller();
-
-			/// @brief Start monitor, load sessions.
-			void activate();
-
-			/// @brief Stop monitor, unload sessions.
-			void deactivate();
-
-			void for_each(std::function<void(std::shared_ptr<Session>)> callback);
-
-			inline size_t size() const {
-				return sessions.size();
-			}
-
-			inline auto begin() {
-				return sessions.begin();
-			}
-
-			inline auto end() {
-				return sessions.end();
-			}
-
-		};
-
 		/// @brief User session.
 		class UDJAT_API Session : public Udjat::Abstract::Object {
 		private:
-			friend class Controller;
+			friend class List;
 
 			struct {
 				State state = User::SessionInUnknownState;	///< @brief Current user state.
@@ -209,6 +119,9 @@
 
 			/// @brief Notify event emission (dont call it directly).
 			virtual Session & onEvent(const Event &event) noexcept;
+
+			void init();
+			void deinit();
 
 		public:
 			Session();
@@ -285,6 +198,7 @@
 
 			/// @brief Execute function as user's effective id.
 			void call(const std::function<void()> exec);
+
 #endif // _WIN32
 
 		};

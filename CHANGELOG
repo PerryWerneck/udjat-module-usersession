@@ -1,4 +1,35 @@
 -------------------------------------------------------------------
+Sat Feb 03 03:49:58 UTC 2024 - perry.werneck@gmail.com
+
+- Update to version 1.1+git20240202:
+  * Refactoring with new d-bus module.
+  * Fixing build with latest libudjat.
+  * Using event semaphores to avoid polling.
+  * Fixing package build.
+  * Publish window 64 only on master PRs
+  * Adding mingw package.
+  * Fixing 'pulse' default timer.
+  * Update README.md
+  * Fixing ci-build.
+  * Fixing CodeQL alerts.
+  * Updating to latest libudjat.
+  * Updating mingw ci-build.
+  * Updating readme, better event name for 'pulse'
+  * Fixing agent cleanup.
+  * Updating agent, adding package control files.
+  * Updating workflow
+  * Fixing win32 build.
+  * Using activatables for user event.
+  * Adding windows workflow, removing old lgtm workflow.
+  * 'cosmetic' change.
+  * 'lock' alerts should be enabled on locked sessions by default.
+  * Adding obs badge.
+  * Add CodeQL workflow for GitHub code scanning
+  * Fixing build after libudjat update.
+  * Storing session service when required.
+  * Storing service name for use in logoff alert.
+
+-------------------------------------------------------------------
 Thu Nov 10 19:42:25 UTC 2022 - perry.werneck@gmail.com
 
 - Update to version 1.0+git20221110:
