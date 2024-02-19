@@ -13,9 +13,7 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "master", "develop" ]
-  pull_request:
-    branches: [ "master" ]
+    branches: [ "develop", "master" ]
 
 jobs:
   analyze:
@@ -53,7 +51,7 @@ jobs:
         echo 'deb https://download.opensuse.org/repositories/home:/PerryWerneck:/udjat/xUbuntu_22.04/ /' | sudo tee /etc/apt/sources.list.d/home:PerryWerneck:udjat.list
         curl -fsSL https://download.opensuse.org/repositories/home:/PerryWerneck:/udjat/xUbuntu_22.04/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/home_PerryWerneck_udjat.gpg > /dev/null
         sudo apt-get update
-        sudo apt-get install --yes gettext git make autopoint libpugixml-dev libudjat-dev libsystemd-dev libudjatdbus-dev
+        sudo apt-get install --yes autotools-dev autoconf automake pkg-config gettext libudjat-dev libsystemd-dev libudjatdbus-dev
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
