@@ -33,9 +33,9 @@
  #include <udjat/tools/logger.h>
  #include <udjat/tools/quark.h>
 
-#ifdef HAVE_DBUS
+ #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus.h>
-#endif // HAVE_DBUS
+ #endif // HAVE_DBUS
 
  using namespace std;
 
@@ -346,7 +346,9 @@
 
 	void User::Session::call(const uid_t uid, const std::function<void()> exec) {
 
+		// TODO: https://stackoverflow.com/questions/1223600/change-uid-gid-only-of-one-thread-in-linux#:~:text=To%20change%20the%20uid%20only,sends%20to%20all%20threads)!&text=The%20Linux%2Dspecific%20setfsuid(),thread%20rather%20than%20per%2Dprocess.
 		static mutex guard;
+
 		lock_guard<mutex> lock(guard);
 
 		uid_t saved_uid = geteuid();

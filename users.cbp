@@ -43,7 +43,6 @@
 		<Unit filename="src/include/udjat/tools/user/session.h" />
 		<Unit filename="src/library/agent.cc" />
 		<Unit filename="src/library/alert.cc" />
-		<Unit filename="src/library/controller.cc" />
 		<Unit filename="src/library/events.cc" />
 		<Unit filename="src/library/list.cc" />
 		<Unit filename="src/library/os/linux/controller.cc" />
