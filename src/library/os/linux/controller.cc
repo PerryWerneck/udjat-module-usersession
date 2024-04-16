@@ -254,6 +254,8 @@
 							resume();
 						}
 
+						return false;
+
 					}
 				);
 			} catch(const std::exception &e) {
@@ -271,6 +273,8 @@
 						if(DBus::Value(message).as_bool()) {
 							shutdown();
 						}
+
+						return false;
 
 					}
 				);

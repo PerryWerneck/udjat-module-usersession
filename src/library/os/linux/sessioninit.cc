@@ -134,6 +134,7 @@
 								});
 							}
 
+							return false;
 						}
 					);
 
@@ -144,6 +145,8 @@
 						[this](DBus::Message &) {
 
 							Logger::String{"Gnome screen saver WakeUpScreen signal"}.trace(name());
+
+							return false;
 
 						}
 					);
@@ -161,6 +164,10 @@
 			warning() << "Built without Udjat::DBus, unable to watch gnome screensaver" << endl;
 
 #endif // HAVE_DBUS
+
+		} else {
+
+			Logger::String{"Not watching gnome screen-saver, disabled by configuration"}.trace(to_string().c_str());
 
 		}
 
