@@ -42,7 +42,7 @@ BuildRequires:	binutils
 BuildRequires:	coreutils
 BuildRequires:	gcc-c++
 
-BuildRequires:	pkgconfig(libudjat)
+BuildRequires:	pkgconfig(libudjat) >= 1.2
 BuildRequires:	pkgconfig(udjat-dbus)
 BuildRequires:	pkgconfig(libsystemd)
 
@@ -97,7 +97,8 @@ make all
 
 %files -n udjat-users-devel
 %defattr(-,root,root)
-%{_includedir}/udjat/tools/*.h
+%dir %{_includedir}/udjat/tools/user
+%{_includedir}/udjat/tools/user/*.h
 %{_libdir}/*.so
 %exclude %{_libdir}/*.a
 %{_libdir}/pkgconfig/*.pc
