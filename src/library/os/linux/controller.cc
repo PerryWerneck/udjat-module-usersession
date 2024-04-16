@@ -291,7 +291,7 @@
 
 			pthread_setname_np(pthread_self(),"logind");
 
-			Logger::trace() << "users\tlogind monitor is activating" << endl;
+			Logger::String{"Monitor is activating"}.trace("logind");
 
 			{
 				char **ids = nullptr;
@@ -331,15 +331,17 @@
 			sd_login_monitor * monitor = NULL;
 			sd_login_monitor_new(NULL,&monitor);
 
+			struct pollfd pfd[2];
+			memset(&pfd,0,sizeof(pfd));
+			pfd[0].fd = sd_login_monitor_get_fd(monitor);
+			pfd[1].fd = efd;
+
+			Logger::String{"Watching logind on socket ",pfd[0].fd}.trace("logind");
+
 			while(enabled) {
 
-				struct pollfd pfd[2];
-				memset(&pfd,0,sizeof(pfd));
-
-				pfd[0].fd = sd_login_monitor_get_fd(monitor);
 				pfd[0].events = sd_login_monitor_get_events(monitor) | SA_RESTART;
 				pfd[0].revents = 0;
-				pfd[1].fd = efd;
 				pfd[1].events = POLLIN;
 				pfd[1].revents = 0;
 
@@ -366,14 +368,17 @@
 					break;
 
 				default:	// Has event.
+					sd_login_monitor_flush(monitor);
 					if(pfd[0].revents) {
-						sd_login_monitor_flush(monitor);
 						refresh();
 					}
 				}
 			}
 
-			clog << "users\tlogind monitor is deactivating" << endl;
+			Logger::String{"Monitor is deactivating"}.trace("logind");
+
+			::close(pfd[0].fd);
+			sd_login_monitor_unref(monitor);
 
 			deinit();
 
