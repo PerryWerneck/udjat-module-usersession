@@ -61,9 +61,9 @@
 		char **ids = nullptr;
 		int idCount = sd_get_sessions(&ids);
 
- #ifdef DEBUG
+#ifdef DEBUG
 		cout << "users\tRefreshing " << idCount << " sessions" << endl;
- #endif // DEBUG
+#endif // DEBUG
 
 		lock_guard<recursive_mutex> lock(guard);
 
@@ -112,36 +112,6 @@
 				delete session;
 			}
 		}
-
-		/*
-
-		sessions.remove_if([ids,idCount](const shared_ptr<Session> &session) {
-
-			for(int id = 0; id < idCount; id++) {
-				if(!strcmp(session->sid.c_str(),ids[id]))
-					return false;
-			}
-
-			// Reset states, just in case of some other one have an instance of this session.
-			if(session->flags.alive) {
-				Logger::String(
-					"Sid=",session->sid,
-					" Uid=",session->userid(),
-					" System=",session->system(),
-					" type=",session->type(),
-					" display=",session->display(),
-					" remote=",session->remote(),
-					" service=",session->service(),
-					" class=",session->classname()
-				).write(Logger::Debug,session->name());
-				session->emit(logoff);
-				session->flags.alive = false;
-			}
-
-			deleted.push_back(session)delete session;
-			return true;
-		});
-		*/
 
 		// Create and update sessions.
 		for(int id = 0; id < idCount; id++) {
@@ -281,6 +251,92 @@
 			} catch(const std::exception &e) {
 				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.PrepareForShutdown" << endl;
 			}
+		}
+
+		if(systembus) {
+
+			// https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.login1.html
+
+			try {
+				systembus->subscribe(
+					"org.freedesktop.login1.Manager",
+					"SessionNew",
+					[this](DBus::Message &message) {
+
+						debug("----------------------------------> SessionNew");
+
+						string sid;
+						message.pop(sid);
+
+						string path;
+						message.pop(path);
+
+						cout << "users\t Session '" << sid << "' started on path '" << path << "'" << endl;
+
+						return false;
+
+					}
+				);
+			} catch(const std::exception &e) {
+				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.SessionNew" << endl;
+			}
+
+			try {
+				systembus->subscribe(
+					"org.freedesktop.login1.Manager",
+					"SessionRemoved",
+					[this](DBus::Message &message) {
+
+						debug("----------------------------------> SessionRemoved");
+
+						string sid;
+						message.pop(sid);
+
+						string path;
+						message.pop(path);
+
+						cout << "users\t Session '" << sid << "' finished on path '" << path << "'" << endl;
+
+						return false;
+
+					}
+				);
+			} catch(const std::exception &e) {
+				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.SessionRemoved" << endl;
+			}
+
+			try {
+				systembus->subscribe(
+					"org.freedesktop.login1.Manager",
+					"UserNew",
+					[this](DBus::Message &message) {
+
+						debug("----------------------------------> UserNew");
+
+						return false;
+
+					}
+				);
+			} catch(const std::exception &e) {
+				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.UserNew" << endl;
+			}
+
+			try {
+				systembus->subscribe(
+					"org.freedesktop.login1.Manager",
+					"UserRemoved",
+					[this](DBus::Message &message) {
+
+						debug("----------------------------------> UserRemoved");
+
+						return false;
+
+					}
+				);
+			} catch(const std::exception &e) {
+				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.UserRemoved" << endl;
+			}
+
 		}
 #endif // HAVE_DBUS
 
