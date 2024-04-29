@@ -41,6 +41,7 @@
  #include <udjat/tools/logger.h>
  #include <pthread.h>
  #include <sys/eventfd.h>
+ #include <udjat/tools/threadpool.h>
 
  #include "private.h"
 
@@ -56,6 +57,7 @@
 
  namespace Udjat {
 
+	/*
  	void User::List::refresh() noexcept {
 
 		char **ids = nullptr;
@@ -118,6 +120,7 @@
 
 			try {
 
+				debug("-------------------ID=",ids[id]);
 				auto session = find(ids[id]);
 				if(!session.flags.alive) {
 					session.flags.alive = true;
@@ -142,6 +145,7 @@
 		free(ids);
 
 	}
+	*/
 
 	/// @brief Find session (Requires an active guard!!!)
 	User::Session & User::List::find(const char * sid) {
@@ -258,12 +262,11 @@
 			// https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.login1.html
 
 			try {
+
 				systembus->subscribe(
 					"org.freedesktop.login1.Manager",
 					"SessionNew",
 					[this](DBus::Message &message) {
-
-						debug("----------------------------------> SessionNew");
 
 						string sid;
 						message.pop(sid);
@@ -272,6 +275,36 @@
 						message.pop(path);
 
 						cout << "users\t Session '" << sid << "' started on path '" << path << "'" << endl;
+
+						ThreadPool::getInstance().push([this,sid](){
+
+							lock_guard<recursive_mutex> lock(guard);
+
+							Session * session = new Session();
+
+							try {
+
+								session->sid = sid;
+								session->init();
+
+								session->flags.alive = true;
+								session->emit(logon);
+
+								char *state = nullptr;
+								if(sd_session_get_state(sid.c_str(), &state) >= 0) {
+									session->set(User::StateFactory(state));
+									free(state);
+								}
+
+							} catch(const std::exception &e) {
+								delete session;
+								cerr << "users\tUnable to initialize session '" << sid << "': " << e.what() << endl;
+							} catch(...) {
+								delete session;
+								cerr << "users\tUnable to initialize session '" << sid << "': Unexpected error" << endl;
+							}
+
+						});
 
 						return false;
 
@@ -297,6 +330,42 @@
 
 						cout << "users\t Session '" << sid << "' finished on path '" << path << "'" << endl;
 
+						ThreadPool::getInstance().push([this,sid](){
+
+							lock_guard<recursive_mutex> lock(guard);
+
+							for(Session *session : sessions) {
+
+								if(strcmp(session->sid.c_str(),sid.c_str())) {
+									continue;
+								}
+
+                                if(session->flags.alive) {
+
+									if(Logger::enabled(Logger::Debug)) {
+										Logger::String{
+										"Sid=",session->sid,
+										" Uid=",session->userid(),
+										" System=",session->system(),
+										" type=",session->type(),
+										" display=",session->display(),
+										" remote=",session->remote(),
+										" service=",session->service(),
+										" class=",session->classname()
+										}.write(Logger::Debug,session->name());
+									}
+									session->emit(logoff);
+									session->flags.alive = false;
+								}
+
+                                session->deinit();
+								delete session;
+
+								break;
+
+							}
+
+						});
 						return false;
 
 					}
@@ -340,9 +409,12 @@
 		}
 #endif // HAVE_DBUS
 
-		// Activate logind monitor.
+		debug("------------------------------------> Will call init()");
 		init();
+		debug("------------------------------------> Returned from init()");
 
+		/*
+		// Activate logind monitor.
 		monitor = new std::thread([this](){
 
 			pthread_setname_np(pthread_self(),"logind");
@@ -439,8 +511,9 @@
 			deinit();
 
 		});
-
 		cout << "users\tLogind monitor is now active" << endl;
+
+		*/
 
 	}
 

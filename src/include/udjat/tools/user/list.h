@@ -93,7 +93,7 @@
 			void shutdown();
 
 			/// @brief Update session list from system.
-			void refresh() noexcept;
+			//void refresh() noexcept;
 
 			List();
 
