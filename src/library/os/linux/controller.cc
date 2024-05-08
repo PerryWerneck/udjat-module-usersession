@@ -300,13 +300,15 @@
 #endif // HAVE_DBUS
 
 		// Load active users
-		{
-			Logger::String{"Loading user's"}.info("users");
+		ThreadPool::getInstance().push([this](){
+
+			lock_guard<recursive_mutex> lock(guard);
 
 			char **ids = nullptr;
 			int idCount = sd_get_sessions(&ids);
 
-			lock_guard<recursive_mutex> lock(guard);
+			Logger::String{"Loading ",idCount," active users"}.info("users");
+
 			for(int id = 0; id < idCount; id++) {
 
 				try {
@@ -333,11 +335,12 @@
 
 			free(ids);
 
-		}
+			debug("------------------------------------> Will call init()");
+			init();
+			debug("------------------------------------> Returned from init()");
 
-		debug("------------------------------------> Will call init()");
-		init();
-		debug("------------------------------------> Returned from init()");
+		});
+
 
 	}
 
