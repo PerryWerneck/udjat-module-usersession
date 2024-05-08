@@ -57,96 +57,6 @@
 
  namespace Udjat {
 
-	/*
- 	void User::List::refresh() noexcept {
-
-		char **ids = nullptr;
-		int idCount = sd_get_sessions(&ids);
-
-#ifdef DEBUG
-		cout << "users\tRefreshing " << idCount << " sessions" << endl;
-#endif // DEBUG
-
-		lock_guard<recursive_mutex> lock(guard);
-
-		// Remove unused sessions.
-		vector<Session *> deleted;
-
-		for_each([&deleted,ids,idCount](Session &session){
-
-			// Is the session in the list of active ones?
-			for(int id = 0; id < idCount; id++) {
-				if(!strcmp(session.sid.c_str(),ids[id])) {
-					return false;
-				}
-			}
-
-			// Cant find it in the list, mark for removal.
-			deleted.push_back(&session);
-
-			return false;
-		});
-
-		if(!deleted.empty()) {
-			Logger::String{"Cleaning ",deleted.size()," unused session(s)"}.trace("Userlist");
-			for(auto session : deleted) {
-
-				// Reset states, just in case of some other one have an instance of this session.
-				if(session->flags.alive) {
-
-					if(Logger::enabled(Logger::Debug)) {
-						Logger::String{
-							"Sid=",session->sid,
-							" Uid=",session->userid(),
-							" System=",session->system(),
-							" type=",session->type(),
-							" display=",session->display(),
-							" remote=",session->remote(),
-							" service=",session->service(),
-							" class=",session->classname()
-						}.write(Logger::Debug,session->name());
-					}
-					session->emit(logoff);
-					session->flags.alive = false;
-				}
-
-				session->deinit();
-				delete session;
-			}
-		}
-
-		// Create and update sessions.
-		for(int id = 0; id < idCount; id++) {
-
-			try {
-
-				debug("-------------------ID=",ids[id]);
-				auto session = find(ids[id]);
-				if(!session.flags.alive) {
-					session.flags.alive = true;
-					session.emit(logon);
-				}
-
-				char *state = nullptr;
-				if(sd_session_get_state(ids[id], &state) >= 0) {
-					session.set(User::StateFactory(state));
-					free(state);
-				}
-
-			} catch(const std::exception &e) {
-
-				Logger::String{e.what()}.error("userlist");
-
-			}
-
-			free(ids[id]);
-		}
-
-		free(ids);
-
-	}
-	*/
-
 	/// @brief Find session (Requires an active guard!!!)
 	User::Session & User::List::find(const char * sid) {
 
@@ -172,6 +82,7 @@
 	}
 
 	User::List::List() {
+		debug("Starting user list");
 		efd = eventfd(0,0);
 		if(efd < 0) {
 			Logger::String{"Error getting eventfd: ",strerror(errno)}.error("users");
@@ -197,27 +108,10 @@
 
 #ifdef HAVE_DBUS
 
-		try {
-
-			if(!systembus) {
-				systembus = make_shared<User::List::Bus>();
-				cout << "Got system bus connection" << endl;
-			}
-
-		} catch(const std::exception &e) {
-
-			cerr << "users\tError '" << e.what() << "' connecting to system bus" << endl;
-
-		} catch(...) {
-
-			cerr << "users\tUnexpected error connecting to system bus" << endl;
-
-		}
-
-		if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",true) && systembus) {
+		if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",true)) {
 
 			try {
-				systembus->subscribe(
+				systembus.subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForSleep",
 					[this](DBus::Message &message) {
@@ -237,9 +131,9 @@
 			}
 		}
 
-		if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",true) && systembus) {
+		if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",true)) {
 			try {
-				systembus->subscribe(
+				systembus.subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForShutdown",
 					[this](DBus::Message &message) {
@@ -257,157 +151,189 @@
 			}
 		}
 
-		if(systembus) {
+		// https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.login1.html
+		try {
 
-			// https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.login1.html
+			systembus.subscribe(
+				"org.freedesktop.login1.Manager",
+				"SessionNew",
+				[this](DBus::Message &message) {
 
-			try {
+					string sid;
+					message.pop(sid);
 
-				systembus->subscribe(
-					"org.freedesktop.login1.Manager",
-					"SessionNew",
-					[this](DBus::Message &message) {
+					string path;
+					message.pop(path);
 
-						string sid;
-						message.pop(sid);
+					cout << "users\t Session '" << sid << "' started on path '" << path << "'" << endl;
 
-						string path;
-						message.pop(path);
+					ThreadPool::getInstance().push([this,sid](){
 
-						cout << "users\t Session '" << sid << "' started on path '" << path << "'" << endl;
+						lock_guard<recursive_mutex> lock(guard);
 
-						ThreadPool::getInstance().push([this,sid](){
+						Session * session = new Session();
 
-							lock_guard<recursive_mutex> lock(guard);
+						try {
 
-							Session * session = new Session();
+							session->sid = sid;
+							session->init();
 
-							try {
+							session->flags.alive = true;
+							session->emit(logon);
 
-								session->sid = sid;
-								session->init();
-
-								session->flags.alive = true;
-								session->emit(logon);
-
-								char *state = nullptr;
-								if(sd_session_get_state(sid.c_str(), &state) >= 0) {
-									session->set(User::StateFactory(state));
-									free(state);
-								}
-
-							} catch(const std::exception &e) {
-								delete session;
-								cerr << "users\tUnable to initialize session '" << sid << "': " << e.what() << endl;
-							} catch(...) {
-								delete session;
-								cerr << "users\tUnable to initialize session '" << sid << "': Unexpected error" << endl;
+							char *state = nullptr;
+							if(sd_session_get_state(sid.c_str(), &state) >= 0) {
+								session->set(User::StateFactory(state));
+								free(state);
 							}
 
-						});
+						} catch(const std::exception &e) {
+							delete session;
+							cerr << "users\tUnable to initialize session '" << sid << "': " << e.what() << endl;
+						} catch(...) {
+							delete session;
+							cerr << "users\tUnable to initialize session '" << sid << "': Unexpected error" << endl;
+						}
 
-						return false;
+					});
 
-					}
-				);
-			} catch(const std::exception &e) {
-				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.SessionNew" << endl;
-			}
+					return false;
 
-			try {
-				systembus->subscribe(
-					"org.freedesktop.login1.Manager",
-					"SessionRemoved",
-					[this](DBus::Message &message) {
+				}
+			);
+		} catch(const std::exception &e) {
+			cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.SessionNew" << endl;
+		}
 
-						debug("----------------------------------> SessionRemoved");
+		try {
+			systembus.subscribe(
+				"org.freedesktop.login1.Manager",
+				"SessionRemoved",
+				[this](DBus::Message &message) {
 
-						string sid;
-						message.pop(sid);
+					debug("----------------------------------> SessionRemoved");
 
-						string path;
-						message.pop(path);
+					string sid;
+					message.pop(sid);
 
-						cout << "users\t Session '" << sid << "' finished on path '" << path << "'" << endl;
+					string path;
+					message.pop(path);
 
-						ThreadPool::getInstance().push([this,sid](){
+					cout << "users\t Session '" << sid << "' finished on path '" << path << "'" << endl;
 
-							lock_guard<recursive_mutex> lock(guard);
+					ThreadPool::getInstance().push([this,sid](){
 
-							for(Session *session : sessions) {
+						lock_guard<recursive_mutex> lock(guard);
 
-								if(strcmp(session->sid.c_str(),sid.c_str())) {
-									continue;
-								}
+						for(Session *session : sessions) {
 
-                                if(session->flags.alive) {
-
-									if(Logger::enabled(Logger::Debug)) {
-										Logger::String{
-										"Sid=",session->sid,
-										" Uid=",session->userid(),
-										" System=",session->system(),
-										" type=",session->type(),
-										" display=",session->display(),
-										" remote=",session->remote(),
-										" service=",session->service(),
-										" class=",session->classname()
-										}.write(Logger::Debug,session->name());
-									}
-									session->emit(logoff);
-									session->flags.alive = false;
-								}
-
-                                session->deinit();
-								delete session;
-
-								break;
-
+							if(strcmp(session->sid.c_str(),sid.c_str())) {
+								continue;
 							}
 
-						});
-						return false;
+							if(session->flags.alive) {
 
+								if(Logger::enabled(Logger::Debug)) {
+									Logger::String{
+									"Sid=",session->sid,
+									" Uid=",session->userid(),
+									" System=",session->system(),
+									" type=",session->type(),
+									" display=",session->display(),
+									" remote=",session->remote(),
+									" service=",session->service(),
+									" class=",session->classname()
+									}.write(Logger::Debug,session->name());
+								}
+								session->emit(logoff);
+								session->flags.alive = false;
+							}
+
+							session->deinit();
+							delete session;
+
+							break;
+
+						}
+
+					});
+					return false;
+
+				}
+			);
+		} catch(const std::exception &e) {
+			cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.SessionRemoved" << endl;
+		}
+
+		try {
+			systembus.subscribe(
+				"org.freedesktop.login1.Manager",
+				"UserNew",
+				[this](DBus::Message &message) {
+
+					debug("----------------------------------> UserNew");
+
+					return false;
+
+				}
+			);
+		} catch(const std::exception &e) {
+			cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.UserNew" << endl;
+		}
+
+		try {
+			systembus.subscribe(
+				"org.freedesktop.login1.Manager",
+				"UserRemoved",
+				[this](DBus::Message &message) {
+
+					debug("----------------------------------> UserRemoved");
+
+					return false;
+
+				}
+			);
+		} catch(const std::exception &e) {
+			cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.UserRemoved" << endl;
+		}
+
+#endif // HAVE_DBUS
+
+		// Load active users
+		{
+			Logger::String{"Loading user's"}.info("users");
+
+			char **ids = nullptr;
+			int idCount = sd_get_sessions(&ids);
+
+			lock_guard<recursive_mutex> lock(guard);
+			for(int id = 0; id < idCount; id++) {
+
+				try {
+
+					Session *session = new Session();
+
+					session->sid = ids[id];
+					session->init();
+
+					char *state = nullptr;
+					if(sd_session_get_state(ids[id], &state) >= 0) {
+						session->set(User::StateFactory(state));
+						free(state);
 					}
-				);
-			} catch(const std::exception &e) {
-				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.SessionRemoved" << endl;
+
+				} catch(const std::exception &e) {
+
+					Logger::String{"Error '",e.what(),"' loading session '",ids[id],"'"}.error("users");
+
+				}
+
+				free(ids[id]);
 			}
 
-			try {
-				systembus->subscribe(
-					"org.freedesktop.login1.Manager",
-					"UserNew",
-					[this](DBus::Message &message) {
-
-						debug("----------------------------------> UserNew");
-
-						return false;
-
-					}
-				);
-			} catch(const std::exception &e) {
-				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.UserNew" << endl;
-			}
-
-			try {
-				systembus->subscribe(
-					"org.freedesktop.login1.Manager",
-					"UserRemoved",
-					[this](DBus::Message &message) {
-
-						debug("----------------------------------> UserRemoved");
-
-						return false;
-
-					}
-				);
-			} catch(const std::exception &e) {
-				cerr << "users\tError '" << e.what() << "' subscribing to org.freedesktop.login1.Manager.UserRemoved" << endl;
-			}
+			free(ids);
 
 		}
-#endif // HAVE_DBUS
 
 		debug("------------------------------------> Will call init()");
 		init();

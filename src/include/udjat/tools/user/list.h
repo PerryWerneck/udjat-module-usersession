@@ -25,6 +25,10 @@
  #include <config.h>
  #include <udjat/defs.h>
 
+ #ifdef HAVE_DBUS
+	#include <udjat/tools/dbus/connection.h>
+ #endif // HAVE_DBUS
+
  namespace Udjat {
 
 	namespace User {
@@ -78,8 +82,8 @@
 
 			void wakeup();
 
-			class Bus;
-			std::shared_ptr<Bus> systembus;		///< @brief Connection with the system bus
+			///< @brief Cached connection with the system bus listening for events.
+			Udjat::DBus::SystemBus systembus;
 
 #endif // _WIN32
 

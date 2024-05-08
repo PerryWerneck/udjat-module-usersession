@@ -37,14 +37,6 @@
 		}
 
 	};
-
-	class User::List::Bus : public Udjat::DBus::SystemBus {
-	public:
-		Bus() : Udjat::DBus::SystemBus{} {
-		}
-
-	};
-
  #endif // HAVE_DBUS
 
  }
