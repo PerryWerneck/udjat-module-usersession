@@ -49,12 +49,16 @@
 			if(rc < 0) {
 				throw system_error(-rc,system_category(),string{"Unable to open system bus (rc="}+std::to_string(rc)+")");
 			}
-			debug("Got system bus");
+			if(Logger::enabled(Logger::Debug)) {
+				Logger::String{"Got system bus on socket ",sd_bus_get_fd(ptr)}.write(Logger::Debug,"users");
+			}
 		}
 
 		~SystemBus() {
-			debug("Unreferencing d-bus connection");
 			sd_bus_flush(ptr);
+			if(Logger::enabled(Logger::Debug)) {
+				Logger::String{"Released system bus from socket ",sd_bus_get_fd(ptr)}.write(Logger::Debug,"users");
+			}
 			sd_bus_unrefp(&ptr);
 		}
 
