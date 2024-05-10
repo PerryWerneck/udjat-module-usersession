@@ -104,7 +104,8 @@
 
 		std::string response;
 
-		int rc = SystemBus::getInstance().call_method(
+		int rc = sd_bus_call_method(
+			SystemBus::getInstance(),
 			"org.freedesktop.login1",
 			"/org/freedesktop/login1",
 			"org.freedesktop.login1.Manager",
@@ -151,7 +152,8 @@
 		int rc = 0;
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 
-		rc = SystemBus::getInstance().call_method(
+		sd_bus_call_method(
+			SystemBus::getInstance(),
 			"org.freedesktop.login1",
 			this->path().c_str(),
 			"org.freedesktop.DBus.Properties",

@@ -44,8 +44,14 @@
 	public:
 		~SystemBus();
 		static SystemBus & getInstance();
-		int call_method(const char *destination, const char *path, const char *interface, const char *member, sd_bus_error *ret_error, sd_bus_message **reply, const char *types, ...);
 
+		/* Requires D-Bus 246
+		int call_method(const char *destination, const char *path, const char *interface, const char *member, sd_bus_error *ret_error, sd_bus_message **reply, const char *types, ...);
+		*/
+
+		inline operator sd_bus *() noexcept {
+			return connct;
+		}
 	};
 
 	struct BusMessage {
