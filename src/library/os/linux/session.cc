@@ -41,37 +41,6 @@
 
  namespace Udjat {
 
-	struct SystemBus {
-		sd_bus *ptr = NULL;
-
-		SystemBus() {
-			int rc = sd_bus_default_system(&ptr);
-			if(rc < 0) {
-				throw system_error(-rc,system_category(),string{"Unable to open system bus (rc="}+std::to_string(rc)+")");
-			}
-			if(Logger::enabled(Logger::Debug)) {
-				Logger::String{"Got system bus on socket ",sd_bus_get_fd(ptr)}.write(Logger::Debug,"users");
-			}
-		}
-
-		~SystemBus() {
-			sd_bus_flush(ptr);
-			if(Logger::enabled(Logger::Debug)) {
-				Logger::String{"Released system bus from socket ",sd_bus_get_fd(ptr)}.write(Logger::Debug,"users");
-			}
-			sd_bus_unrefp(&ptr);
-		}
-
-	};
-
-	struct BusMessage {
-		sd_bus_message *ptr = NULL;
-		~BusMessage() {
-			debug("Unreferencing d-bus message");
-			sd_bus_message_unrefp(&ptr);
-		}
-	};
-
 	User::Session::Session() {
 		User::List::getInstance().push_back(this);
 	}
@@ -129,23 +98,21 @@
 			return dbpath;
 		}
 
-		SystemBus bus;
 		BusMessage reply;
 
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 
 		std::string response;
 
-		int rc = sd_bus_call_method(
-						bus.ptr,
-						"org.freedesktop.login1",
-						"/org/freedesktop/login1",
-						"org.freedesktop.login1.Manager",
-						"GetSession",
-						&error,
-						&reply.ptr,
-						"s", sid.c_str()
-					);
+		int rc = SystemBus::getInstance().call_method(
+			"org.freedesktop.login1",
+			"/org/freedesktop/login1",
+			"org.freedesktop.login1.Manager",
+			"GetSession",
+			&error,
+			&reply.ptr,
+			"s", sid.c_str()
+		);
 
 		if(rc < 0) {
 			string message{error.message};
@@ -178,23 +145,21 @@
 
 	bool User::Session::locked() const {
 
-		SystemBus bus;
 		BusMessage reply;
 
 		int hint = 0;
 		int rc = 0;
 		sd_bus_error error = SD_BUS_ERROR_NULL;
 
-		rc = sd_bus_call_method(
-						bus.ptr,
-						"org.freedesktop.login1",
-						this->path().c_str(),
-						"org.freedesktop.DBus.Properties",
-						"Get",
-						&error,
-						&reply.ptr,
-						"ss", "org.freedesktop.login1.Session", "LockedHint"
-					);
+		rc = SystemBus::getInstance().call_method(
+			"org.freedesktop.login1",
+			this->path().c_str(),
+			"org.freedesktop.DBus.Properties",
+			"Get",
+			&error,
+			&reply.ptr,
+			"ss", "org.freedesktop.login1.Session", "LockedHint"
+		);
 
 		if(rc < 0) {
 			Logger::Message message{error.message," (rc=",-rc,")"};

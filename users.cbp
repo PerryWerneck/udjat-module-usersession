@@ -51,6 +51,7 @@
 		<Unit filename="src/library/os/linux/session.cc" />
 		<Unit filename="src/library/os/linux/sessiondeinit.cc" />
 		<Unit filename="src/library/os/linux/sessioninit.cc" />
+		<Unit filename="src/library/os/linux/systembus.cc" />
 		<Unit filename="src/library/os/windows/controller.cc" />
 		<Unit filename="src/library/os/windows/resources.rc" />
 		<Unit filename="src/library/os/windows/session.cc" />
