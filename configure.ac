@@ -88,7 +88,7 @@ case "$host" in
 		AC_CONFIG_FILES(sdk/linux/static.pc)
 		
 		PKG_CHECK_MODULES( [SYSTEMD], [libsystemd], AC_DEFINE(HAVE_SYSTEMD,[],[Do we have systemd?]), AC_MSG_NOTICE([libsystemd not present.]) )
-		PKG_CHECK_MODULES( [DBUS], [udjat-dbus dbus-1], AC_DEFINE(HAVE_DBUS,[],[Do we have dbus?]), AC_MSG_NOTICE([udjat-dbus not present.]) )
+		PKG_CHECK_MODULES( [DBUS], [libudjatdbus], AC_DEFINE(HAVE_DBUS,[],[Do we have dbus?]), AC_MSG_NOTICE([libudjatdbus not present.]) )
 
 esac
 
