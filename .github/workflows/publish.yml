@@ -1,0 +1,49 @@
+name: publish
+on:
+  push:
+    branches: 
+      - "publisher"
+    tags:
+      - "*"
+jobs:
+  mingw64:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Fetch Sources
+        uses: actions/checkout@v3
+      - uses: oprypin/find-latest-tag@v1
+        id: gettag
+        with:
+          repository: PerryWerneck/dmiget
+          releases-only: true
+      - name: Setup MSys
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          update: true
+          install: dos2unix xz mingw-w64-x86_64-gcc pkgconf mingw-w64-x86_64-gettext mingw-w64-x86_64-meson gettext-devel
+      - name: Download libudjat
+        uses: robinraju/release-downloader@v1.7
+        with:
+          repository: "PerryWerneck/libudjat"
+          latest: true
+          fileName: "mingw-w64-x86_64-libudjat-1.2.0-0-x86_64.pkg.tar.zst"
+      - name: Run Build
+        run: |
+          pacman -U --noconfirm *.pkg.tar.zst
+          rm -f *.pkg.tar.zst
+          dos2unix PKGBUILD.mingw
+          makepkg BUILDDIR=/tmp/pkg -p PKGBUILD.mingw
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.gettag.outputs.tag }}
+          artifacts: "*.pkg.tar.zst"
+          allowUpdates: true
+          draft: false
+          makeLatest: true
+          omitBody: true
+          omitPrereleaseDuringUpdate: true
+          replacesArtifacts: true
