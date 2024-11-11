@@ -136,8 +136,6 @@ pkg = import('pkgconfig')
 #
 if host_machine.system() == 'windows'
 
-  # src/library/os/windows/resources.rc.in
-
   pkg.generate(
     name: 'lib' + meson.project_name(),
     description: project_description,
@@ -282,8 +280,9 @@ executable(
   config_src + test_src,
   install: false,
   link_with : [ dynamic, module ],
-  dependencies: [ libudjat ],
-  include_directories: includes_dir
+  dependencies: lib_deps,
+  include_directories: includes_dir,
+  link_args: [ '-l:libudjat-testing.a' ],
 )
 
 install_headers(
