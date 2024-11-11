@@ -18,29 +18,24 @@
  */
 
  #include <config.h>
- #include <udjat/tools/application.h>
+ #include <udjat/defs.h>
+ #include <udjat/tests.h>
+ #include <udjat/moduleinfo.h>
  #include <udjat/module.h>
- #include <unistd.h>
- #include <udjat/version.h>
- #include <udjat/tools/logger.h>
- #include <udjat/tools/dbus/connection.h>
- #include <udjat/tools/dbus/message.h>
- #include <udjat/tools/threadpool.h>
-
+ #include <udjat/tools/application.h>
+ 
  using namespace std;
  using namespace Udjat;
 
  int main(int argc, char **argv) {
 
-	Logger::verbosity(9);
-	Logger::redirect();
-	Logger::console(true);
+        static const ModuleInfo info{"userinfo-tester"};
+        
+        return Testing::run(argc,argv,info,[](Application &){
 
-	udjat_module_init();
+            udjat_module_init();
 
-	auto rc = Application{}.run(argc,argv,"./test.xml");
+        });
 
-	debug("Application exits with rc=",rc);
+ }
 
-	return rc;
-}

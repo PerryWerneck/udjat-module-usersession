@@ -18,6 +18,7 @@
  */
 
  #include <config.h>
+ #include <udjat/defs.h>
  #include "private.h"
  #include <systemd/sd-login.h>
  #include <systemd/sd-bus.h>
@@ -34,7 +35,8 @@
  #include <udjat/tools/quark.h>
 
  #ifdef HAVE_DBUS
-	#include <udjat/tools/dbus.h>
+	#include <udjat/tools/dbus/defs.h>
+	#include <udjat/tools/dbus/connection.h>
  #endif // HAVE_DBUS
 
  using namespace std;

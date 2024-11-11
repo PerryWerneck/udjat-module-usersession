@@ -2,5 +2,7 @@
 	"files.associations": {
 		"atomic": "cpp",
 		"memory": "cpp"
-	}
+	},
+	"C_Cpp.default.compileCommands": "/home/perry/project/udjat/module/users/.build/compile_commands.json",
+	"C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild"
 }

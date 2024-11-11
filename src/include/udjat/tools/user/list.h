@@ -106,6 +106,10 @@
 			List(Controller &) = delete;
 			List(Controller *) = delete;
 
+#ifdef _WIN32
+			void refresh() noexcept;
+#endif // _WIN32
+
 			static List & getInstance();
 
 			virtual ~List();
