@@ -182,8 +182,10 @@ else
     'src/library/os/linux/systembus.cc',
   ]
 
+  app_conf.set('HAVE_DBUS', 1)
   lib_deps += [
-    dependency('udjat-dbus'),
+    dependency('libudjatdbus'),
+    dependency('libsystemd'),
   ]
 
 endif
