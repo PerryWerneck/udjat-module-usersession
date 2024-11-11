@@ -5,9 +5,9 @@
 		<param name="changesgenerate">enable</param>
 		<param name="changesauthor">perry.werneck@gmail.com</param>
 		<param name="versionformat">@PARENT_TAG@+git%cd</param>
-		<param name="url">https://github.com/PerryWerneck/udjat-module-users</param>
+		<param name="url">https://github.com/PerryWerneck/libudjatusers</param>
 		<param name="scm">git</param>
-		<param name="revision">develop</param>
+		<param name="revision">meson</param>
 	</service>
 
 	<service name="recompress">
