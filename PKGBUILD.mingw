@@ -1,23 +1,37 @@
 # Maintainer: Perry Werneck <perry.werneck@gmail.com>
 # References: https://www.msys2.org/wiki/Creating-Packages/
 
-_realname=udjat-module-users
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
+# Copyright (C) 2024 Perry Werneck <perry.werneck@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+_realname="udjatusers"
+pkgver="1.1.0"
+
 pkgname=${MINGW_PACKAGE_PREFIX}-${_realname}
 source=()
 
-#pkgver() {
-#  cd ${srcdir}/${_realname}
-#  git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
-#}
-
-pkgver=1.1
-pkgrel=1
-pkgdesc="SQLite module for udjat"
+pkgrel=0
+pkgdesc="User/Session module for udjat"
 url="https://github.com/PerryWerneck/${_realname}"
 arch=(i686 x86_64)
-license=(GPL)
-depends=(${MINGW_PACKAGE_PREFIX}-libudjat)
-makedepends=(autoconf automake make libtool gzip ${MINGW_PACKAGE_PREFIX}-libudjat)
+license=(LGPL-3.0-or-later)
+depends=()
+makedepends=(pkgconf gzip dos2unix ${MINGW_PACKAGE_PREFIX}-meson ${MINGW_PACKAGE_PREFIX}-gcc ${MINGW_PACKAGE_PREFIX}-gettext)
+
 checkdepends=()
 
 provides=($pkgname) 
@@ -25,25 +39,17 @@ conflicts=($pkgname)
 
 prepare() {
   rm -fr "$srcdir/$pkgname"
-  ln -snf "$startdir" "$srcdir/$pkgname"
+  mkdir -p "$srcdir/$pkgname"
+  cd ${startdir}
+  meson setup --reconfigure --wipe "$srcdir/$pkgname"
 }
 
 build() {
-  cd $pkgname
-  ./autogen.sh \
-    --prefix=${MINGW_PREFIX} \
-    --build=${MINGW_CHOST} \
-    --host=${MINGW_CHOST} \
-    --target=${MINGW_CHOST}
- 
-  make all
+  cd ${startdir}  
+  ninja -C "$srcdir/$pkgname"
 }
 
 package() {
-  cd $pkgname
-  make DESTDIR="${pkgdir}" install
-  install \
-    -Dm644 \
-    "LICENSE" \
-    "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+  cd ${startdir} 
+  DESTDIR="${pkgdir}" meson install --tags=devel,runtime -C "$srcdir/$pkgname"
 }
