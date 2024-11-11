@@ -22,7 +22,7 @@
 
 Summary:		User/Session module for udjat 
 Name:			mingw64-udjat-users
-Version:		1.0
+Version: 1.1.0
 Release:		0
 License:		LGPL-3.0
 Source:			udjat-module-users-%{version}.tar.xz
