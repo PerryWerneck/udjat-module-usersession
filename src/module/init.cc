@@ -60,21 +60,6 @@
 		}
 
         bool for_each(const std::function<bool(const size_t index, bool input, const char *name, const Value::Type type)> &call) const override {
-
-			static const char *names[] = {
-				"name",
-				"remote",
-				"locked",
-				"active",
-				"state",
-			};
-
-			for(size_t ix = 0; ix < N_ELEMENTS(names); ix++) {
-				if(call(ix,false,names[ix],Value::String)) {
-					return true;
-				}
-			}
-
 			return false;
 		}
 
