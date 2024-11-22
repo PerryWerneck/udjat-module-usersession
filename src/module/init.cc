@@ -20,8 +20,8 @@
  #include <config.h>
  #include "private.h"
  #include <udjat/module.h>
- #include <udjat/worker.h>
- #include <udjat/request.h>
+ #include <udjat/tools/interface.h>
+ #include <udjat/tools/report.h>
  #include <udjat/moduleinfo.h>
  #include <udjat/version.h>
  #include <udjat/agent/user.h>
@@ -34,7 +34,7 @@
 
 	static const Udjat::ModuleInfo modinfo{"Users management module"};
 
-	class Module : public Udjat::Module, private Udjat::Worker, private Udjat::Factory, private Udjat::Service {
+	class Module : public Udjat::Module, private Udjat::Interface, private Udjat::Factory, private Udjat::Service {
 	private:
 
 	protected:
@@ -45,7 +45,7 @@
 
 	public:
 
-		Module() : Udjat::Module("users",modinfo), Udjat::Worker("userlist",modinfo), Udjat::Factory("users",modinfo), Udjat::Service("userlist",modinfo) {
+		Module() : Udjat::Module("users",modinfo), Udjat::Interface("userlist"), Udjat::Factory("users",modinfo), Udjat::Service("userlist",modinfo) {
 		};
 
 		virtual ~Module() {
@@ -59,26 +59,37 @@
 			User::List::getInstance().deactivate();
 		}
 
-#if UDJAT_CHECK_VERSION(1,2,0)
-		bool get(Request &, Response::Value &response) const override {
+        bool for_each(const std::function<bool(const size_t index, bool input, const char *name, const Value::Type type)> &call) const override {
 
-			response.reset(Value::Array);
+			static const char *names[] = {
+				"name",
+				"remote",
+				"locked",
+				"active",
+				"state",
+			};
 
-			for(auto session : User::List::getInstance()) {
-
-				Udjat::Value &row = response.append(Value::Object);
-
-				row["name"] = session->to_string();
-				row["remote"] = session->remote();
-				row["locked"] = session->locked();
-				row["active"] = session->active();
-				row["state"] = std::to_string(session->state());
-
+			for(size_t ix = 0; ix < N_ELEMENTS(names); ix++) {
+				if(call(ix,false,names[ix],Value::String)) {
+					return true;
+				}
 			}
 
-			return true;
+			return false;
 		}
-#endif // UDJAT_CHECK_VERSION
+
+		void call(const char *path, Udjat::Value &response) override {
+
+			auto &report = response.ReportFactory("name","remote","locked","active","state",nullptr);
+			for(auto session : User::List::getInstance()) {
+				report.push_back(session->to_string());
+				report.push_back(session->remote());
+				report.push_back(session->locked());
+				report.push_back(session->active());
+				report.push_back(std::to_string(session->state()));
+			}
+
+		}
 
 	};
 

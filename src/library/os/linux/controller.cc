@@ -116,7 +116,10 @@
 					"PrepareForSleep",
 					[this](DBus::Message &message) {
 
-						if(DBus::Value(message).as_bool()) {
+						bool flag;
+						message.pop(flag);
+
+						if(flag) {
 							sleep();
 						} else {
 							resume();
@@ -138,7 +141,10 @@
 					"PrepareForShutdown",
 					[this](DBus::Message &message) {
 
-						if(DBus::Value(message).as_bool()) {
+						bool flag;
+						message.pop(flag);
+
+						if(flag) {
 							shutdown();
 						}
 

@@ -26,7 +26,6 @@
  #include <udjat/tools/xml.h>
  #include <udjat/tools/user/session.h>
  #include <udjat/agent/abstract.h>
- #include <udjat/request.h>
  #include <udjat/tools/value.h>
  #include <list>
 
@@ -71,7 +70,6 @@
 
 			Value & getProperties(Value &value) const override;
 			bool getProperties(const char *path, Value &value) const override;
-			bool getProperties(const char *path, Report &report) const override;
 
 			/// @brief Get Agent value (seconds since last alert);
 			time_t get() const noexcept;

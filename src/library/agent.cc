@@ -136,6 +136,7 @@
 
 	}
 
+	/*
 	bool User::Agent::getProperties(const char *path, Report &report) const {
 
 		if(super::getProperties(path,report)) {
@@ -170,7 +171,6 @@
 			report.push_back(user.classname());
 #endif // _WIN32
 
-			/*
 			FIXME: Get pulse time
 			{
 				time_t pulse = 0;
@@ -194,7 +194,6 @@
 				}
 
 			}
-			*/
 			report.push_back("");
 			return false;
 
@@ -202,6 +201,7 @@
 
 		return true;
 	}
+	*/
 
 	bool User::Agent::refresh() {
 

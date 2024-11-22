@@ -125,7 +125,9 @@
 						[this](DBus::Message &message) {
 
 							// Active state of gnome screensaver has changed, deal with it.
-							bool locked = DBus::Value(message).as_bool();
+							bool locked;
+							message.pop(locked);
+							
 							if(locked != flags.locked) {
 								info() << "Gnome screensaver is now " << (locked ? "active" : "inactive") << endl;
 								flags.locked = locked;

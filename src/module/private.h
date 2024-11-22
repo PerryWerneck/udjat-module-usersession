@@ -30,10 +30,8 @@
  #include <udjat/factory.h>
  #include <udjat/alert/abstract.h>
  #include <udjat/agent/abstract.h>
- #include <udjat/request.h>
  #include <list>
  #include <memory>
-// #include <udjat/tools/user/list.h>
 
  class Controller;
 
