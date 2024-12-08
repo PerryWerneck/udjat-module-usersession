@@ -62,6 +62,8 @@
 		
 	</agent>
 	
+	<interface type='web' action-name='users' required='no' />
+
 </config>
 
 

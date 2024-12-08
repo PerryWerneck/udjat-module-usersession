@@ -20,7 +20,7 @@
  #include <config.h>
  #include "private.h"
  #include <udjat/module.h>
- #include <udjat/tools/interface.h>
+ #include <udjat/tools/action.h>
  #include <udjat/tools/report.h>
  #include <udjat/moduleinfo.h>
  #include <udjat/version.h>
@@ -34,7 +34,7 @@
 
 	static const Udjat::ModuleInfo modinfo{"Users management module"};
 
-	class Module : public Udjat::Module, private Udjat::Interface, private Udjat::Factory, private Udjat::Service {
+	class Module : public Udjat::Module, private Udjat::Factory, private Udjat::Service, private Udjat::Action::Factory {
 	private:
 
 	protected:
@@ -45,7 +45,11 @@
 
 	public:
 
-		Module() : Udjat::Module("users",modinfo), Udjat::Interface("userlist"), Udjat::Factory("users",modinfo), Udjat::Service("userlist",modinfo) {
+		Module() 
+			: Udjat::Module("users",modinfo), 
+				Udjat::Factory("users",modinfo), 
+				Udjat::Service("userlist",modinfo),
+				Udjat::Action::Factory("users") {
 		};
 
 		virtual ~Module() {
@@ -59,21 +63,35 @@
 			User::List::getInstance().deactivate();
 		}
 
-        bool for_each(const std::function<bool(const size_t index, bool input, const char *name, const Value::Type type)> &call) const override {
-			return false;
-		}
+		std::shared_ptr<Action> ActionFactory(const XML::Node &node) const {
 
-		void call(const char *path, Udjat::Value &response) override {
+			class Action : public Udjat::Action {
+			public:
+				Action(const XML::Node &node) : Udjat::Action{node} {
+				}
 
-			auto &report = response.ReportFactory("name","remote","locked","active","state",nullptr);
-			for(auto session : User::List::getInstance()) {
-				report.push_back(session->to_string());
-				report.push_back(session->remote());
-				report.push_back(session->locked());
-				report.push_back(session->active());
-				report.push_back(std::to_string(session->state()));
-			}
+				~Action() {
+				}
 
+				int call(Udjat::Request &request, Udjat::Response &response, bool except) {
+					return exec(response,except,[&](){
+
+						auto &report = response.ReportFactory("name","remote","locked","active","state",nullptr);
+						for(auto session : User::List::getInstance()) {
+							report.push_back(session->to_string());
+							report.push_back(session->remote());
+							report.push_back(session->locked());
+							report.push_back(session->active());
+							report.push_back(std::to_string(session->state()));
+						}
+
+						return 0;
+					});
+				}
+
+			};
+
+			return make_shared<Action>(node);
 		}
 
 	};
