@@ -230,6 +230,7 @@ if host_machine.system() == 'windows'
     config_src + module_src + resources,
     name_prefix: 'udjat-module-',
     install: true,
+    install_tag: 'module',
     link_with: dynamic,
     install_dir: libudjat.get_variable('module_path'),
     gnu_symbol_visibility: 'hidden',
