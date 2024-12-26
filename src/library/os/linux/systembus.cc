@@ -21,6 +21,7 @@
   * @brief Implementing singleton for sd_bus_system.
   */
 
+/*
  #include <config.h>
  #include <udjat/defs.h>
  #include <stdexcept>
@@ -57,18 +58,6 @@
 		return instance;
 	}
 
-	/* Requires D-Bus 246
-	int SystemBus::call_method(const char *destination, const char *path, const char *interface, const char *member, sd_bus_error *ret_error, sd_bus_message **reply, const char *types, ...) {
-		va_list ap;
-		int r;
-
-		va_start(ap, types);
-		r = sd_bus_call_methodv(connct, destination, path, interface, member, ret_error, reply, types, ap);
-		va_end(ap);
-
-		return r;
-	}
-	*/
-
  }
  #endif // HAVE_DBUS
+*/

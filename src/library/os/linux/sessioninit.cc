@@ -22,6 +22,7 @@
  #include <udjat/tools/user/session.h>
  #include <udjat/tools/configuration.h>
  #include <systemd/sd-login.h>
+ #include <udjat/tools/dbus/message.h>
  #include <iostream>
  #include <udjat/tools/threadpool.h>
  #include <udjat/tools/logger.h>

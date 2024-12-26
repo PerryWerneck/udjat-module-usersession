@@ -17,6 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+
  #include <udjat/tools/object.h>
  #include <udjat/tools/logger.h>
  #include <udjat/tools/activatable.h>
@@ -168,5 +170,6 @@
 	return false;
 
  }
+*/
 
 

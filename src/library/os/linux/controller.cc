@@ -39,6 +39,8 @@
  #include <signal.h>
  #include <udjat/tools/configuration.h>
  #include <udjat/tools/logger.h>
+ #include <udjat/tools/dbus/message.h>
+ #include <udjat/tools/dbus/connection.h>
  #include <pthread.h>
  #include <sys/eventfd.h>
  #include <udjat/tools/threadpool.h>
@@ -111,7 +113,7 @@
 		if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",true)) {
 
 			try {
-				systembus.subscribe(
+				DBus::SystemBus::getInstance().subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForSleep",
 					[this](DBus::Message &message) {
@@ -136,7 +138,7 @@
 
 		if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",true)) {
 			try {
-				systembus.subscribe(
+				DBus::SystemBus::getInstance().subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForShutdown",
 					[this](DBus::Message &message) {
@@ -160,7 +162,7 @@
 		// https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.login1.html
 		try {
 
-			systembus.subscribe(
+			DBus::SystemBus::getInstance().subscribe(
 				"org.freedesktop.login1.Manager",
 				"SessionNew",
 				[this](DBus::Message &message) {
@@ -212,7 +214,7 @@
 		}
 
 		try {
-			systembus.subscribe(
+			DBus::SystemBus::getInstance().subscribe(
 				"org.freedesktop.login1.Manager",
 				"SessionRemoved",
 				[this](DBus::Message &message) {
@@ -272,7 +274,7 @@
 		}
 
 		try {
-			systembus.subscribe(
+			DBus::SystemBus::getInstance().subscribe(
 				"org.freedesktop.login1.Manager",
 				"UserNew",
 				[this](DBus::Message &message) {
@@ -288,7 +290,7 @@
 		}
 
 		try {
-			systembus.subscribe(
+			DBus::SystemBus::getInstance().subscribe(
 				"org.freedesktop.login1.Manager",
 				"UserRemoved",
 				[this](DBus::Message &message) {

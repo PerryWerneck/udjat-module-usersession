@@ -21,6 +21,7 @@
   * @brief Declare alert for user events.
   */
 
+/*
  #pragma once
  #include <udjat/defs.h>
  #include <udjat/tools/xml.h>
@@ -80,3 +81,4 @@
 	}
 
  }
+*/

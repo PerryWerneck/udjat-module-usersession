@@ -3,12 +3,10 @@
 <config>
 
 	<module name='civetweb' required='no' />
-	<!-- module name='http' required='no' / -->
 	<module name='information' required='no' />
-	<!-- module name='dmi' required='no' / -->
 
 	<!-- attribute name='url' value='sqlite+http://localhost' / -->
-	<attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${name}' />
+	<!-- attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${name}' / -->
 
 	<agent type='users' name='users' update-timer='60'>
 	
@@ -32,29 +30,29 @@
 		-->
 	
 		<!-- Activate when user is active on service start -->
-		<alert name='start' event='Already active' max-retries='1' action='post' url='http://localhost'>
+		<!-- alert name='start' trigger-event='Already active' max-retries='1' action='post' url='http://localhost'>
 			{"user":"${username}","macaddress":"${macaddress}"}
-		</alert>
+		</alert -->
 
 		<!-- Activate when user is active on service stop -->
-		<!-- alert name='stop' event='Still active'>
+		<!-- alert name='stop' trigger-event='Still active'>
 		</alert -->
 
 		<!-- Activate on user logon -->
-		<alert name='login' max-retries='1' max-retries='1' action='post' url='http://localhost'>
-		</alert>
+		<!-- alert name='login' max-retries='1' max-retries='1' action='post' url='http://localhost'>
+		</alert -->
 
 		<!-- Activate on user logoff -->
-		<alert name='logout' type='script' cmdline='touch /tmp/logout'>
-		</alert>
+		<!-- alert name='logout' type='script' cmdline='touch /tmp/logout'>
+		</alert -->
 
 		<!-- Timer -->
-		<alert name='pulse' interval='60' on-locked-session='no' max-retries='1' max-retries='1' action='post' url='http://localhost'>
-		</alert>
+		<!-- alert name='pulse' interval='60' on-locked-session='no' max-retries='1' max-retries='1' action='post' url='http://localhost'>
+		</alert -->
 
 		<!-- Activate on user lock -->
-		<alert name='lock' type='script' cmdline='touch /tmp/${username}.lock'>
-		</alert>
+		<!-- alert name='lock' cmdline='touch /tmp/${username}.lock'>
+		</alert -->
 		
 		<!-- Activate on user unlock -->
 		<!-- alert name='unlock'>

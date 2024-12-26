@@ -24,6 +24,7 @@
  #pragma once
  #include <config.h>
  #include <udjat/defs.h>
+ #include <udjat/tools/user/session.h>
 
  #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus/connection.h>

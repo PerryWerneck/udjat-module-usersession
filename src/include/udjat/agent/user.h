@@ -24,26 +24,47 @@
  #pragma once
  #include <udjat/defs.h>
  #include <udjat/tools/xml.h>
+ #include <udjat/agent/abstract.h>
+ #include <udjat/tools/activatable.h>
+
+ /*
  #include <udjat/tools/user/session.h>
  #include <udjat/agent/abstract.h>
  #include <udjat/tools/value.h>
  #include <list>
-
+*/
+ 
  namespace Udjat {
 
 	namespace User {
 
-		class Alert;
-
 		class UDJAT_API Agent : public Udjat::Abstract::Agent {
 		private:
 
-			std::list<Alert> proxies;
+			struct Proxy {
+				User::Event events = User::no_event;
+
+				enum : uint8_t {
+					System_session 	= 0x01,					///< @brief Emit alert for system sessions?
+					Remote 			= 0x02,					///< @brief Emit alert for remote sessions?
+					Locked 			= 0x04,					///< @brief Emit alert on locked session?
+					Unlocked		= 0x08,					///< @brief Emit alert on unlocked session?
+					Background		= 0x10,					///< @brief Emit alert for background session?
+					Foreground		= 0x20,					///< @brief Emit alert for foreground session?
+					Active			= 0x40,					///< @brief Emit alert on active session?
+					Inactive		= 0x80,					///< @brief Emit alert on inactive session?
+					All				= 0xFF
+				} filter = All;
+
+				std::shared_ptr<Activatable> activatable;	///< @brief The activatable for this event.
+			};
+
+			std::list<Proxy> proxies;
 
 			/// @brief Timestamp of the last alert emission.
 			time_t alert_timestamp = time(0);
 
-			void emit(Abstract::Alert &alert, Session &session) const noexcept;
+			void emit(Udjat::Activatable &activatable, Session &session) const noexcept;
 
 			struct {
 				unsigned int max_pulse_check = 600;	///< @brief Max value for pulse checks.
@@ -64,6 +85,10 @@
 			/// @return true if an alert was activated.
 			bool onEvent(Session &session, const Udjat::User::Event event) noexcept;
 
+			/// @brief Check XML for special user events, add it on proxy list if necessary.
+			/// @param node The activatable description.
+			/// @param activatable The activatable built for this event.
+			/// @return true if the event was pushed.
 			bool push_back(const pugi::xml_node &node, std::shared_ptr<Activatable> activatable) override;
 
 			Value & get(Value &value) const override;

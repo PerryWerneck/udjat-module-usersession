@@ -17,21 +17,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
+ #include <udjat/defs.h>
+ #include <udjat/agent/abstract.h>
+ #include <udjat/agent/user.h>
+ #include <udjat/tools/user/list.h>
+ #include <udjat/alert.h>
+
+
+/*
  #include <udjat/tools/object.h>
  #include <udjat/agent/abstract.h>
- #include <udjat/alert/activation.h>
  #include <udjat/alert.h>
  #include <udjat/tools/threadpool.h>
  #include <udjat/tools/logger.h>
- #include <udjat/agent/user.h>
- #include <udjat/tools/user/list.h>
  #include <udjat/alert/user.h>
+ #include <udjat/tools/xml.h>
+*/
 
  using namespace std;
 
  namespace Udjat {
 
-	User::Agent::Agent(const pugi::xml_node &node) : Abstract::Agent(node) {
+	User::Agent::Agent(const XML::Node &node) : Abstract::Agent(node) {
 
 		User::List::getInstance().push_back(this);
 
@@ -56,8 +64,41 @@
 		return value;
 	}
 
-	void User::Agent::emit(Udjat::Abstract::Alert &alert, Session &session) const noexcept {
+	void User::Agent::emit(Udjat::Activatable &activatable, Session &session) const noexcept {
 
+		class Object : public Udjat::Abstract::Object {
+		private:
+			const Udjat::Abstract::Object &session;
+			const Udjat::Abstract::Object &agent;
+
+		public:
+			Object(const Udjat::Abstract::Object &s, const Udjat::Abstract::Object &a)
+				: session{s}, agent{a} {
+			}
+
+			virtual ~Object() {				
+			}
+
+			bool getProperty(const char *key, std::string &value) const override {
+				if(session.getProperty(key,value)) {
+					return true;
+				}
+				return agent.getProperty(key,value);
+			}
+
+		};
+
+		try {
+			
+			activatable.activate(Object{session,*this});
+
+		} catch(const std::exception &e) {
+
+			error() << e.what() << endl;
+
+		}
+
+		/*
 		try {
 
 			auto activation = alert.ActivationFactory();
@@ -71,6 +112,7 @@
 			error() << e.what() << endl;
 
 		}
+		*/
 
 	}
 
@@ -80,16 +122,17 @@
 
 		session.info() << "Event: " << event << endl;
 
-		for(User::Alert &alert : proxies) {
+		// Check proxies
+		for(const auto &proxy : proxies) {
 
-			if(alert.test(event) && alert.test(session)) {
-
-				// Emit alert.
-
-				activated = true;
-				alert.activate(*this,session);
-
+			// Check event.
+			if(!(proxy.events & event)) {
+				continue;
 			}
+
+			// Check session state.
+
+			#error Parei aqui
 
 		}
 
