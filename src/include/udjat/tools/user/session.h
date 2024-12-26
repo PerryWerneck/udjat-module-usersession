@@ -63,7 +63,7 @@
 		/// @brief Create an event id.
 		/// @param names The list of event names delimited by ','
 		/// @return The event id mixing all names.
-		UDJAT_API Event EventFactory(const pugi::xml_node &node);
+		// UDJAT_API Event EventFactory(const pugi::xml_node &node);
 
 		/// @brief Session state, as reported by logind.
 		/// @see sd_session_get_state

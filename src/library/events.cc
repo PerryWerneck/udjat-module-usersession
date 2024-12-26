@@ -75,14 +75,11 @@
 
 		}
 
-		if(rc) {
-			return (User::Event) rc;
-		}
+		return (User::Event) rc;
 
-		throw system_error(EINVAL,system_category(),Logger::Message("Can't parse events '{}'",eventlist));
 	}
 
-
+	/*
 	Udjat::User::Event User::EventFactory(const pugi::xml_node &node) {
 
 		const char * names = node.attribute("events").as_string();
@@ -103,6 +100,7 @@
 		return Udjat::User::EventFactory(names);
 
 	}
+	*/
 
  }
 

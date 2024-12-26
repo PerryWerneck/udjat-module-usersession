@@ -23,6 +23,7 @@
  #include <udjat/agent/user.h>
  #include <udjat/tools/user/list.h>
  #include <udjat/alert.h>
+ #include <udjat/tools/string.h>
 
 
 /*
@@ -38,6 +39,21 @@
  using namespace std;
 
  namespace Udjat {
+
+	static const struct {
+		bool flag;
+		const char *attrname;
+	} session_types[] = {
+		{ false,	"system"		},
+		{ true,		"user"			},
+		{ false,	"remote"		},
+		{ true,		"locked"		},
+		{ true,		"unlocked"		},
+		{ true,		"background"	},
+		{ true,		"foreground"	},
+		{ true,		"active"		},
+		{ true,		"inactive"		},
+	};
 
 	User::Agent::Agent(const XML::Node &node) : Abstract::Agent(node) {
 
@@ -131,48 +147,43 @@
 			}
 
 			// Check session state.
+			activated = true;
+			proxy.activate(session,*this);
 
-			#error Parei aqui
-
-		}
-
-		if(activated) {
-			alert_timestamp = time(0);
-			sched_update(timer()); // Reset timer for pulse event.
 		}
 
 		return activated;
+
 	}
 
 	bool User::Agent::push_back(const XML::Node &node, std::shared_ptr<Activatable> activatable){
 
-		// First check if parent object can handle this activatable, if yes, just return.
-		if(Abstract::Agent::push_back(node,activatable)) {
-			return true;
+		auto event = EventFactory(String{node,"trigger-event"}.c_str());
+		if(!event) {
+			// It's not an user event, call the default method.
+			return super::push_back(node,activatable);
 		}
 
-		// Parent was not able to handle this activatable, create a proxy for it.
-
-		proxies.emplace_back(node,activatable);
-
-		User::Alert &proxy = proxies.back();
-
-		if(proxy.test(User::pulse)) {
-
-			auto timer = this->timer();
-
-			if(!timer) {
-				this->warning() << "Agent 'update-timer' attribute is required to use 'pulse' alerts" << endl;
-				this->timer(14400);
+		uint16_t filter = Proxy::All;
+		uint16_t mask = 0x01;
+		for(const auto &type : session_types) {
+			auto attr = XML::AttributeFactory(node,String{"on-",type.attrname,"-session"}.c_str());
+			if(!attr) {
+				attr = XML::AttributeFactory(node,String{type.attrname,"-session"}.c_str());
 			}
-
-			if(proxy.timer() < timer) {
-				activatable->warning() << "Pulse interval is lower than agent update timer" << endl;
-				this->timer(timer);
+			if(attr.as_bool(type.flag)) {
+				filter = (Proxy::Filter) (filter | mask);
+			} else {
+				filter = (Proxy::Filter) (filter & (~mask));
 			}
+			mask <<= 1;
+		} 
 
-			Logger::String("Agent timer set to ",this->timer()).write(Logger::Debug,name());
+		auto &proxy = proxies.emplace_back(event,filter,activatable);
 
+		if(event & User::pulse && !this->timer()) {
+			this->timer(14400);
+			Logger::String{"update-timer attribute is required to use pulse alerts, setting it to ",this->timer()," seconds"}.warning(name());
 		}
 
 		return true;
@@ -248,52 +259,22 @@
 
 	bool User::Agent::refresh() {
 
-#ifdef DEBUG
-		Logger::String("Checking for updates").write(Logger::Debug,name());
-#endif // DEBUG
+		for(const auto &proxy : proxies) {
 
-		time_t required_wait = timers.max_pulse_check;
-		User::List::getInstance().for_each([this,&required_wait](Udjat::User::Session &session) {
-
-			time_t idletime = time(0) - alert_timestamp;	// Get time since last alert.
-
-			for(User::Alert &alert : proxies) {
-
-				auto timer = alert.timer();	// Get alert timer.
-
-				if(timer && alert.test(User::pulse) && alert.test(session)) {
-
-					// Check for pulse.
-					if(timer <= idletime) {
-
-						Logger::String{"Emitting PULSE (idletime=",idletime," alert-timer=",alert.timer(),")"}.write(Logger::Debug,name());
-
-						alert.activate(*this,session);
-
-						required_wait = std::min(required_wait,timer);
-						Logger::String{"Will wait for ",timer," seconds"}.write(Logger::Debug,name());
-
-					} else {
-
-						time_t seconds{timer - idletime};
-						required_wait = std::min(required_wait,seconds);
-						Logger::String{"Will wait for ",seconds," seconds"}.write(Logger::Debug,name());
-
-					}
-
-				}
-
+			if(!(proxy.events & User::pulse)) {
+				continue;
 			}
 
-			return false;
-		});
-
-		if(required_wait) {
-			this->timer(required_wait);
-			Logger::String{"Next refresh set to ",TimeStamp(time(0)+required_wait)," (",required_wait," seconds)"}.write(Logger::Debug,name());
+			// Emit 'pulse' event for all users.
+			User::List::getInstance().for_each([&](Udjat::User::Session &session) {
+				
+				// FIXME: Should check session idle time.
+				
+				proxy.activate(session,*this);
+				
+				return false;
+			});
 		}
-
-		return false;
 	}
 
 	Value & User::Agent::getProperties(Value &value) const {

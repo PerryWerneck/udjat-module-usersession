@@ -42,21 +42,33 @@
 		private:
 
 			struct Proxy {
+
 				User::Event events = User::no_event;
 
-				enum : uint8_t {
-					System_session 	= 0x01,					///< @brief Emit alert for system sessions?
-					Remote 			= 0x02,					///< @brief Emit alert for remote sessions?
-					Locked 			= 0x04,					///< @brief Emit alert on locked session?
-					Unlocked		= 0x08,					///< @brief Emit alert on unlocked session?
-					Background		= 0x10,					///< @brief Emit alert for background session?
-					Foreground		= 0x20,					///< @brief Emit alert for foreground session?
-					Active			= 0x40,					///< @brief Emit alert on active session?
-					Inactive		= 0x80,					///< @brief Emit alert on inactive session?
-					All				= 0xFF
+				enum Filter : uint16_t {
+					System_session 	= 0x0001,	///< @brief Activate on system sessions?
+					User_Session	= 0x0002,	///< @brief Activate on user sessions?
+					Remote 			= 0x0004,	///< @brief Activate on remote sessions?
+					Locked 			= 0x0008,	///< @brief Activate on locked session?
+					Unlocked		= 0x0010,	///< @brief Activate on unlocked session?
+					Background		= 0x0020,	///< @brief Activate on background session?
+					Foreground		= 0x0040,	///< @brief Activate on foreground session?
+					Active			= 0x0080,	///< @brief Activate on active session?
+					Inactive		= 0x0100,	///< @brief Activate on inactive session?
+					All				= 0xFFFF
 				} filter = All;
 
 				std::shared_ptr<Activatable> activatable;	///< @brief The activatable for this event.
+
+				time_t idle = 14400;			///< @brief Session idle time to emit 'pulse' events.
+				time_t last_activation = 0;		///< @brief Time stamp of last activation.
+
+				Proxy(const User::Event ev, const Filter f, std::shared_ptr<Activatable> a)
+					: events{ev},filter{f},activatable{a} {						
+				}
+
+				void activate(const User::Session, const Abstract::Object &agent) const noexcept;
+
 			};
 
 			std::list<Proxy> proxies;
