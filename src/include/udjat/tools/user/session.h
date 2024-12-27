@@ -223,7 +223,7 @@
 			const char * classname() const noexcept;
 
 			/// @brief The D-Bus session path.
-			std::string path() const;
+			const char * path() const;
 
 			/// @brief Get environment value from user session.
 			std::string getenv(const char *varname) const;

@@ -187,6 +187,7 @@
 		}
 
 		this->sched_update(seconds);
+		return true;
 
 	}
 

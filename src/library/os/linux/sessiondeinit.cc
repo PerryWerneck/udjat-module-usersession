@@ -19,17 +19,7 @@
 
  #include <config.h>
  #include <udjat/defs.h>
- #include "private.h"
- #include <udjat/tools/configuration.h>
  #include <udjat/tools/user/session.h>
- #include <iostream>
-
- #ifdef HAVE_DBUS
-	#include <udjat/tools/dbus/defs.h>
-	#include <udjat/tools/dbus/connection.h>
- #endif // HAVE_DBUS
-
- using namespace std;
 
  namespace Udjat {
 

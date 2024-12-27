@@ -24,51 +24,7 @@
  #include <udjat/tools/user/session.h>
  #include <udjat/tools/user/list.h>
 
- #ifdef HAVE_DBUS
-	#include <udjat/tools/dbus/connection.h>
-	#include <systemd/sd-bus.h>
- #endif // HAVE_DBUS
-
  namespace Udjat {
-
-#ifdef HAVE_DBUS
-
-
-	/// TODO: Replace for Udjat::DBus::SystemBus
-
-	class SystemBus {
-	private:
-		sd_bus *connct = NULL;
-		SystemBus();
-
-	public:
-		~SystemBus();
-		static SystemBus & getInstance();
-
-		/* Requires D-Bus 246
-		int call_method(const char *destination, const char *path, const char *interface, const char *member, sd_bus_error *ret_error, sd_bus_message **reply, const char *types, ...);
-		*/
-
-		inline operator sd_bus *() noexcept {
-			return connct;
-		}
-	};
-
-	struct BusMessage {
-		sd_bus_message *ptr = NULL;
-		~BusMessage() {
-			debug("Unreferencing d-bus message");
-			sd_bus_message_unrefp(&ptr);
-		}
-	};
-
-	class User::Session::Bus : public Udjat::DBus::NamedBus {
-	public:
-		Bus(const char *busname, const char *name) : Udjat::DBus::NamedBus{busname,name} {
-		}
-
-	};
- #endif // HAVE_DBUS
 
  }
 

@@ -177,7 +177,6 @@ else
     'src/library/os/linux/controller.cc',
     'src/library/os/linux/session.cc',
     'src/library/os/linux/sessioninit.cc',
-    'src/library/os/linux/systembus.cc',
   ]
 
   app_conf.set('HAVE_DBUS', 1)

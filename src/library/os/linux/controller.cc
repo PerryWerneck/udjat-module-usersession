@@ -31,6 +31,7 @@
 // https://gitlab.gnome.org/GNOME/gnome-shell/-/issues/741
 
  #include <config.h>
+ #include <udjat/defs.h>
  #include <udjat/tools/user/session.h>
  #include <systemd/sd-login.h>
  #include <cstring>
@@ -45,7 +46,8 @@
  #include <sys/eventfd.h>
  #include <udjat/tools/threadpool.h>
 
- #include "private.h"
+ #include <udjat/tools/user/session.h>
+ #include <udjat/tools/user/list.h>
 
  #ifdef HAVE_DBUS
 	#include <udjat/tools/dbus/connection.h>
