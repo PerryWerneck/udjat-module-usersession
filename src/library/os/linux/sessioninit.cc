@@ -70,7 +70,7 @@
 			" class=",classname()
 		}.write(Logger::Debug,name());
 
-		if(uid != -1 && !remote() && Config::Value<bool>("user-session","open-session-bus",true)) {
+		if(uid != (uid_t) -1 && !remote() && Config::Value<bool>("user-session","open-session-bus",true)) {
 
 #ifdef HAVE_DBUS
 			try {

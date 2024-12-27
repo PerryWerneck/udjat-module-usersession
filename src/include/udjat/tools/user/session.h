@@ -229,10 +229,7 @@
 			std::string getenv(const char *varname) const;
 
 			/// @brief Execute function as user's effective id.
-			static void call(const uid_t uid, const std::function<void()> exec);
-
-			/// @brief Execute function as user's effective id.
-			void call(const std::function<void()> exec);
+			void exec(const std::function<void()> &exec) const;
 
 #endif // _WIN32
 
@@ -268,7 +265,7 @@
 	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept;
 
 	inline ostream& operator<< (std::ostream& os, const Udjat::User::State state) {
-		return os << to_string(state);
+		return os << std::to_string(state);
 	}
 
  }

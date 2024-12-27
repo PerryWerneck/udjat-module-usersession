@@ -258,33 +258,8 @@
 		return session->uid;
 	}
 
-	void User::Session::call(const std::function<void()> exec) {
-		call(userid(),exec);
-	}
-
-	void User::Session::call(const uid_t uid, const std::function<void()> exec) {
-
-		// TODO: https://stackoverflow.com/questions/1223600/change-uid-gid-only-of-one-thread-in-linux#:~:text=To%20change%20the%20uid%20only,sends%20to%20all%20threads)!&text=The%20Linux%2Dspecific%20setfsuid(),thread%20rather%20than%20per%2Dprocess.
-		static mutex guard;
-
-		lock_guard<mutex> lock(guard);
-
-		uid_t saved_uid = geteuid();
-		if(seteuid(uid) < 0) {
-			throw std::system_error(errno, std::system_category(), "Cant set effective user id");
-		}
-
-		try {
-
-			exec();
-
-		} catch(...) {
-			seteuid(saved_uid);
-			throw;
-		}
-
-		seteuid(saved_uid);
-
+	void User::Session::exec(const std::function<void()> &exec) const {
+		DBus::UserBus::exec(uid,exec);
 	}
 
 	const char * User::Session::name(bool update) const noexcept {
