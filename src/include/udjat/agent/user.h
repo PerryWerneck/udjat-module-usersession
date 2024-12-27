@@ -28,12 +28,6 @@
  #include <udjat/tools/activatable.h>
  #include <udjat/tools/user/session.h>
 				
- /*
- #include <udjat/agent/abstract.h>
- #include <udjat/tools/value.h>
- #include <list>
-*/
- 
  namespace Udjat {
 
 	namespace User {
@@ -54,7 +48,7 @@
 					: events{ev},filter{f},activatable{a} {						
 				}
 
-				void activate(const User::Session, const Abstract::Object &agent) const noexcept;
+				void activate(const User::Session &session, const Abstract::Object &agent) const noexcept;
 
 			};
 

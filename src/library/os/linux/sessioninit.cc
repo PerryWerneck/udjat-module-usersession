@@ -59,24 +59,28 @@
 		remote();
 
 		// Log session info.
-		Logger::String{
-			"Sid=",sid,
-			" Uid=",userid(),
-			" System=",system(),
-			" type=",type(),
-			" display=",display(),
-			" remote=",remote(),
-			" service=",service(),
-			" class=",classname()
-		}.write(Logger::Debug,name());
+		if(Logger::enabled(Logger::Debug)) {
+			Logger::String{
+				"Sid=",sid,
+				" Uid=",userid(),
+				" System=",system(),
+				" type=",type(),
+				" display=",display(),
+				" remote=",remote(),
+				" service=",service(),
+				" class=",classname()
+			}.write(Logger::Debug,name());
+		}
 
 		if(uid != (uid_t) -1 && !remote() && Config::Value<bool>("user-session","open-session-bus",true)) {
 
 #ifdef HAVE_DBUS
 			try {
 				
-				Logger::String{"Getting connection to user's bus"}.trace(to_string().c_str());
-				userbus = make_shared<Bus>(uid);
+				if(!userbus) {
+					Logger::String{"Getting connection to user's bus"}.trace(to_string().c_str());
+					userbus = make_shared<Bus>(uid);
+				}
 			
 				// Is the session locked?
 				userbus->call(
