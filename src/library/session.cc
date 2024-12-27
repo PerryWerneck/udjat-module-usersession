@@ -37,6 +37,22 @@
 	N_( "unknown" ),
  };
 
+ static const struct {
+	bool flag;
+	const char *attrname;
+ } typenames[] = {
+	{ false,	"system"		},
+	{ true,		"user"			},
+	{ false,	"remote"		},
+	{ true,		"local"			},
+	{ true,		"locked"		},
+	{ true,		"unlocked"		},
+	{ true,		"background"	},
+	{ true,		"foreground"	},
+	{ true,		"active"		},
+	{ true,		"inactive"		},
+ };
+
  namespace Udjat {
 
 	User::State User::StateFactory(const char *statename) {
@@ -69,6 +85,28 @@
 		return SessionInUnknownState;
 
 	}
+
+	User::Session::Type User::Session::TypeFactory(const XML::Node &node) {
+
+		uint16_t value = 0xFFFF;
+		uint16_t mask = 0x01;
+		
+		for(const auto &type : typenames) {
+			auto attr = XML::AttributeFactory(node,String{"on-",type.attrname,"-session"}.c_str());
+			if(!attr) {
+				attr = XML::AttributeFactory(node,String{type.attrname,"-session"}.c_str());
+			}
+			if(attr.as_bool(type.flag)) {
+				value |= mask;
+			} else {
+				value &= (~mask);
+			}
+			mask <<= 1;
+		} 
+
+		return (User::Session::Type) value;
+	}
+
 
 	void User::Session::emit(const Event &event) noexcept {
 		onEvent(event);
@@ -215,6 +253,52 @@
 
 	const char * User::Session::name() const noexcept {
 		return name(false);
+	}
+
+	bool User::Session::test(const Type type) const {
+
+		if(type & (Locked|Unlocked)) {
+			// Test lock type.
+			if(!(type & (locked() ? Locked : Unlocked))) {
+				debug("Rejecting session '",name(),"' by 'lock' flag");
+				return false;
+			}
+		}
+
+		if(type & (Background|Foreground)) {
+			// Test foreground session.
+			if(!(type & (foreground() ? Foreground : Background))) {
+				debug("Rejecting session '",name(),"' by 'foreground' flag");
+				return false;
+			}
+		}
+
+		if(type & (System|User)) {
+			// Test user type.
+			if(!(type & (system() ? System : User))) {
+				debug("Rejecting session '",name(),"' by 'system' flag");
+				return false;
+			}
+		}
+
+		if(type & (Active|Inactive)) {
+			// Test Session state.
+			if(!(type & (active() ? Active : Inactive))) {
+				debug("Rejecting session '",name(),"' by 'active' flag");
+				return false;
+			}
+		}
+
+		if(type & (Remote|Local)) {
+			// Test remote session.
+			if(!(type & (remote() ? Remote : Local))) {
+				debug("Rejecting session '",name(),"' by 'remote' flag");
+				return false;
+			}
+		}
+
+		debug("Allowing session ",name());
+		return true;
 	}
 
  	User::Session & User::Session::onEvent(const User::Event &event) noexcept {

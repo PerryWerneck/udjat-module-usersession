@@ -113,6 +113,8 @@
 
 #endif // _WIN32
 
+			time_t last_activity = 0;			///< @brief Timestamp of last activity on this session (for idle control).
+
 		protected:
 			/// @brief Emit event, update timers.
 			void emit(const Event &event) noexcept;
@@ -124,8 +126,34 @@
 			void deinit();
 
 		public:
+
+			/// @brief Session type;
+			enum Type : uint16_t {
+				System 			= 0x0001,	///< @brief Activate on system sessions?
+				User			= 0x0002,	///< @brief Activate on user sessions?
+				Remote 			= 0x0004,	///< @brief Activate on remote sessions?
+				Local 			= 0x0008,	///< @brief Activate on remote sessions?
+				Locked 			= 0x0010,	///< @brief Activate on locked session?
+				Unlocked		= 0x0020,	///< @brief Activate on unlocked session?
+				Background		= 0x0040,	///< @brief Activate on background session?
+				Foreground		= 0x0080,	///< @brief Activate on foreground session?
+				Active			= 0x0100,	///< @brief Activate on active session?
+				Inactive		= 0x0200,	///< @brief Activate on inactive session?
+				All				= 0xFFFF
+			};
+
+			static Type TypeFactory(const XML::Node &node);
+
 			Session();
 			virtual ~Session();
+
+			inline void activity(time_t tm) noexcept {
+				last_activity = tm;
+			}
+
+			inline time_t activity() const noexcept {
+				return last_activity;
+			}
 
 			/// @brief Get session name or id.
 			std::string to_string() const noexcept override;
@@ -136,6 +164,11 @@
 
 			bool getProperty(const char *key, std::string &value) const override;
 			Value & getProperties(Value &value) const override;
+
+			/// @brief Test session type.
+			/// @param type The type with options to check.
+			/// @return true if at least one option is set.
+			bool test(const Type type) const;
 
 			/// @brief Is this session a remote one?
 			bool remote() const;
@@ -165,6 +198,8 @@
 			inline bool alive() const noexcept {
 				return flags.alive;
 			}
+
+
 
 #ifdef _WIN32
 

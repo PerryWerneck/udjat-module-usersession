@@ -32,6 +32,7 @@
  namespace Udjat {
 
 	User::Session::Session() {
+		last_activity = time(0):
 		User::List::getInstance().push_back(this);
 	}
 

@@ -40,21 +40,6 @@
 
  namespace Udjat {
 
-	static const struct {
-		bool flag;
-		const char *attrname;
-	} session_types[] = {
-		{ false,	"system"		},
-		{ true,		"user"			},
-		{ false,	"remote"		},
-		{ true,		"locked"		},
-		{ true,		"unlocked"		},
-		{ true,		"background"	},
-		{ true,		"foreground"	},
-		{ true,		"active"		},
-		{ true,		"inactive"		},
-	};
-
 	User::Agent::Agent(const XML::Node &node) : Abstract::Agent(node) {
 
 		User::List::getInstance().push_back(this);
@@ -139,6 +124,7 @@
 		session.info() << "Event: " << event << endl;
 
 		// Check proxies
+		time_t now = time(0);
 		for(const auto &proxy : proxies) {
 
 			// Check event.
@@ -148,6 +134,7 @@
 
 			// Check session state.
 			activated = true;
+			session.activity(now);
 			proxy.activate(session,*this);
 
 		}
@@ -158,136 +145,70 @@
 
 	bool User::Agent::push_back(const XML::Node &node, std::shared_ptr<Activatable> activatable){
 
-		auto event = EventFactory(String{node,"trigger-event"}.c_str());
+		String trigger{node,"trigger-event"};
+		if(trigger.empty()) {
+			trigger = String{node,"name"};
+		}
+
+		auto event = EventFactory(trigger.c_str());
 		if(!event) {
 			// It's not an user event, call the default method.
 			return super::push_back(node,activatable);
 		}
 
-		uint16_t filter = Proxy::All;
-		uint16_t mask = 0x01;
-		for(const auto &type : session_types) {
-			auto attr = XML::AttributeFactory(node,String{"on-",type.attrname,"-session"}.c_str());
-			if(!attr) {
-				attr = XML::AttributeFactory(node,String{type.attrname,"-session"}.c_str());
-			}
-			if(attr.as_bool(type.flag)) {
-				filter = (Proxy::Filter) (filter | mask);
-			} else {
-				filter = (Proxy::Filter) (filter & (~mask));
-			}
-			mask <<= 1;
-		} 
+		auto &proxy = proxies.emplace_back(event,Session::TypeFactory(node),activatable);
 
-		auto &proxy = proxies.emplace_back(event,filter,activatable);
-
-		if(event & User::pulse && !this->timer()) {
-			this->timer(14400);
-			Logger::String{"update-timer attribute is required to use pulse alerts, setting it to ",this->timer()," seconds"}.warning(name());
+		if(event & User::pulse) {
+			proxy.timer = XML::AttributeFactory(node,"interval").as_uint(proxy.timer);
+			this->sched_update(5);
 		}
 
 		return true;
 
 	}
-
-	/*
-	bool User::Agent::getProperties(const char *path, Report &report) const {
-
-		if(super::getProperties(path,report)) {
-			return true;
-		}
-
-		if(*path) {
-			return false;
-		}
-
-		report.start("username","state","locked","remote","system","domain","display","type","service","class","activity","pulsetime",nullptr);
-
-		User::List::getInstance().for_each([this,&report](Udjat::User::Session &user) {
-
-			report.push_back(user.name());
-
-			report.push_back(user.state());
-			report.push_back(user.locked());
-			report.push_back(user.remote());
-			report.push_back(user.system());
-#ifdef _WIN32
-			report.push_back(user.domain());
-			report.push_back(""); // display
-			report.push_back(""); // type
-			report.push_back(""); // service
-			report.push_back(""); // classname
-#else
-			report.push_back(""); // domain
-			report.push_back(user.display());
-			report.push_back(user.type());
-			report.push_back(user.service());
-			report.push_back(user.classname());
-#endif // _WIN32
-
-			FIXME: Get pulse time
-			{
-				time_t pulse = 0;
-
-				for(const User::Alert &alert : proxies) {
-					time_t timer = alert.timer();
-					time_t next = alerttime + timer;
-					if(timer && alert.test(User::pulse) && alert.test(*session) && next > time(0)) {
-						if(pulse) {
-							pulse = std::min(pulse,next);
-						} else {
-							pulse = next;
-						}
-					}
-				}
-
-				if(pulse) {
-					report << TimeStamp(pulse);
-				} else {
-					report << "";
-				}
-
-			}
-			report.push_back("");
-			return false;
-
-		});
-
-		return true;
-	}
-	*/
 
 	bool User::Agent::refresh() {
 
+		Logger::String{"NEED REFACTOR!!!"}.error(name());
+
+		time_t seconds = 60;
+
 		for(const auto &proxy : proxies) {
 
-			if(!(proxy.events & User::pulse)) {
-				continue;
+			if(proxy.events & User::pulse) {
+
+				// Check 'pulse' event on all users.
+				time_t now = time(0);
+				User::List::getInstance().for_each([&](Udjat::User::Session &session) {
+
+					time_t idletime = now - session.activity();
+
+					if(idletime >= proxy.timer) {
+
+						if(session.test(proxy.filter)) {
+							// Emit 'pulse' signal.
+							session.activity(now);
+							proxy.activate(session,*this);
+						}
+
+					} else {
+
+						// How many seconds to this session becomes idle?
+						time_t wait = proxy.timer - idletime;
+						if(wait < seconds) {
+							seconds = wait;
+						}
+
+					}
+
+					return false;
+				});
 			}
 
-			// Emit 'pulse' event for all users.
-			User::List::getInstance().for_each([&](Udjat::User::Session &session) {
-				
-				// FIXME: Should check session idle time.
-				
-				proxy.activate(session,*this);
-				
-				return false;
-			});
 		}
-	}
 
-	Value & User::Agent::getProperties(Value &value) const {
-		super::getProperties(value);
+		this->sched_update(seconds);
 
-		Udjat::Value &users = value["users"];
-
-		User::List::getInstance().for_each([this,&users](Udjat::User::Session &user) {
-			user.getProperties(users.append(Udjat::Value::Object));
-			return false;
-		});
-
-		return value;
 	}
 
 	bool User::Agent::getProperties(const char *path, Value &value) const {

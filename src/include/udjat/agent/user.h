@@ -26,9 +26,9 @@
  #include <udjat/tools/xml.h>
  #include <udjat/agent/abstract.h>
  #include <udjat/tools/activatable.h>
-
- /*
  #include <udjat/tools/user/session.h>
+				
+ /*
  #include <udjat/agent/abstract.h>
  #include <udjat/tools/value.h>
  #include <list>
@@ -44,26 +44,13 @@
 			struct Proxy {
 
 				User::Event events = User::no_event;
-
-				enum Filter : uint16_t {
-					System_session 	= 0x0001,	///< @brief Activate on system sessions?
-					User_Session	= 0x0002,	///< @brief Activate on user sessions?
-					Remote 			= 0x0004,	///< @brief Activate on remote sessions?
-					Locked 			= 0x0008,	///< @brief Activate on locked session?
-					Unlocked		= 0x0010,	///< @brief Activate on unlocked session?
-					Background		= 0x0020,	///< @brief Activate on background session?
-					Foreground		= 0x0040,	///< @brief Activate on foreground session?
-					Active			= 0x0080,	///< @brief Activate on active session?
-					Inactive		= 0x0100,	///< @brief Activate on inactive session?
-					All				= 0xFFFF
-				} filter = All;
+				Session::Type filter = Session::All;
 
 				std::shared_ptr<Activatable> activatable;	///< @brief The activatable for this event.
 
-				time_t idle = 14400;			///< @brief Session idle time to emit 'pulse' events.
-				time_t last_activation = 0;		///< @brief Time stamp of last activation.
+				time_t timer = 0;	///< @brief Session idle time to emit 'pulse' events (if enabled).
 
-				Proxy(const User::Event ev, const Filter f, std::shared_ptr<Activatable> a)
+				Proxy(const User::Event ev, const Session::Type f, std::shared_ptr<Activatable> a)
 					: events{ev},filter{f},activatable{a} {						
 				}
 
@@ -105,7 +92,6 @@
 
 			Value & get(Value &value) const override;
 
-			Value & getProperties(Value &value) const override;
 			bool getProperties(const char *path, Value &value) const override;
 
 			/// @brief Get Agent value (seconds since last alert);
