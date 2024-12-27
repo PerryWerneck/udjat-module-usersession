@@ -25,10 +25,7 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/user/session.h>
-
- #ifdef HAVE_DBUS
-	#include <udjat/tools/dbus/connection.h>
- #endif // HAVE_DBUS
+ #include <udjat/tools/service.h>
 
  namespace Udjat {
 
@@ -37,7 +34,7 @@
 		class Agent;
 
 		/// @brief Singleton with the user's list.
-		class UDJAT_API List {
+		class UDJAT_API List : private Udjat::Service {
 		private:
 
 			std::recursive_mutex guard;
@@ -59,6 +56,10 @@
 
 			/// @brief Deinitialize session.
 			void deinit(Session &session);
+
+			// Udjat::Service
+			void start() override;
+			void stop() override;
 
 #ifdef _WIN32
 
@@ -83,8 +84,8 @@
 
 			void wakeup();
 
-			///< @brief Cached connection with the system bus listening for events.
-			Udjat::DBus::SystemBus systembus;
+			// D-Bus listeners;
+			void * listeners[6];
 
 #endif // _WIN32
 

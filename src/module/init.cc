@@ -18,23 +18,24 @@
  */
 
  #include <config.h>
- #include "private.h"
- #include <udjat/module.h>
+ #include <udjat/defs.h>
+ #include <udjat/module/abstract.h>
+ #include <udjat/agent/abstract.h>
  #include <udjat/tools/action.h>
  #include <udjat/tools/report.h>
  #include <udjat/moduleinfo.h>
- #include <udjat/version.h>
  #include <udjat/agent/user.h>
  #include <udjat/tools/user/list.h>
 
  using namespace std;
+ using namespace Udjat;
 
  /// @brief Register udjat module.
  Udjat::Module * udjat_module_init() {
 
-	static const Udjat::ModuleInfo modinfo{"Users management module"};
+	static const ModuleInfo modinfo{"Users management module"};
 
-	class Module : public Udjat::Module, private Udjat::Factory, private Udjat::Service, private Udjat::Action::Factory {
+	class Module : public Udjat::Module, private Abstract::Agent::Factory, private Action::Factory {
 	private:
 
 	protected:
@@ -47,30 +48,25 @@
 
 		Module() 
 			: Udjat::Module("users",modinfo), 
-				Udjat::Factory("users",modinfo), 
-				Udjat::Service("userlist",modinfo),
-				Udjat::Action::Factory("users") {
+				Abstract::Agent::Factory("users"),
+				Action::Factory("users") {
+
+			// Get User list singleton.
+			User::List::getInstance();
+
 		};
 
 		virtual ~Module() {
 		}
 
-		void start() override {
-			User::List::getInstance().activate();
-		}
-
-		void stop() override {
-			User::List::getInstance().deactivate();
-		}
-
 		std::shared_ptr<Action> ActionFactory(const XML::Node &node) const {
 
-			class Action : public Udjat::Action {
+			class UserListAction : public Udjat::Action {
 			public:
-				Action(const XML::Node &node) : Udjat::Action{node} {
+				UserListAction(const XML::Node &node) : Udjat::Action{node} {
 				}
 
-				~Action() {
+				virtual ~UserListAction() {
 				}
 
 				int call(Udjat::Request &request, Udjat::Response &response, bool except) {
@@ -91,7 +87,7 @@
 
 			};
 
-			return make_shared<Action>(node);
+			return make_shared<UserListAction>(node);
 		}
 
 	};

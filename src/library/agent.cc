@@ -99,43 +99,24 @@
 
 		}
 
-		/*
-		try {
-
-			auto activation = alert.ActivationFactory();
-			activation->rename(session.name());
-			activation->set(session);
-			activation->set(*this);
-			Udjat::start(activation);
-
-		} catch(const std::exception &e) {
-
-			error() << e.what() << endl;
-
-		}
-		*/
-
 	}
 
 	bool User::Agent::onEvent(Session &session, const Udjat::User::Event event) noexcept {
 
 		bool activated = false;
 
-		session.info() << "Event: " << event << endl;
-
-		// Check proxies
+		Logger::String{"Event: ",event}.info(session.name());
 		time_t now = time(0);
+
+		// Check for activation
 		for(const auto &proxy : proxies) {
 
 			// Check event.
-			if(!(proxy.events & event)) {
-				continue;
+			if((proxy.events & event) && session.test(proxy.filter)) {
+				activated = true;
+				session.activity(now);
+				proxy.activate(session,*this);
 			}
-
-			// Check session state.
-			activated = true;
-			session.activity(now);
-			proxy.activate(session,*this);
 
 		}
 
@@ -168,8 +149,6 @@
 	}
 
 	bool User::Agent::refresh() {
-
-		Logger::String{"NEED REFACTOR!!!"}.error(name());
 
 		time_t seconds = 60;
 

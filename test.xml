@@ -8,6 +8,8 @@
 	<!-- attribute name='url' value='sqlite+http://localhost' / -->
 	<!-- attribute name='alert-url' value='http://localhost/udjat/alert/user/${username}/${name}' / -->
 
+	<interface type='web' action-name='users' required='no' />
+
 	<agent type='users' name='users' update-timer='60'>
 	
 		<!--
@@ -30,38 +32,36 @@
 		-->
 	
 		<!-- Activate when user is active on service start -->
-		<!-- alert name='start' trigger-event='Already active' max-retries='1' action='post' url='http://localhost'>
+		<!-- action name='start' trigger-event='Already active' action='post' url='http://localhost'>
 			{"user":"${username}","macaddress":"${macaddress}"}
-		</alert -->
+		</action -->
 
 		<!-- Activate when user is active on service stop -->
-		<!-- alert name='stop' trigger-event='Still active'>
-		</alert -->
+		<!-- action name='stop' trigger-event='Still active'>
+		</action -->
 
 		<!-- Activate on user logon -->
-		<!-- alert name='login' max-retries='1' max-retries='1' action='post' url='http://localhost'>
-		</alert -->
+		<!-- action name='login' max-retries='1' max-retries='1' action='post' url='http://localhost'>
+		</action -->
 
 		<!-- Activate on user logoff -->
-		<!-- alert name='logout' type='script' cmdline='touch /tmp/logout'>
-		</alert -->
+		<!-- action name='logout' type='script' cmdline='touch /tmp/logout'>
+		</action -->
 
 		<!-- Timer -->
-		<!-- alert name='pulse' interval='60' on-locked-session='no' max-retries='1' max-retries='1' action='post' url='http://localhost'>
-		</alert -->
+		<!-- action name='pulse' interval='60' on-locked-session='no' action='post' url='http://localhost'>
+		</action -->
 
 		<!-- Activate on user lock -->
-		<!-- alert name='lock' cmdline='touch /tmp/${username}.lock'>
-		</alert -->
+		<!-- action name='lock' cmdline='touch /tmp/${username}.lock'>
+		</action -->
 		
 		<!-- Activate on user unlock -->
-		<!-- alert name='unlock'>
-		</alert -->
+		<!-- action name='unlock'>
+		</action -->
 		
 	</agent>
 	
-	<interface type='web' action-name='users' required='no' />
-
 </config>
 
 

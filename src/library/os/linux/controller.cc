@@ -83,8 +83,14 @@
 		return *session;
 	}
 
-	User::List::List() {
+	static const ModuleInfo modinfo{"User list handler"};
+	User::List::List() : Udjat::Service{modinfo} {
 		debug("Starting user list");
+
+		for(size_t ix = 0; ix < N_ELEMENTS(listeners); ix++) {
+			listeners[ix] = nullptr;
+		}
+
 		efd = eventfd(0,0);
 		if(efd < 0) {
 			Logger::String{"Error getting eventfd: ",strerror(errno)}.error("users");
@@ -97,6 +103,15 @@
 		}
 		deactivate();
 	}
+
+	void User::List::start() {
+		activate();
+	}
+
+	void User::List::stop() {
+		deactivate();
+	}
+
 
 	void User::List::activate() {
 
@@ -113,7 +128,7 @@
 		if(Config::Value<bool>("user-session","subscribe-prepare-for-sleep",true)) {
 
 			try {
-				DBus::SystemBus::getInstance().subscribe(
+				listeners[0] = &DBus::SystemBus::getInstance().subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForSleep",
 					[this](DBus::Message &message) {
@@ -138,7 +153,7 @@
 
 		if(Config::Value<bool>("user-session","subscribe-prepare-for-shutdown",true)) {
 			try {
-				DBus::SystemBus::getInstance().subscribe(
+				listeners[1] = &DBus::SystemBus::getInstance().subscribe(
 					"org.freedesktop.login1.Manager",
 					"PrepareForShutdown",
 					[this](DBus::Message &message) {
@@ -162,7 +177,7 @@
 		// https://www.freedesktop.org/software/systemd/man/latest/org.freedesktop.login1.html
 		try {
 
-			DBus::SystemBus::getInstance().subscribe(
+			listeners[2] = &DBus::SystemBus::getInstance().subscribe(
 				"org.freedesktop.login1.Manager",
 				"SessionNew",
 				[this](DBus::Message &message) {
@@ -214,7 +229,7 @@
 		}
 
 		try {
-			DBus::SystemBus::getInstance().subscribe(
+			listeners[3] = &DBus::SystemBus::getInstance().subscribe(
 				"org.freedesktop.login1.Manager",
 				"SessionRemoved",
 				[this](DBus::Message &message) {
@@ -274,7 +289,7 @@
 		}
 
 		try {
-			DBus::SystemBus::getInstance().subscribe(
+			listeners[4] = &DBus::SystemBus::getInstance().subscribe(
 				"org.freedesktop.login1.Manager",
 				"UserNew",
 				[this](DBus::Message &message) {
@@ -290,7 +305,7 @@
 		}
 
 		try {
-			DBus::SystemBus::getInstance().subscribe(
+			listeners[5] = &DBus::SystemBus::getInstance().subscribe(
 				"org.freedesktop.login1.Manager",
 				"UserRemoved",
 				[this](DBus::Message &message) {
@@ -377,6 +392,16 @@
 		}
 
 		debug("Deactivating user controller");
+
+#ifdef HAVE_DBUS
+		for(size_t ix = 0; ix < N_ELEMENTS(listeners); ix++) {
+			if(listeners[ix]) {
+				DBus::Member &member = *((DBus::Member *) listeners[ix]);
+				DBus::SystemBus::getInstance().remove(member);
+			}
+			listeners[ix] = nullptr;
+		}
+#endif // HAVE_DBUS
 
 		if(monitor) {
 
