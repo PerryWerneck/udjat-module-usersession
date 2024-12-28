@@ -17,6 +17,73 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ #include <config.h>
+ #include <udjat/defs.h>
+ #include <udjat/tools/intl.h>
+ #include <udjat/tools/user/session.h>
+ #include <udjat/tools/abstract/object.h>
+ #include <udjat/agent/user.h>
+
+ namespace Udjat {
+
+	User::Session::Type User::Session::TypeFactory(const XML::Node &node) {
+
+		static const struct {
+			bool flag;
+			const char *attrname;
+		} typenames[] = {
+			{ false,	"system"		},
+			{ true,		"user"			},
+			{ false,	"remote"		},
+			{ true,		"local"			},
+			{ true,		"locked"		},
+			{ true,		"unlocked"		},
+			{ true,		"background"	},
+			{ true,		"foreground"	},
+			{ true,		"active"		},
+			{ true,		"inactive"		},
+		};
+
+		uint16_t value = 0xFFFF;
+		uint16_t mask = 0x01;
+		
+		for(const auto &type : typenames) {
+			auto attr = XML::AttributeFactory(node,String{"allow-on-",type.attrname,"-session"}.c_str());
+			if(!attr) {
+				attr = XML::AttributeFactory(node,String{"on-",type.attrname,"-session"}.c_str());
+			}
+			if(!attr) {
+				attr = XML::AttributeFactory(node,String{type.attrname,"-session"}.c_str());
+			}
+			if(attr.as_bool(type.flag)) {
+				value |= mask;
+			} else {
+				value &= (~mask);
+			}
+			mask <<= 1;
+		} 
+
+		return (User::Session::Type) value;
+	}
+
+	User::Agent::Proxy::Proxy(const XML::Node &node, const User::Event e, std::shared_ptr<Activatable> a)
+		: events{e},filter{User::Session::TypeFactory(node)},activatable{a} {
+
+		classname = String{node,"session-class","user"}.as_quark();
+		servicename = String{node,"session-service"}.as_quark();
+						
+	}
+
+	void User::Agent::Proxy::activate(const User::Session &session, const Abstract::Object &agent) const noexcept {
+
+		auto object = Abstract::Object::Factory(&session,&agent,nullptr);
+		activatable->activate(*object);
+		
+	}
+
+ }
+
+
 /*
 
  #include <udjat/tools/object.h>

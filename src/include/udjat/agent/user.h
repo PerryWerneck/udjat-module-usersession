@@ -35,18 +35,22 @@
 		class UDJAT_API Agent : public Udjat::Abstract::Agent {
 		private:
 
+			/// @brief Proxy for activatables parsing user filters.
 			struct Proxy {
 
 				User::Event events = User::no_event;
 				Session::Type filter = Session::All;
 
+#ifndef _WIN32
+				const char *classname = nullptr;
+				const char *servicename = nullptr;
+#endif !_WIN32
+
 				std::shared_ptr<Activatable> activatable;	///< @brief The activatable for this event.
 
 				time_t timer = 0;	///< @brief Session idle time to emit 'pulse' events (if enabled).
 
-				Proxy(const User::Event ev, const Session::Type f, std::shared_ptr<Activatable> a)
-					: events{ev},filter{f},activatable{a} {						
-				}
+				Proxy(const XML::Node &node, const User::Event event, std::shared_ptr<Activatable> activatable);
 
 				void activate(const User::Session &session, const Abstract::Object &agent) const noexcept;
 

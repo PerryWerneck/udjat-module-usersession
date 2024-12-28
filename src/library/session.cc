@@ -37,22 +37,6 @@
 	N_( "unknown" ),
  };
 
- static const struct {
-	bool flag;
-	const char *attrname;
- } typenames[] = {
-	{ false,	"system"		},
-	{ true,		"user"			},
-	{ false,	"remote"		},
-	{ true,		"local"			},
-	{ true,		"locked"		},
-	{ true,		"unlocked"		},
-	{ true,		"background"	},
-	{ true,		"foreground"	},
-	{ true,		"active"		},
-	{ true,		"inactive"		},
- };
-
  namespace Udjat {
 
 	User::State User::StateFactory(const char *statename) {
@@ -85,28 +69,6 @@
 		return SessionInUnknownState;
 
 	}
-
-	User::Session::Type User::Session::TypeFactory(const XML::Node &node) {
-
-		uint16_t value = 0xFFFF;
-		uint16_t mask = 0x01;
-		
-		for(const auto &type : typenames) {
-			auto attr = XML::AttributeFactory(node,String{"on-",type.attrname,"-session"}.c_str());
-			if(!attr) {
-				attr = XML::AttributeFactory(node,String{type.attrname,"-session"}.c_str());
-			}
-			if(attr.as_bool(type.flag)) {
-				value |= mask;
-			} else {
-				value &= (~mask);
-			}
-			mask <<= 1;
-		} 
-
-		return (User::Session::Type) value;
-	}
-
 
 	void User::Session::emit(const Event &event) noexcept {
 		onEvent(event);

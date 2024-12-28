@@ -25,17 +25,6 @@
  #include <udjat/alert.h>
  #include <udjat/tools/string.h>
 
-
-/*
- #include <udjat/tools/object.h>
- #include <udjat/agent/abstract.h>
- #include <udjat/alert.h>
- #include <udjat/tools/threadpool.h>
- #include <udjat/tools/logger.h>
- #include <udjat/alert/user.h>
- #include <udjat/tools/xml.h>
-*/
-
  using namespace std;
 
  namespace Udjat {
@@ -137,7 +126,7 @@
 			return super::push_back(node,activatable);
 		}
 
-		auto &proxy = proxies.emplace_back(event,Session::TypeFactory(node),activatable);
+		auto &proxy = proxies.emplace_back(node,event,activatable);
 
 		if(event & User::pulse) {
 			proxy.timer = XML::AttributeFactory(node,"interval").as_uint(proxy.timer);
