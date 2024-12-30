@@ -99,9 +99,16 @@
 #endif
 		
 		time_t now = time(0);
+		time_t seconds = 600;
 
 		// Check for activation
 		for(const auto &proxy : proxies) {
+
+			if(proxy.timer) {
+				time_t wait = proxy.timer - (now - session.activity());
+				debug("---> Wait for ",wait);
+				seconds = min(seconds,wait);
+			}
 
 			if(!(proxy.events & event)) {
 				continue;
@@ -140,9 +147,13 @@
 					(proxy.servicename ? proxy.servicename : "-"),"/",session.service(),
 					")"
 				);
+
 			}
 
 		}
+
+		timer(seconds);
+		debug("Agent update set to ",TimeStamp(now+seconds).to_string()," (",seconds," seconds");
 
 		return activated;
 
@@ -180,7 +191,7 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
 
 		if(event & User::pulse) {
 			proxy.timer = XML::AttributeFactory(node,"interval").as_uint(proxy.timer);
-			this->sched_update(5);
+			timer(min(timer(),proxy.timer));
 		}
 
 		return true;
@@ -189,7 +200,7 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
 
 	bool User::Agent::refresh() {
 
-		time_t seconds = 60;
+		time_t seconds = 600;
 
 		for(const auto &proxy : proxies) {
 
@@ -198,6 +209,10 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
 				// Check 'pulse' event on all users.
 				time_t now = time(0);
 				User::List::getInstance().for_each([&](Udjat::User::Session &session) {
+
+					if(!proxy.timer) {
+						return false;
+					}
 
 					time_t idletime = now - session.activity();
 
@@ -211,8 +226,10 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
 #endif // !_WIN32
 						) {
 							// Emit 'pulse' signal.
+							Logger::String{"Emiting '",proxy.activatable->name(),"' action"}.trace(session.name());
 							session.activity(now);
 							proxy.activate(session,*this);
+							seconds = min(seconds,proxy.timer);
 						}
 
 					} else {
@@ -220,7 +237,7 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
 						// How many seconds to this session becomes idle?
 						time_t wait = proxy.timer - idletime;
 						if(wait < seconds) {
-							seconds = wait;
+							seconds = min(seconds,wait);
 						}
 
 					}
@@ -231,7 +248,9 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
 
 		}
 
-		this->sched_update(seconds);
+		debug("Sched update to ",seconds," seconds");
+		timer(seconds);
+
 		return true;
 
 	}

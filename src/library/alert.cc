@@ -22,6 +22,7 @@
  #include <udjat/tools/intl.h>
  #include <udjat/tools/user/session.h>
  #include <udjat/tools/abstract/object.h>
+ #include <udjat/alert.h>
  #include <udjat/agent/user.h>
  #include <udjat/tools/logger.h>
 
@@ -102,6 +103,10 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
 
 	User::Agent::Proxy::Proxy(const XML::Node &node, const User::Event e, std::shared_ptr<Activatable> a)
 		: events{e},filter{User::Session::TypeFactory(node)},activatable{a} {
+
+		if(dynamic_cast<Udjat::Alert *>(activatable.get())) {
+			throw std::system_error(ENOTSUP, std::system_category(),"Unable to handle user based alerts");
+		}
 
 		classname = String{node,"session-class","user"}.as_quark();
 		servicename = String{node,"session-service"}.as_quark();

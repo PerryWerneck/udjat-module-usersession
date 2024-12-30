@@ -49,8 +49,8 @@
 		</action -->
 
 		<!-- Timer -->
-		<!-- action name='pulse' interval='60' on-locked-session='no' action='post' url='http://localhost'>
-		</action -->
+		<script name='pulse' interval='60' on-locked-session='no' cmdline='echo --PULSE--'>
+		</script>
 
 		<!-- Activate on user lock -->
 		<!-- action name='lock' cmdline='touch /tmp/${username}.lock'>
