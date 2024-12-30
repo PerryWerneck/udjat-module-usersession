@@ -203,7 +203,13 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
 
 					if(idletime >= proxy.timer) {
 
-						if(session.test(proxy.filter)) {
+						if(
+							session.test(proxy.filter)
+#ifndef _WIN32
+							&& (!(proxy.classname && *proxy.classname) || strcasecmp(proxy.classname,session.classname()) == 0)
+							&& (!(proxy.servicename && *proxy.servicename) || strcasecmp(proxy.servicename,session.service()) == 0)
+#endif // !_WIN32
+						) {
 							// Emit 'pulse' signal.
 							session.activity(now);
 							proxy.activate(session,*this);
