@@ -32,9 +32,9 @@
 		-->
 	
 		<!-- Activate when user is active on service start -->
-		<!-- action name='start' trigger-event='Already active' action='post' url='http://localhost'>
+		<script name='start' trigger-event='Already active' action='post' url='http://localhost'>
 			{"user":"${username}","macaddress":"${macaddress}"}
-		</action -->
+		</script>
 
 		<!-- Activate when user is active on service stop -->
 		<!-- action name='stop' trigger-event='Still active'>

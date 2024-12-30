@@ -217,7 +217,58 @@
 		return name(false);
 	}
 
-	bool User::Session::test(const Type type) const {
+	bool User::Session::test(const Session::Type filter) const {
+
+		if( ((uint16_t) filter) & (Locked|Unlocked)) {
+			// Test lock type.
+			if(!(((uint16_t) filter) & (locked() ? Locked : Unlocked))) {
+				debug("Rejecting session by 'lock' filter");
+				return false;
+			}
+		}
+
+		if(((uint16_t) filter) & (Background|Foreground)) {
+			// Test foreground session.
+			if(!(((uint16_t) filter) & (foreground() ? Foreground : Background))) {
+				debug("Rejecting session by 'background' filter");
+			}
+		}
+
+		if(((uint16_t) filter) & (System|User)) {
+			// Test user type.
+			if(!(((uint16_t) filter) & (system() ? System : User))) {
+				debug("Rejecting session by 'system' filter");
+				return false;
+			}
+		}
+
+		if(((uint16_t) filter) & (Active|Inactive)) {
+			// Test Session state.
+			if(!(((uint16_t) filter) & (active() ? Active : Inactive))) {
+				debug("Rejecting session by 'active' filter");
+				return false;
+			}
+		}
+
+		if(((uint16_t) filter) & (Remote|Local)) {
+			// Test remote session.
+			if(!(((uint16_t) filter) & (remote() ? Remote : Local))) {
+				debug("Rejecting session by 'remote' filter");
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+		/*
+	Session::Type User::Session::test(const Session::Type filter) const {
+
+
+
+
+		return rc;
+		Session::Type type = (Session::Type) 0;
 
 		if(type & (Locked|Unlocked)) {
 			// Test lock type.
@@ -261,7 +312,9 @@
 
 		debug("Allowing session ",name());
 		return true;
+
 	}
+		*/
 
  	User::Session & User::Session::onEvent(const User::Event &event) noexcept {
 

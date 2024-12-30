@@ -44,7 +44,7 @@
 #ifndef _WIN32
 				const char *classname = nullptr;
 				const char *servicename = nullptr;
-#endif !_WIN32
+#endif // !_WIN32
 
 				std::shared_ptr<Activatable> activatable;	///< @brief The activatable for this event.
 

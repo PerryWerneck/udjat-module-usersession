@@ -23,26 +23,60 @@
  #include <udjat/tools/user/session.h>
  #include <udjat/tools/abstract/object.h>
  #include <udjat/agent/user.h>
+ #include <udjat/tools/logger.h>
+
+ static const struct {
+	bool flag;
+	const char *attrname;
+ } typenames[] = {
+	{ false,	"system"		},
+	{ true,		"user"			},
+	{ false,	"remote"		},
+	{ true,		"local"			},
+	{ false,	"locked"		},
+	{ false,	"unlocked"		},
+	{ false,	"background"	},
+	{ false,	"foreground"	},
+	{ false,	"active"		},
+	{ false,	"inactive"		},
+ };
+
+ namespace std {
+
+#ifdef DEBUG
+template <typename I> 
+inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
+    static const char* digits = "0123456789ABCDEF";
+    std::string rc(hex_len,'0');
+    for (size_t i=0, j=(hex_len-1)*4 ; i<hex_len; ++i,j-=4)
+        rc[i] = digits[(w>>j) & 0x0f];
+    return rc;
+}
+#endif 
+
+	string to_string(const Udjat::User::Session::Type type) {
+
+		string rc;
+		uint16_t mask = 0x0001;
+		for(const auto &attr : typenames) {
+			if(type & mask) {
+				if(!rc.empty()) {
+					rc += ",";
+				}
+				rc += attr.attrname;
+
+			}
+			mask <<= 1;
+		}
+
+		return rc;
+	}
+
+ }
 
  namespace Udjat {
 
 	User::Session::Type User::Session::TypeFactory(const XML::Node &node) {
-
-		static const struct {
-			bool flag;
-			const char *attrname;
-		} typenames[] = {
-			{ false,	"system"		},
-			{ true,		"user"			},
-			{ false,	"remote"		},
-			{ true,		"local"			},
-			{ true,		"locked"		},
-			{ true,		"unlocked"		},
-			{ true,		"background"	},
-			{ true,		"foreground"	},
-			{ true,		"active"		},
-			{ true,		"inactive"		},
-		};
 
 		uint16_t value = 0xFFFF;
 		uint16_t mask = 0x01;

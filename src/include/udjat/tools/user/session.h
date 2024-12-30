@@ -167,8 +167,8 @@
 
 			/// @brief Test session type.
 			/// @param type The type with options to check.
-			/// @return true if at least one option is set.
-			bool test(const Type type) const;
+			/// @return true if the session flags match the filter.
+			bool test(const Session::Type filter) const;
 
 			/// @brief Is this session a remote one?
 			bool remote() const;
@@ -270,3 +270,8 @@
 
  }
 
+ namespace std {
+
+	string to_string(const Udjat::User::Session::Type type);
+
+ }

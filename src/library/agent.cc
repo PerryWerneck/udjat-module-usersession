@@ -94,17 +94,52 @@
 
 		bool activated = false;
 
-		Logger::String{"Event: ",event}.info(session.name());
+#ifdef DEBUG
+		Logger::String{"Event: '",std::to_string(event).c_str(),"' proxyes: ",proxies.size()}.info(session.name());
+#endif
+		
 		time_t now = time(0);
 
 		// Check for activation
 		for(const auto &proxy : proxies) {
 
+			if(!(proxy.events & event)) {
+				continue;
+			}
+
 			// Check event.
-			if((proxy.events & event) && session.test(proxy.filter)) {
+			debug(
+				"Proxy '",proxy.activatable->name(),
+				"' filter is '",std::to_string(proxy.filter).c_str(),
+				"' test result was '",session.test(proxy.filter)
+			);
+
+
+			if(session.test(proxy.filter)
+#ifndef _WIN32
+				&& (!(proxy.classname && *proxy.classname) || strcasecmp(proxy.classname,session.classname()) == 0)
+				&& (!(proxy.servicename && *proxy.servicename) || strcasecmp(proxy.servicename,session.service()) == 0)
+#endif // !_WIN32
+			) {
+				Logger::String{
+					"Activating event '",std::to_string(event),"' on session '",session.name(),"'"
+				}.trace(proxy.activatable->name());
 				activated = true;
 				session.activity(now);
 				proxy.activate(session,*this);
+
+			} else if(Logger::enabled(Logger::Debug)) {
+
+				Logger::String{
+					"Ignoring event '",std::to_string(event),"' on session '",session.name(),"' due to filters"
+				}.write(Logger::Debug,proxy.activatable->name());
+				debug(
+					"Session '",session.name(),"' rejected! (",
+					(proxy.classname ? proxy.classname : "-"),"/",session.classname(),
+					"  ",
+					(proxy.servicename ? proxy.servicename : "-"),"/",session.service(),
+					")"
+				);
 			}
 
 		}
@@ -112,6 +147,17 @@
 		return activated;
 
 	}
+
+#ifdef DEBUG
+template <typename I> 
+inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
+    static const char* digits = "0123456789ABCDEF";
+    std::string rc(hex_len,'0');
+    for (size_t i=0, j=(hex_len-1)*4 ; i<hex_len; ++i,j-=4)
+        rc[i] = digits[(w>>j) & 0x0f];
+    return rc;
+}
+#endif 
 
 	bool User::Agent::push_back(const XML::Node &node, std::shared_ptr<Activatable> activatable){
 
@@ -126,7 +172,11 @@
 			return super::push_back(node,activatable);
 		}
 
+		debug("--------------------------------------------> Pushing activatable proxy");
+
 		auto &proxy = proxies.emplace_back(node,event,activatable);
+
+		debug("Filters: ",std::to_string(proxy.filter).c_str()," (",n2hexstr((uint16_t) proxy.filter).c_str(),")");
 
 		if(event & User::pulse) {
 			proxy.timer = XML::AttributeFactory(node,"interval").as_uint(proxy.timer);
