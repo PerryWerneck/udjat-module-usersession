@@ -1,0 +1,128 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Perry Werneck <perry.werneck@gmail.com>\n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.5\n"
+
+#: src/library/events.cc:36
+msgid "Already active"
+msgstr ""
+
+#: src/library/events.cc:36
+msgid "Session is active on startup"
+msgstr "Sessão está ativa no início do serviço"
+
+#: src/library/events.cc:37
+msgid "Still active"
+msgstr ""
+
+#: src/library/events.cc:37
+msgid "Session still active on shutdown"
+msgstr "Sessão está ativa na finalização do serviço"
+
+#: src/library/events.cc:38
+msgid "Login"
+msgstr ""
+
+#: src/library/events.cc:38
+msgid "User has logged in"
+msgstr "Usuário iniciou sessão"
+
+#: src/library/events.cc:39
+msgid "Logout"
+msgstr ""
+
+#: src/library/events.cc:39
+msgid "User has logged out"
+msgstr "Usuário encerrou sessão"
+
+#: src/library/events.cc:40
+msgid "Lock"
+msgstr ""
+
+#: src/library/events.cc:40
+msgid "Session was locked"
+msgstr "Sessão foi bloqueada"
+
+#: src/library/events.cc:41
+msgid "Unlock"
+msgstr ""
+
+#: src/library/events.cc:41
+msgid "Session was unlocked"
+msgstr "Sessão foi desbloqueada"
+
+#: src/library/events.cc:42
+msgid "Foreground"
+msgstr ""
+
+#: src/library/events.cc:42
+msgid "Session is in foreground"
+msgstr ""
+
+#: src/library/events.cc:43
+msgid "Background"
+msgstr ""
+
+#: src/library/events.cc:43
+msgid "Session is in background"
+msgstr ""
+
+#: src/library/events.cc:44
+msgid "sleep"
+msgstr ""
+
+#: src/library/events.cc:44
+msgid "Session is preparing to sleep"
+msgstr ""
+
+#: src/library/events.cc:45
+msgid "resume"
+msgstr ""
+
+#: src/library/events.cc:45
+msgid "Session is resuming from sleep"
+msgstr ""
+
+#: src/library/events.cc:46
+msgid "shutdown"
+msgstr ""
+
+#: src/library/events.cc:46
+msgid "Session is shutting down"
+msgstr ""
+
+#: src/library/events.cc:47
+msgid "pulse"
+msgstr ""
+
+#: src/library/events.cc:47
+msgid "Session is alive"
+msgstr ""
+
+#: src/library/session.cc:32
+msgid "background"
+msgstr ""
+
+#: src/library/session.cc:33
+msgid "foreground"
+msgstr ""
+
+#: src/library/session.cc:34
+msgid "opening"
+msgstr ""
+
+#: src/library/session.cc:35
+msgid "closing"
+msgstr ""
+
+#: src/library/session.cc:37 src/library/session.cc:356
+msgid "unknown"
+msgstr ""
