@@ -1,0 +1,17 @@
+src/library/agent.cc
+src/library/events.cc
+src/library/list.cc
+src/library/os/linux/environment.cc
+src/library/os/linux/controller.cc
+src/library/os/linux/sessioninit.cc
+src/library/os/linux/session.cc
+src/library/os/linux/sessiondeinit.cc
+src/library/os/windows/controller.cc
+src/library/os/windows/session.cc
+src/library/os/windows/sessiondeinit.cc
+src/library/os/windows/sessioninit.cc
+src/library/session.cc
+src/library/alert.cc
+src/module/controller.cc
+src/module/init.cc
+src/module/session.cc

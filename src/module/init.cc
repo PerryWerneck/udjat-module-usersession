@@ -21,7 +21,7 @@
  #include <udjat/defs.h>
  #include <udjat/module/abstract.h>
  #include <udjat/agent/abstract.h>
- #include <udjat/tools/action.h>
+ #include <udjat/tools/actions/abstract.h>
  #include <udjat/tools/report.h>
  #include <udjat/moduleinfo.h>
  #include <udjat/agent/user.h>

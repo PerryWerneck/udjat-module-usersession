@@ -159,6 +159,7 @@
 
 	}
 
+/*
 #ifdef DEBUG
 template <typename I> 
 inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
@@ -169,6 +170,7 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
     return rc;
 }
 #endif 
+*/
 
 	bool User::Agent::push_back(const XML::Node &node, std::shared_ptr<Activatable> activatable){
 
