@@ -25,7 +25,7 @@ project(
 	license: 'GPL-3.0-or-later',
 )
 
-project_description = 'User/Session monitor for'
+project_description = 'User/Session monitoring library'
 
 #
 # Versioning
