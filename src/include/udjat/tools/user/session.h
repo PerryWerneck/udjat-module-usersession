@@ -229,7 +229,7 @@
 			std::string getenv(const char *varname) const;
 
 			/// @brief Execute function as user's effective id.
-			void exec(const std::function<void()> &exec) const;
+			int exec(const std::function<int()> &exec) const;
 
 #endif // _WIN32
 
@@ -239,6 +239,10 @@
  }
 
  namespace std {
+
+	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept;
+
+	UDJAT_API string to_string(const Udjat::User::Session::Type type);
 
 	UDJAT_API const std::string to_string(const Udjat::User::Event event, bool description = false) noexcept;
 
@@ -254,6 +258,7 @@
 		return session->to_string();
 	}
 
+
 	inline ostream& operator<< (ostream& os, const Udjat::User::Session &session) {
 		return os << session.to_string();
 	}
@@ -262,16 +267,8 @@
 		return os << session->to_string();
 	}
 
-	UDJAT_API const char * to_string(const Udjat::User::State state) noexcept;
-
 	inline ostream& operator<< (std::ostream& os, const Udjat::User::State state) {
 		return os << std::to_string(state);
 	}
-
- }
-
- namespace std {
-
-	string to_string(const Udjat::User::Session::Type type);
 
  }

@@ -17,9 +17,9 @@
 
 %define module_name users
 
-Summary:		User/Session library for %{product_name}  
+Summary:		User/Session library for %{udjat_product_name}  
 Name:			libudjat%{module_name}
-Version: 1.2.0
+Version:		1.2.0
 Release:		0
 License:		LGPL-3.0
 Source:			%{name}-%{version}.tar.xz
@@ -37,35 +37,32 @@ BuildRequires:	pkgconfig(libudjat)
 BuildRequires:	pkgconfig(libudjatdbus)
 BuildRequires:	pkgconfig(libsystemd)
 BuildRequires:  meson
+BuildRequires:	udjat-rpm-macros
 
 %description
-User/Session library for %{product_name}
+User/Session library for %{udjat_product_name}
 
-User session classes for use with lib%{product_name}
-
-#---[ Library ]-------------------------------------------------------------------------------------------------------
+User session classes for use with lib%{udjat_product_name}
 
 %package -n %{udjat_library}
-Summary: User/Session library for %{product_name}
+Summary: User/Session library for %{udjat_product_name}
 
-%lang_package -n %{udjat_library}
-User/Session library for %{product_name}
+%description -n %{udjat_library}
+User/Session library for %{udjat_product_name}
 
-C++ user session classes for use with lib%{product_name}
-
-#---[ Development ]---------------------------------------------------------------------------------------------------
+C++ user session classes for use with lib%{udjat_product_name}
 
 %package devel
 Summary: Development files for %{name}
 %udjat_devel_requires
 
 %description devel
-User/Session client library for %{product_name}
+User/Session client library for %{udjat_product_name}
 
-C++ user session classes for use with lib%{product_name}
+C++ user session classes for use with lib%{udjat_product_name}
 
-%lang_package -n %{name}%{_libvrs}
-%udjat_module_package -n users
+%lang_package -n %{udjat_library}
+%udjat_module_package -n %{module_name}
 
 %prep
 %autosetup
@@ -76,11 +73,11 @@ C++ user session classes for use with lib%{product_name}
 
 %install
 %meson_install
-%find_lang %{name}-%{udjat_major}.%{udjat_minor} langfiles
+%find_lang %{name}-%{udjat_package_major}.%{udjat_package_minor} langfiles
 
 %files -n %{udjat_library}
 %defattr(-,root,root)
-%{_libdir}/%{name}.so.%{udjat_major}.%{udjat_minor}
+%{_libdir}/%{name}.so.%{udjat_package_major}.%{udjat_package_minor}
 
 %files -n %{udjat_library}-lang -f langfiles
 
@@ -95,9 +92,9 @@ C++ user session classes for use with lib%{product_name}
 %dir %{_includedir}/udjat/tools/user
 %{_includedir}/udjat/tools/user/*.h
 
-%post -n %{name}%{_libvrs} -p /sbin/ldconfig
+%post -n %{udjat_library} -p /sbin/ldconfig
 
-%postun -n %{name}%{_libvrs} -p /sbin/ldconfig
+%postun -n %{udjat_library} -p /sbin/ldconfig
 
 %changelog
 

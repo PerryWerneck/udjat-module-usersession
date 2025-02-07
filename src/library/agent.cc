@@ -179,13 +179,11 @@ inline std::string n2hexstr(I w, size_t hex_len = sizeof(I)<<1) {
 			trigger = String{node,"name"};
 		}
 
-		auto event = EventFactory(trigger.c_str());
+		auto event = User::EventFactory(trigger.c_str());
 		if(!event) {
 			// It's not an user event, call the default method.
 			return super::push_back(node,activatable);
 		}
-
-		debug("--------------------------------------------> Pushing activatable proxy");
 
 		auto &proxy = proxies.emplace_back(node,event,activatable);
 

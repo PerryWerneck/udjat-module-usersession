@@ -258,8 +258,8 @@
 		return session->uid;
 	}
 
-	void User::Session::exec(const std::function<void()> &exec) const {
-		DBus::UserBus::exec(uid,exec);
+	int User::Session::exec(const std::function<int()> &exec) const {
+		return DBus::UserBus::exec(uid,exec);
 	}
 
 	const char * User::Session::name(bool update) const noexcept {
