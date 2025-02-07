@@ -115,9 +115,7 @@ lib_src = [
 ]
 
 module_src = [
-  'src/module/controller.cc',
   'src/module/init.cc',
-  'src/module/session.cc',
 ]
 
 test_src = [
@@ -288,11 +286,6 @@ executable(
 install_headers(
   'src/include/udjat/agent/user.h',
   subdir: 'udjat/agent'  
-)
-
-install_headers(
-  'src/include/udjat/alert/user.h',
-  subdir: 'udjat/alert'  
 )
 
 install_headers(

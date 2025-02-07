@@ -35,7 +35,7 @@
 		class UDJAT_API Agent : public Udjat::Abstract::Agent {
 		private:
 
-			/// @brief Proxy for activatables parsing user filters.
+			/// @brief Proxy for user events.
 			struct Proxy {
 
 				User::Event events = User::no_event;
