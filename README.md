@@ -38,14 +38,14 @@ Watch active users sessions emitting UDJAT alerts (http call, script, etc) based
 	<module name='users' required='yes' />
 	
 	<!-- Declare an user monitor agent -->
-	<users name='users' update-timer='60'>
+	<agent type='users' name='users' update-timer='60'>
 
 		<!-- Do an HTTP post when user screen is locked -->
 		<script type='url' name='lock' trigger-event='lock' action='post' url='http://localhost'>
 			{"user":"${username}","macaddress":"${macaddress}"}
 		</script>
 
-	</users>
+	</agent>
 	
 </config>
 ```
