@@ -151,6 +151,13 @@
 				last_activity = tm;
 			}
 
+#ifdef _WIN32
+			std::string id() const noexcept;
+#else
+			inline const std::string &id() const noexcept {
+				return sid;
+			}
+#endif
 			inline time_t activity() const noexcept {
 				return last_activity;
 			}

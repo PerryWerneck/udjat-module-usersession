@@ -32,33 +32,17 @@
 		-->
 	
 		<!-- Activate when user is active on service start -->
-		<script name='start' trigger-event='Already active' action='post' url='http://localhost'>
+		<script type='url' name='start' trigger-event='Already active' action='post' url='http://localhost'>
 			{"user":"${username}","macaddress":"${macaddress}"}
 		</script>
 
-		<!-- Activate when user is active on service stop -->
-		<!-- action name='stop' trigger-event='Still active'>
-		</action -->
-
-		<!-- Activate on user logon -->
-		<!-- action name='login' max-retries='1' max-retries='1' action='post' url='http://localhost'>
-		</action -->
-
-		<!-- Activate on user logoff -->
-		<!-- action name='logout' type='script' cmdline='touch /tmp/logout'>
-		</action -->
+		<script type='url' name='lock' trigger-event='lock' action='post' url='http://localhost'>
+			{"user":"${username}","macaddress":"${macaddress}"}
+		</script>
 
 		<!-- Timer -->
 		<script name='pulse' interval='60' on-locked-session='no' cmdline='echo --PULSE--'>
 		</script>
-
-		<!-- Activate on user lock -->
-		<!-- action name='lock' cmdline='touch /tmp/${username}.lock'>
-		</action -->
-		
-		<!-- Activate on user unlock -->
-		<!-- action name='unlock'>
-		</action -->
 		
 	</agent>
 	

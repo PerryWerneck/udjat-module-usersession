@@ -138,8 +138,9 @@
 			} else if(Logger::enabled(Logger::Debug)) {
 
 				Logger::String{
-					"Ignoring event '",std::to_string(event),"' on session '",session.name(),"' due to filters"
+					"Ignoring event '",std::to_string(event),"' on session '",session.name(),"@",session.id().c_str(),"' due to filters"
 				}.write(Logger::Debug,proxy.activatable->name());
+
 				debug(
 					"Session '",session.name(),"' rejected! (",
 					(proxy.classname ? proxy.classname : "-"),"/",session.classname(),
