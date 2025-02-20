@@ -26,7 +26,7 @@
  #include <fcntl.h>
  #include <unistd.h>
  #include <cstring>
- #include <udjat/tools/file.h>
+ #include <udjat/tools/file/text.h>
 
  using namespace std;
 
